@@ -14,11 +14,10 @@ module.exports=Backbone.View.extend({
 		$("#aplication").append(el);
 	},
 	events:{
-		"click span":"click2"
+		"click a":"click"
 	},
-	click2:function(e){
-		console.log(this);
-		console.log(e);
+	click:function(e){
+		alert("Si muestra esto funciona");
 	},
 	initialize: function() {
 		this.listenTo(this.model, "change", this.render,this);
