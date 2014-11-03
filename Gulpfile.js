@@ -11,7 +11,7 @@ gulp.task('js', function () {
   gulp.src('js/mddcloud.js')
     .pipe(browserify())
     .pipe(uglify({ compress: true }))
-    .pipe(stripDebug())
+    //.pipe(stripDebug())
     .pipe(gulp.dest('public/js'));
 });
 

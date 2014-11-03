@@ -1,7 +1,6 @@
 var Backbone	=	require("backbone"),
 	$			=	require("jquery"),
 	Handlebars	=	require("handlebars");
-	Backbone.$	=	$;
 
 module.exports=Backbone.View.extend({
 	template:Handlebars.compile($("#project-svg").html()),

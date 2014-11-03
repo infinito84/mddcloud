@@ -1,5 +1,6 @@
 var Backbone	=	require("backbone"),
-	$			=	require("jquery");	
+	$			=	require("jquery");
+	Backbone.$	=	$;
 
 (function(){
 	var mdd={
@@ -20,7 +21,7 @@ var Backbone	=	require("backbone"),
 
 var project=new mdd.model.Project({name:"Mi primer proyecto",theme:"blue"});
 var projectView1=new mdd.view.ViewProject1({model:project});
-projectView1.render();
+$("#aplication").html(projectView1.render().el);
 var projectView2=new mdd.view.ViewProject2({model:project,el:$("svg")});
 projectView2.render();
 var route=new mdd.router();
