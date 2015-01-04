@@ -12,8 +12,6 @@ module.exports=Backbone.View.extend({
 	render:function(){
 		var html=this.template(this.model.toJSON())
 		this.$el.html(html);
-		console.log(this.$el);
-		console.log(this.el);
 		return this;
 	},	
 	myclick:function(){

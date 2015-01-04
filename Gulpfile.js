@@ -5,30 +5,39 @@ var gulp        = require('gulp'),
     stripDebug  = require('gulp-strip-debug'),
     minifyCSS   = require('gulp-minify-css'),
     minifyHTML  = require('gulp-minify-html'),
-    browserify  = require('gulp-browserify');
+    stylus      = require('gulp-stylus'),
+    jsonminify  = require('gulp-jsonminify'),
+    browserify  = require('gulp-browserify'),
+    nib         = require('nib');
 
 gulp.task('js', function () {
   gulp.src('js/mddcloud.js')
     .pipe(browserify())
-    .pipe(uglify({ compress: true }))
+    //.pipe(uglify({ compress: true }))
     //.pipe(stripDebug())
     .pipe(gulp.dest('public/js'));
 });
 
-gulp.task('css', function () {
-  gulp.src('app/css/**/*.css')
-    .pipe(minifyCSS({ keepSpecialComments: '*', keepBreaks: '*'}))
-    .pipe(gulp.dest('./public/css'));
+gulp.task('i18n', function () {
+  gulp.src('locales/**')
+    .pipe(jsonminify())
+    .pipe(gulp.dest('public/locales'));
+});
+
+gulp.task('stylus', function () {
+  gulp.src('css/mddcloud.styl')
+    .pipe(stylus({
+      compress: true,
+      use: nib()
+    }))
+    .pipe(gulp.dest('public/css'));
 });
 
 gulp.task('images', function () {
-  var imgSrc = './app/img/**/*',
-      imgDst = './public/img';
-
-  gulp.src('app/img/**/*')
-    .pipe(changed(imgDst))
+  gulp.src('img/**')
+    .pipe(changed("public/img"))
     .pipe(imagemin())
-    .pipe(gulp.dest(imgDst));
+    .pipe(gulp.dest("public/img"));
 });
 
 gulp.task('html', function () {
@@ -41,7 +50,9 @@ gulp.task('html', function () {
 });
 
 gulp.task('fonts', function () {
-  gulp.src('app/fonts/**')
+  gulp.src('fonts/**')
+    .pipe(gulp.dest('./public/fonts'));
+  gulp.src('bower_components/font-awesome-stylus/fonts/**')
     .pipe(gulp.dest('./public/fonts'));
 });
 
@@ -50,4 +61,4 @@ gulp.task('data', function () {
     .pipe(gulp.dest('./public'));
 });
 
-gulp.task('default', [ 'js','html']);
+gulp.task('default', [ 'js','html','i18n','stylus','images','fonts']);
