@@ -1,17 +1,8 @@
-var Backbone		=	require("backbone"),
-	Handlebars		=	require("handlebars"),
-	i18n			=	require("i18next-client"),
-	$				=	require("jquery");
-	Backbone.$		=	$;
-	window.jQuery	=	$;
-	require("jquery_nicescroll");
-	delete window.jQuery;
-	
-
-Handlebars.registerHelper('t', function(i18n_key) {
-	var result = i18n.t(i18n_key);
-	return new Handlebars.SafeString(result);
-});
+var Backbone	=	require("backbone"),	
+	i18n		=	require("i18next-client"),
+	$			=	require("jquery"),
+	utils		=	require("./utils/index.js")($);
+	Backbone.$	=	$;	
 
 i18n.init({lng:"en",fallbackLng:"en"},function(){
 	var mdd={
