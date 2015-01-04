@@ -1,17 +1,26 @@
-var Handlebars	=	require("handlebars"),
-	i18n		=	require("i18next-client");
+var Handlebars	=	require("hbsfy/runtime"),
+	i18n		=	require("i18next-client"),
+	app			=	require("../app/namespace.js"),
+	$			=	require("jquery");
 
 module.exports=(function(){
 
-	var utils={
-		init:function($){
-			utils.registerjQueryPlugins($);
-			utils.registerHandlebarsHerlpers();
-			return {
-				//Reveal functions
-			}
+	var publicUtils={
+		init:function(){
+			privateUtils.registerjQueryPlugins();
+			privateUtils.registerHandlebarsHerlpers();
+			return publicUtils;
 		},
-		registerjQueryPlugins:function($){
+		loadHome:function(){
+			app.views.home=require("../views/index.js");
+			var view=new app.views.home();
+			$("body").html(view.render().$el);
+			view.bindEvents();
+		}
+	}
+
+	var privateUtils={
+		registerjQueryPlugins:function(){
 			window.jQuery = $;
 			require("jquery_nicescroll");
 			delete window.jQuery;
@@ -24,5 +33,5 @@ module.exports=(function(){
 		}
 	}
 
-	return utils.init
+	return publicUtils.init
 })();

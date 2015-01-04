@@ -1,4 +1,12 @@
 {
-  "Project name x": "example",
-  "Project name z": ""
+  "Activity diagrams": "Activity diagrams",
+  "Class diagram": "Class diagram",
+  "Functional requirements": "Functional requirements",
+  "Meetings": "Meetings",
+  "Nonfunctional requirements": "Nonfunctional requirements",
+  "Objectives": "Objectives",
+  "Project": "Project",
+  "Storage requirements": "Storage requirements",
+  "Use case diagram": "Use case diagram",
+  "create": "create"
 }

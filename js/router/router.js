@@ -1,11 +1,15 @@
-var Backbone	=	require("backbone");
+var Backbone	=	require("backbone"),
+	app			=	require("../app/namespace.js");
 
 module.exports=Backbone.Router.extend({
 	routes:{
+		"":"index",
 		"change/:color":"change_color"
 	},
+	index:function(){
+		app.utils.loadHome();
+	},
 	change_color:function(color){
-		//var fill="#"+(parseInt(Math.random()*89)+10)+(parseInt(Math.random()*89)+10)+(parseInt(Math.random()*89)+10);
-		mdd.project.set("theme",color);
+		
 	}
 });

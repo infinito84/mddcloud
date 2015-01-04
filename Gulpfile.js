@@ -7,15 +7,22 @@ var gulp        = require('gulp'),
     minifyHTML  = require('gulp-minify-html'),
     stylus      = require('gulp-stylus'),
     jsonminify  = require('gulp-jsonminify'),
-    browserify  = require('gulp-browserify'),
-    nib         = require('nib');
+    browserify  = require('browserify'),
+    source      = require('vinyl-source-stream'),
+    streamify   = require('gulp-streamify'),
+    nib         = require('nib'),
+    hbsfy       = require("hbsfy");
 
 gulp.task('js', function () {
-  gulp.src('js/mddcloud.js')
-    .pipe(browserify())
-    //.pipe(uglify({ compress: true }))
-    //.pipe(stripDebug())
-    .pipe(gulp.dest('public/js'));
+  hbsfy.configure({
+      extensions: ['hbs']
+  });
+  browserify('./js/mddcloud.js')
+      .transform(hbsfy)
+      .bundle()
+      .pipe(source('mddcloud.js'))
+      .pipe(streamify(uglify()))
+      .pipe(gulp.dest('public/js'));
 });
 
 gulp.task('i18n', function () {

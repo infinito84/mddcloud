@@ -1,4 +1,12 @@
 {
-  "Project name x": "",
-  "Project name z": ""
+  "Activity diagrams": "Diagramas de actividades",
+  "Class diagram": "Diagrama de clases",
+  "Functional requirements": "Requisitos funcionales",
+  "Meetings": "Reuniones",
+  "Nonfunctional requirements": "Requisitos no funcionales",
+  "Objectives": "Objetivos",
+  "Project": "Proyecto",
+  "Storage requirements": "Requisitos de almacenamiento de información",
+  "Use case diagram": "Diagrama de casos de uso",
+  "create": "crear"
 }
