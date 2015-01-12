@@ -21,7 +21,7 @@ gulp.task('js', function () {
       .transform(hbsfy)
       .bundle()
       .pipe(source('mddcloud.js'))
-      .pipe(streamify(uglify()))
+      //.pipe(streamify(uglify()))
       .pipe(gulp.dest('public/js'));
 });
 

@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "prestart": "node ./node_modules/gulp/bin/gulp.js",
-    "i18n": "node ./node_modules/i18next-parser/bin/cli.js . -o locales -l en,fr,es,pt"
+    "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./js -r -o js/locales -l en,fr,es,pt"
   },
   "author": "Sergio Andrés Ñustes <infinito84@gmail.com>",
   "license": "GPL",
