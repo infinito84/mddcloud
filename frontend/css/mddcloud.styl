@@ -1,0 +1,26 @@
+@import "normalize.styl"
+@import "../../bower_components/font-awesome-stylus/stylus/index.styl"
+
+$sidebar = 20%
+$app = 80%
+$logo_height = 20%
+$logo_margin = 10%
+
+@font-face
+  font-family 'Ubuntu'
+  src url('../fonts/Ubuntu.woff') format('woff'), 
+        url('../fonts/Ubuntu.ttf') format('truetype')
+
+body
+  background repeat url('data:image/gif;base64,R0lGODlhEAAQAKIAAEFGPy0wLDY7NUtRSEA3MAAAAAAAAAAAACH5BAAAAAAALAAAAAAQABAAAANIGCAAE0yxpWR7loq4LmyCAgLZQ31jGQQEAU3c9LQrGnvBoKUdqTcrGInyC+06q+KIBMulmh8nskGhSW8hlktpMWK4PZRpCksAADs=') fixed
+  padding-right 10px
+  padding-bottom 10px
+  font-family 'Ubuntu'
+  font-size 18px
+  color #5A5A5A
+
+@import "container.styl"
+@import "sidebar.styl"
+@import "tooltip.styl"
+@import "forms.styl"
+@import "project-view.styl"

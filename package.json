@@ -1,11 +1,11 @@
 {
-  "name": "MDDCloud_Frontend",
+  "name": "MDDCloud",
   "version": "0.0.2",
   "description": "A framework MDD on the cloud for generation of bussiness web application from software requirements",
   "scripts": {
-    "start": "node server.js",
+    "start": "node ./backend/mddcloud.js",
     "prestart": "node ./node_modules/gulp/bin/gulp.js",
-    "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./js -r -o js/locales -l en,fr,es,pt"
+    "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./frontend/js -r -o frontend/js/locales -l en,fr,es,pt"
   },
   "author": "Sergio Andrés Ñustes <infinito84@gmail.com>",
   "license": "GPL",
@@ -17,7 +17,12 @@
     "i18next-client": "~1.7.4",
     "nib": "~1.0.4",
     "hbsfy": "~2.2.1",
-    "browserify": "~8.0.3"
+    "browserify": "~8.0.3",
+    "express": "~4.10.7",
+    "socket.io": "~1.2.1",
+    "hbs": "~2.8.0",
+    "async": "~0.9.0",
+    "socket.io-client": "~1.2.1"
   },
   "devDependencies": {
     "node-static": "^0.7.6",

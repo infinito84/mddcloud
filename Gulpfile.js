@@ -17,55 +17,41 @@ gulp.task('js', function () {
   hbsfy.configure({
       extensions: ['hbs']
   });
-  browserify('./js/mddcloud.js')
+  browserify('./frontend/js/mddcloud.js')
       .transform(hbsfy)
       .bundle()
       .pipe(source('mddcloud.js'))
       //.pipe(streamify(uglify()))
-      .pipe(gulp.dest('public/js'));
+      .pipe(gulp.dest('frontend/public/js'));
 });
 
 gulp.task('i18n', function () {
-  gulp.src('locales/**')
+  gulp.src('frontend/js/locales/**')
     .pipe(jsonminify())
-    .pipe(gulp.dest('public/locales'));
+    .pipe(gulp.dest('frontend/public/js/locales'));
 });
 
 gulp.task('stylus', function () {
-  gulp.src('css/mddcloud.styl')
+  gulp.src('frontend/css/mddcloud.styl')
     .pipe(stylus({
       compress: true,
       use: nib()
     }))
-    .pipe(gulp.dest('public/css'));
+    .pipe(gulp.dest('frontend/public/css'));
 });
 
 gulp.task('images', function () {
-  gulp.src('img/**')
-    .pipe(changed("public/img"))
+  gulp.src('frontend/img/**')
+    .pipe(changed("frontend/public/img"))
     .pipe(imagemin())
-    .pipe(gulp.dest("public/img"));
-});
-
-gulp.task('html', function () {
-  var htmlSrc = '*.html',
-      htmlDst = 'public';
-
-  gulp.src(htmlSrc)
-  .pipe(minifyHTML())
-  .pipe(gulp.dest(htmlDst));
+    .pipe(gulp.dest("frontend/public/img"));
 });
 
 gulp.task('fonts', function () {
-  gulp.src('fonts/**')
-    .pipe(gulp.dest('./public/fonts'));
+  gulp.src('frontend/fonts/**')
+    .pipe(gulp.dest('frontend/public/fonts'));
   gulp.src('bower_components/font-awesome-stylus/fonts/**')
-    .pipe(gulp.dest('./public/fonts'));
+    .pipe(gulp.dest('frontend/public/fonts'));
 });
 
-gulp.task('data', function () {
-   gulp.src('app/data.json')
-    .pipe(gulp.dest('./public'));
-});
-
-gulp.task('default', [ 'js','html','i18n','stylus','images','fonts']);
+gulp.task('default', [ 'js','i18n','stylus','images','fonts']);
