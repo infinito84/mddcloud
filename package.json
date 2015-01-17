@@ -22,7 +22,8 @@
     "socket.io": "~1.2.1",
     "hbs": "~2.8.0",
     "async": "~0.9.0",
-    "socket.io-client": "~1.2.1"
+    "socket.io-client": "~1.2.1",
+    "mysql": "~2.5.4"
   },
   "devDependencies": {
     "node-static": "^0.7.6",

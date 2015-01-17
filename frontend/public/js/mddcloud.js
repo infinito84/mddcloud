@@ -3313,10 +3313,11 @@ module.exports=(function(){
 	return {
 		init:function(callback){
 			socket=io('http://localhost');
-			socket.on("data",function(data){
+			socket.on("data",function(data,fn){
 				if(data.type==="project"){
-					app.models.project=new ProjectModel(data.json);
+					app.models.project=new ProjectModel(data.json);					
 				}
+				fn();
 			});
 			socket.on("finishData",function(data){
 				callback(null,"ok");

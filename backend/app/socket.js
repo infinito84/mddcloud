@@ -13,6 +13,8 @@ module.exports=(function(){
 					creation_date:"2014 12 12",
 					template:"UNITED"
 				}
+			},function(){
+				console.log("Recibió el proyecto");
 			});
 			socket.emit("finishData");
 		});

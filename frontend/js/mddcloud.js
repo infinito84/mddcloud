@@ -19,7 +19,9 @@ $(document).ready(function(){
 			});
 		},
 		socket: function(callback){
-			io.init(callback);
+			io.init(function(){
+				callback(null,"ok");
+			});
 		}
 	},
 	function(err, results) {
