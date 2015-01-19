@@ -20,7 +20,9 @@ $(document).ready(function(){
 			});
 		},
 		socket: function(callback){
-			io.init(callback);
+			io.init(function(){
+				callback(null,"ok");
+			});
 		}
 	},
 	function(err, results) {
@@ -3304,8 +3306,8 @@ $(document).ready(function(){
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],3:[function(require,module,exports){
 var io 				= require('socket.io-client'),
-	app				= require("../app/namespace.js"),
-	ProjectModel 	= require("../models/project.js");
+	app				= require('../app/namespace.js'),
+	ProjectModel 	= require('../models/project.js');
 
 module.exports=(function(){
 	var socket;
@@ -3313,15 +3315,16 @@ module.exports=(function(){
 	return {
 		init:function(callback){
 			socket=io('http://localhost');
-			socket.on("data",function(data,fn){
-				if(data.type==="project"){
+			socket.on('data',function(data,fn){
+				if(data.type==='project'){
 					app.models.project=new ProjectModel(data.json);					
 				}
 				fn();
 			});
-			socket.on("finishData",function(data){
-				callback(null,"ok");
-			});
+			socket.on('finishData',callback);
+			socket.on('requestError',function(error){
+				alert(error.error);
+			})
 			return socket;
 		}
 	}
@@ -3396,6 +3399,14 @@ module.exports=(function(){
 				}
 				return new Handlebars.SafeString(answer);
 			});
+
+			Handlebars.registerHelper('date', function(date) {
+				var d=new Date(date);
+				return [d.getDate(),d.getMonth()+1,d.getFullYear()].map(function(num){
+					if(num<10)return "0"+num;
+					return num;
+				}).join("/");
+			});
 		}
 	}
 
@@ -3422,7 +3433,11 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Objectives", options) : helperMissing.call(depth0, "t", "Objectives", options)))
     + "</a>\n			<i class=\"fa fa-chevron-circle-right\"></i>\n			<ul>\n				<li><a class=\"add\"><i class=\"fa fa-plus\"></i> "
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "create", options) : helperMissing.call(depth0, "t", "create", options)))
-    + "</a></li>\n			</ul>	\n		</li>\n		<li id=\"btn-functional-req\">\n			<a class=\"dropdown\">"
+    + "</a></li>\n			</ul>	\n		</li>\n		<li id=\"btn-actors\">\n			<a class=\"dropdown\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Actors", options) : helperMissing.call(depth0, "t", "Actors", options)))
+    + "</a>\n			<i class=\"fa fa-chevron-circle-right\"></i>\n			<ul>\n				<li><a class=\"add\"><i class=\"fa fa-plus\"></i> "
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "create", options) : helperMissing.call(depth0, "t", "create", options)))
+    + "</a></li>\n			</ul>\n		</li>\n		<li id=\"btn-functional-req\">\n			<a class=\"dropdown\">"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Functional requirements", options) : helperMissing.call(depth0, "t", "Functional requirements", options)))
     + "</a>\n			<i class=\"fa fa-chevron-circle-right\"></i>\n			<ul>\n				<li><a class=\"add\"><i class=\"fa fa-plus\"></i> "
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "create", options) : helperMissing.call(depth0, "t", "create", options)))
@@ -3459,11 +3474,9 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Edit Project", options) : helperMissing.call(depth0, "t", "Edit Project", options)))
     + "</span>\n		</legend>\n		<div class=\"field\">\n			<label>"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Creation date", options) : helperMissing.call(depth0, "t", "Creation date", options)))
-    + "</label>\n			<input class=\"small disable\" disabled value=\"";
-  if (helper = helpers.creation_date) { stack1 = helper.call(depth0, {hash:{},data:data}); }
-  else { helper = (depth0 && depth0.creation_date); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
-  buffer += escapeExpression(stack1)
-    + "\" data=\"creation_date\"/>\n			<a class=\"help tooltip\" data-tooltip=\""
+    + "</label>\n			<input class=\"small disable\" disabled value=\""
+    + escapeExpression((helper = helpers.date || (depth0 && depth0.date),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.creationDate), options) : helperMissing.call(depth0, "date", (depth0 && depth0.creationDate), options)))
+    + "\" data=\"creationDate\"/>\n			<a class=\"help tooltip\" data-tooltip=\""
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "This field cannot modify", options) : helperMissing.call(depth0, "t", "This field cannot modify", options)))
     + "\">?</a>\n		</div>\n		<div class=\"field\">\n			<label>"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Name", options) : helperMissing.call(depth0, "t", "Name", options)))

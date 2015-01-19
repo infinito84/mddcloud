@@ -41,6 +41,14 @@ module.exports=(function(){
 				}
 				return new Handlebars.SafeString(answer);
 			});
+
+			Handlebars.registerHelper('date', function(date) {
+				var d=new Date(date);
+				return [d.getDate(),d.getMonth()+1,d.getFullYear()].map(function(num){
+					if(num<10)return "0"+num;
+					return num;
+				}).join("/");
+			});
 		}
 	}
 

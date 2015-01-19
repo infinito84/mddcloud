@@ -1,23 +1,87 @@
-
+var ObjectId = require('mongoose').Types.ObjectId,
+	Project  = require('../model/projectSchema'),
+	User	 = require('../model/userSchema'),
+	async 	 = require('async');
 
 module.exports=(function(){
-	return function(server){
+
+
+	return function(server,store){
 		var	io = require('socket.io')(server);
+		
+		//Added session socket functionality
+		io.use(require('express-session-socket.io')(store,'mddcloud', function (err, session, socket, next) {
+			if (err) next(err);
+			socket.session = session;
+			next();
+		}));			
 
-		io.on("connection",function(socket){
-			socket.emit("data",{
-				type:"project",
-				json:{
-					name:"Projecto 1",
-					description:"Esto es un projecto de prueba xlkjd",
-					creation_date:"2014 12 12",
-					template:"UNITED"
+		io.on('connection',function(socket){
+			var session = socket.session||{};
+			var projectId = session.project;
+			if(projectId === undefined){
+				socket.emit('requestError',{error:"Project undefined"});
+				return;
+			}
+			async.waterfall([
+				function(callback2){					
+					var query = Project.where({ _id: new ObjectId(projectId) });
+					query.findOne(function (error,project) {
+						if (error){
+							callback2('Internal error!');
+							return;
+						}
+						if (project) {
+							socket.emit('data',{
+								type : 'project',
+								json : project
+							},function(){
+								callback2(null,project.participants.map(function(participant){
+									return participant.userId;
+								}));
+							});
+						}
+						else{
+							callback2('Dont\'s exits project: '+projectId+'!');
+						}
+					});
+				},
+				function(usersId,callback2){
+					var query = User.where({ _id: {$in : usersId} });
+					query.find(function (error,users) {
+						if (error){
+							callback2('Internal error!');
+							return;
+						}
+						if (users) {
+							socket.emit('data',{
+								type : 'users',
+								json : users.map(function(user){
+									return {
+										_id   : user._id,
+										name  : user.name,
+										email : user.email,
+										image : user.image
+									}
+								})
+							},function(){
+								callback2(null,"ok");
+							});
+						}
+						else{
+							callback2('Error fetching users');
+						}
+					});
 				}
-			},function(){
-				console.log("Recibió el proyecto");
-			});
-			socket.emit("finishData");
+			],function(error){
+				if(error){
+					socket.emit('requestError',{error:error});
+				}
+				else{
+					socket.emit('finishData');
+				}
+			});					
 		});
-
+		console.log("Socket.IO ready!");
 	}	
 })();
