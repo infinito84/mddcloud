@@ -1,6 +1,6 @@
 var ObjectId = require('mongoose').Types.ObjectId,
-	Project  = require('../model/projectSchema'),
-	User	 = require('../model/userSchema'),
+	Project  = require('../model/project'),
+	User	 = require('../model/user'),
 	async 	 = require('async');
 
 module.exports=(function(){
@@ -25,12 +25,16 @@ module.exports=(function(){
 			}
 			async.waterfall([
 				function(callback2){					
-					var query = Project.where({ _id: new ObjectId(projectId) });
-					query.findOne(function (error,project) {
+					Project.findById(projectId)
+					.populate('participants')
+					.populate('participants.user')
+					.exec(function (error,project) {
 						if (error){
 							callback2('Internal error!');
 							return;
 						}
+						console.log(project);
+						return;
 						if (project) {
 							socket.emit('data',{
 								type : 'project',

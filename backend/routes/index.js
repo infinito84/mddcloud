@@ -4,7 +4,7 @@ var express	= require("express"),
 module.exports=(function(){
 	var router = express.Router();
 	router.get('/', function(req, res) {
-		req.session.project="54bc164f5583a3d42aaafb84";
+		req.session.project="54bdd57ddbebd1c00bad7ab3";
 		res.render('index');
 	});
 	app.use('/', router);
