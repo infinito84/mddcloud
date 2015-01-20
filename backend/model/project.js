@@ -60,5 +60,8 @@ module.exports=(function(){
 
 	});
 
+	//For Deep Population
+	projectSchema.plugin(require('mongoose-deep-populate'));
+
 	return mongoose.model('Project',projectSchema);
 })();

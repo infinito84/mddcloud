@@ -26,54 +26,22 @@ module.exports=(function(){
 			async.waterfall([
 				function(callback2){					
 					Project.findById(projectId)
-					.populate('participants')
-					.populate('participants.user')
+					.deepPopulate('participants.user')
 					.exec(function (error,project) {
 						if (error){
 							callback2('Internal error!');
 							return;
 						}
-						console.log(project);
-						return;
 						if (project) {
 							socket.emit('data',{
 								type : 'project',
 								json : project
 							},function(){
-								callback2(null,project.participants.map(function(participant){
-									return participant.userId;
-								}));
+								callback2();
 							});
 						}
 						else{
 							callback2('Dont\'s exits project: '+projectId+'!');
-						}
-					});
-				},
-				function(usersId,callback2){
-					var query = User.where({ _id: {$in : usersId} });
-					query.find(function (error,users) {
-						if (error){
-							callback2('Internal error!');
-							return;
-						}
-						if (users) {
-							socket.emit('data',{
-								type : 'users',
-								json : users.map(function(user){
-									return {
-										_id   : user._id,
-										name  : user.name,
-										email : user.email,
-										image : user.image
-									}
-								})
-							},function(){
-								callback2(null,"ok");
-							});
-						}
-						else{
-							callback2('Error fetching users');
 						}
 					});
 				}

@@ -3317,7 +3317,8 @@ module.exports=(function(){
 			socket=io('http://localhost');
 			socket.on('data',function(data,fn){
 				if(data.type==='project'){
-					app.models.project=new ProjectModel(data.json);					
+					app.models.project=new ProjectModel(data.json);		
+					window.project=app.models.project;			
 				}
 				fn();
 			});
