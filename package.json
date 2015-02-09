@@ -26,7 +26,8 @@
     "mongoose": "~3.8.21",
     "express-session": "~1.10.1",
     "express-session-socket.io": "~1.0.1",
-    "mongoose-deep-populate": "0.0.7"
+    "mongoose-deep-populate": "0.0.7",
+    "select2": "~3.5.2-browserify"
   },
   "devDependencies": {
     "node-static": "^0.7.6",
@@ -48,7 +49,8 @@
     "gulp-streamify": "0.0.5"
   },
   "browser": {
-    "jquery_nicescroll": "./bower_components/jquery.nicescroll/jquery.nicescroll.js"
+    "jquery_nicescroll": "./bower_components/jquery.nicescroll/jquery.nicescroll.js",
+    "jquery_fileupload": "./bower_components/jquery-file-upload/js/jquery.fileupload.js"
   },
   "browserify-shim": {
     "jquery_nicescroll": "jquery_nicescroll"

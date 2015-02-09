@@ -9,6 +9,8 @@ var Backbone	=	require("backbone"),
 	Backbone.$	=	$;	
 
 $(document).ready(function(){
+	var socket;
+
 	async.parallel({
 		i18n: function(callback){
 			i18n.init({
@@ -19,7 +21,7 @@ $(document).ready(function(){
 			});
 		},
 		socket: function(callback){
-			io.init(function(){
+			socket=io.init(function(){
 				callback(null,"ok");
 			});
 		}
@@ -28,6 +30,25 @@ $(document).ready(function(){
 		app.utils.loadHome();
 		app.router=new Router();		
 		Backbone.history.start();
+		Backbone.sync = function(method, model, options) {
+			var data={
+				method : method,
+				model  : model.model,
+				id 	   : model.id
+			};
+			if(method==="update"){
+				data.data = model.changedAttributes();
+				if(data.data===false)return;
+			}
+			if(method==="create"){
+				data.data = model.toJSON();
+			}
+			socket.emit('sync',data,function(id){
+				if(method==="create"){
+					model.set("_id",id);
+				}
+			});
+		};
 	});
 	
 });

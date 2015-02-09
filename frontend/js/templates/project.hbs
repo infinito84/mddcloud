@@ -33,11 +33,19 @@
 				<option {{selected template 'SPACELAB'}}>SPACELAB</option>
 				<option {{selected template 'UNITED'}}>UNITED</option>
 			</select>
-			<a class="help tooltip" data-tooltip="Choose a template for the Web application that is created">?</a>
+			<a class="help tooltip" data-tooltip="{{t 'Choose a template for the Web application that is created'}}">?</a>
 		</div>
 		<div class="field">
 			<label></label>
 			<img src="img/themes/{{lower template}}.png" alt="{{t 'Bootswatch Theme'}}">
+		</div>
+		<div class="field">
+			<label></label>
+			<button class="btn btn-primary" id="view-enumerations">{{t 'Enumerations'}}</button>
+		</div>
+		<div class="field">
+			<label></label>
+			<button class="btn btn-danger" id="view-participants">{{t 'Participants'}}</button>
 		</div>
 	</fieldset>
 </form>

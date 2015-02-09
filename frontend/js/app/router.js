@@ -9,10 +9,10 @@ module.exports=Backbone.Router.extend({
 		"project":"project"
 	},
 	project:function(){		
-		app.views.project=new ProjectView({
-			model:app.models.project
+		var projectView = new ProjectView({
+			model:app.project
 		});
-		$("#container").html(app.views.project.render().el);
-		window.app=app;
+		app.currentView = projectView;
+		$("#container").html(projectView.render().el);
 	}
 });

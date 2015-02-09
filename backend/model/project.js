@@ -63,5 +63,19 @@ module.exports=(function(){
 	//For Deep Population
 	projectSchema.plugin(require('mongoose-deep-populate'));
 
-	return mongoose.model('Project',projectSchema);
+	var Project = mongoose.model('Project',projectSchema);
+
+	Project.update = function(id,data,next){
+		Project.findById(id,function(err,project){
+			Object.keys(data).forEach(function(attr){
+				project[attr]=data[attr];
+			});
+			project.save(function(error){
+				if (error) return console.error(error);
+				next();
+			});
+		});
+	}
+
+	return Project;
 })();
