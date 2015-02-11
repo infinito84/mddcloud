@@ -12,7 +12,6 @@ module.exports=(function(){
 	var Enumeration = mongoose.model('Enumeration',enumerationSchema);
 
 	Enumeration.create = function(projectId,data,fn,notifyAll){
-		console.log(data);
 		async.waterfall([
 			function(next){
 				var enumeration = new Enumeration(data);

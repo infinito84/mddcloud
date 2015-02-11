@@ -7,22 +7,27 @@ module.exports=(function(){
 	return {
 		init:function(next){
 			socket=io('http://localhost');
-			socket.on('data',function(data){
-				app.loadData(data);
-				next();
-			});
-			socket.on('requestError',function(error){
-				alert(error.error);
-			});
+			
+			socket.on('data', app.loadData);
+			socket.on('role', app.loadRole);
+			socket.on('finishData', next);
+			socket.on('requestError', alert);
+
 			socket.on('sync',function(params){
 				if(params.model==="Project"){
 					app.project.set(params.data);
 				}
 				else{
-					var collection = null;
-					if(params.model === "Enumeration"){
-						collection = app.collections.enumerations;
-					}
+					var collection = (function(a){
+						var plural = 's';
+						if(a[a.length-1] === 'y'){
+							plural = 'ies';
+							a = a.substr(0,a.length-1);
+						}
+						var name=[a[0].toLowerCase(),a.substr(1,a.length),plural].join('');
+						return app.collections[name];
+					})(params.model);
+
 					if(params.method === "create"){
 						collection.add(params.data);
 					}

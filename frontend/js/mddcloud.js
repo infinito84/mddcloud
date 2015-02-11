@@ -1,11 +1,11 @@
-var Backbone	=	require("backbone"),	
-	i18n		=	require("i18next-client"),
-	$			=	require("jquery"),
-	io			=	require("./app/collaborative.js"),
-	async		=	require("async"),
-	Router 		=	require("./app/router.js"),
-	app			=	require("./app/namespace.js");
-	app.utils	=	require("./app/utils.js")();
+var Backbone	=	require('backbone'),	
+	i18n		=	require('i18next-client'),
+	$			=	require('jquery'),
+	io			=	require('./app/collaborative'),
+	async		=	require('async'),
+	Router 		=	require('./app/router'),
+	app			=	require('./app/namespace');
+	app.utils	=	require('./app/utils')();
 	Backbone.$	=	$;	
 
 $(document).ready(function(){
@@ -14,15 +14,15 @@ $(document).ready(function(){
 	async.parallel({
 		i18n: function(callback){
 			i18n.init({
-				fallbackLng:"en",
+				fallbackLng:'en',
 				resGetPath: 'js/locales/__lng__/__ns__.json'
 			},function(){
-				callback(null,"ok");
+				callback(null,'ok');
 			});
 		},
 		socket: function(callback){
 			socket=io.init(function(){
-				callback(null,"ok");
+				callback(null,'ok');
 			});
 		}
 	},
@@ -36,16 +36,16 @@ $(document).ready(function(){
 				model  : model.model,
 				id 	   : model.id
 			};
-			if(method==="update"){
+			if(method==='update'){
 				data.data = model.changedAttributes();
 				if(data.data===false)return;
 			}
-			if(method==="create"){
+			if(method==='create'){
 				data.data = model.toJSON();
 			}
 			socket.emit('sync',data,function(id){
-				if(method==="create"){
-					model.set("_id",id);
+				if(method==='create'){
+					model.set('_id',id);
 				}
 			});
 		};

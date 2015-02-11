@@ -39,13 +39,17 @@
 			<label></label>
 			<img src="img/themes/{{lower template}}.png" alt="{{t 'Bootswatch Theme'}}">
 		</div>
+		{{#allow 'ADMIN' 'EDITOR'}}
 		<div class="field">
 			<label></label>
 			<button class="btn btn-primary" id="view-enumerations">{{t 'Enumerations'}}</button>
 		</div>
+		{{/allow}}
+		{{#allow 'ADMIN'}}
 		<div class="field">
 			<label></label>
 			<button class="btn btn-danger" id="view-participants">{{t 'Participants'}}</button>
 		</div>
+		{{/allow}}
 	</fieldset>
 </form>

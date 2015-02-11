@@ -1,5 +1,5 @@
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
-	model : require('../model/Multimedia')
+	model : require('../models/Multimedia')
 });

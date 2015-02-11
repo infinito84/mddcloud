@@ -1,12 +1,13 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Backbone	=	require("backbone"),	
-	i18n		=	require("i18next-client"),
-	$			=	require("jquery"),
-	io			=	require("./app/collaborative.js"),
-	async		=	require("async"),
-	Router 		=	require("./app/router.js"),
-	app			=	require("./app/namespace.js");
-	app.utils	=	require("./app/utils.js")();
+var Backbone	=	require('backbone'),	
+	i18n		=	require('i18next-client'),
+	$			=	require('jquery'),
+	io			=	require('./app/collaborative'),
+	async		=	require('async'),
+	Router 		=	require('./app/router'),
+	notify 		= 	require('webnotify').webnotify,
+	app			=	require('./app/namespace');
+	app.utils	=	require('./app/utils')();
 	Backbone.$	=	$;	
 
 $(document).ready(function(){
@@ -15,15 +16,17 @@ $(document).ready(function(){
 	async.parallel({
 		i18n: function(callback){
 			i18n.init({
-				fallbackLng:"en",
+				fallbackLng:'en',
 				resGetPath: 'js/locales/__lng__/__ns__.json'
 			},function(){
-				callback(null,"ok");
+				callback(null,'ok');
+				notify(app.utils.t("Language loaded"));
 			});
 		},
 		socket: function(callback){
 			socket=io.init(function(){
-				callback(null,"ok");
+				callback(null,'ok');
+				notify(app.utils.t("Project data loaded"));
 			});
 		}
 	},
@@ -37,16 +40,16 @@ $(document).ready(function(){
 				model  : model.model,
 				id 	   : model.id
 			};
-			if(method==="update"){
+			if(method==='update'){
 				data.data = model.changedAttributes();
 				if(data.data===false)return;
 			}
-			if(method==="create"){
+			if(method==='create'){
 				data.data = model.toJSON();
 			}
 			socket.emit('sync',data,function(id){
-				if(method==="create"){
-					model.set("_id",id);
+				if(method==='create'){
+					model.set('_id',id);
 				}
 			});
 		};
@@ -55,7 +58,7 @@ $(document).ready(function(){
 });
 
 
-},{"./app/collaborative.js":5,"./app/namespace.js":7,"./app/router.js":8,"./app/utils.js":9,"async":22,"backbone":23,"i18next-client":33,"jquery":34}],2:[function(require,module,exports){
+},{"./app/collaborative":5,"./app/namespace":7,"./app/router":8,"./app/utils":9,"async":26,"backbone":27,"i18next-client":37,"jquery":38,"webnotify":89}],2:[function(require,module,exports){
 /*
  * jQuery File Upload Plugin 5.42.2
  * https://github.com/blueimp/jQuery-File-Upload
@@ -1523,7 +1526,7 @@ $(document).ready(function(){
 
 }));
 
-},{"./vendor/jquery.ui.widget":3,"jquery":34}],3:[function(require,module,exports){
+},{"./vendor/jquery.ui.widget":3,"jquery":38}],3:[function(require,module,exports){
 /*! jQuery UI - v1.11.1+CommonJS - 2014-09-17
 * http://jqueryui.com
 * Includes: widget.js
@@ -2088,7 +2091,7 @@ var widget = $.widget;
 
 }));
 
-},{"jquery":34}],4:[function(require,module,exports){
+},{"jquery":38}],4:[function(require,module,exports){
 (function (global){
 ;__browserify_shim_require__=require;(function browserifyShim(module, exports, require, define, browserify_shim__define__module__export__) {
 /* jquery.nicescroll
@@ -5368,22 +5371,27 @@ module.exports=(function(){
 	return {
 		init:function(next){
 			socket=io('http://localhost');
-			socket.on('data',function(data){
-				app.loadData(data);
-				next();
-			});
-			socket.on('requestError',function(error){
-				alert(error.error);
-			});
+			
+			socket.on('data', app.loadData);
+			socket.on('role', app.loadRole);
+			socket.on('finishData', next);
+			socket.on('requestError', alert);
+
 			socket.on('sync',function(params){
 				if(params.model==="Project"){
 					app.project.set(params.data);
 				}
 				else{
-					var collection = null;
-					if(params.model === "Enumeration"){
-						collection = app.collections.enumerations;
-					}
+					var collection = (function(a){
+						var plural = 's';
+						if(a[a.length-1] === 'y'){
+							plural = 'ies';
+							a = a.substr(0,a.length-1);
+						}
+						var name=[a[0].toLowerCase(),a.substr(1,a.length),plural].join('');
+						return app.collections[name];
+					})(params.model);
+
 					if(params.method === "create"){
 						collection.add(params.data);
 					}
@@ -5401,7 +5409,7 @@ module.exports=(function(){
 		}
 	}
 })();
-},{"../app/namespace.js":7,"socket.io-client":37}],6:[function(require,module,exports){
+},{"../app/namespace.js":7,"socket.io-client":41}],6:[function(require,module,exports){
 var $ = require('jquery');
 
 module.exports = {
@@ -5453,32 +5461,50 @@ module.exports = {
 		$("body").off("keydown");
 	}
 };
-},{"../templates/modal.hbs":16,"jquery":34}],7:[function(require,module,exports){
-var ProjectModel 			= require('../models/project.js'),
-	EnumerationModel		= require('../models/enumeration.js'),
-	EnumerationCollection 	= require('../collections/enumerations.js')
+},{"../templates/modal.hbs":20,"jquery":38}],7:[function(require,module,exports){
+var ProjectModel 			= require('../models/project'),
+	EnumerationModel		= require('../models/enumeration'),
+	ParticipantModel 		= require('../models/participant'),
+	UserModel 				= require('../models/user'),
+	EnumerationCollection 	= require('../collections/enumerations'),
+	ParticipantCollection 	= require('../collections/participants'),
+	UserCollection			= require('../collections/users');
 
-module.exports=window.app={
+
+var app = module.exports=window.app={
 	collections : {},
 
-	loadData : function(data){
-		var app=this;
+	loadData : function(data,next){
 		//Load project
-		app.project=new ProjectModel({
-			_id 			: data._id,
-			name 			: data.name,
-			description		: data.description,
-			creationDate 	: data.creationDate,
-			template		: data.template
-		});
+		app.project=new ProjectModel(app.utils.filter(data,[
+			'_id', 'name', 'description', 'creationDate', 'template'
+		]));
 		//Load enumerations
 		app.collections.enumerations = new EnumerationCollection();
 		data.enumerations.forEach(function(elem,i){
 			app.collections.enumerations.add(new EnumerationModel(elem));
 		});
-	} 
+		//Load participants
+		app.collections.participants = new ParticipantCollection();
+		app.collections.users = new UserCollection();
+		data.participants.forEach(function(elem,i){
+			app.collections.participants.add(new ParticipantModel(app.utils.filter(elem,[
+				'_id', 'role', 'status', 'creationDate', {
+					attr 	: 'user',
+					subAttr : 'id'
+				}
+			])));
+			app.collections.users.add(new UserModel(elem.user));
+		});
+		next();
+	},
+
+	loadRole : function(id,next){
+		app.role = app.collections.participants.get(id);
+		next();
+	}
 }
-},{"../collections/enumerations.js":10,"../models/enumeration.js":11,"../models/project.js":12}],8:[function(require,module,exports){
+},{"../collections/enumerations":10,"../collections/participants":11,"../collections/users":12,"../models/enumeration":13,"../models/participant":14,"../models/project":15,"../models/user":16}],8:[function(require,module,exports){
 var Backbone	 =	require("backbone"),
 	$			 =	require("jquery"),
 	app			 =	require("../app/namespace.js"),
@@ -5497,11 +5523,11 @@ module.exports=Backbone.Router.extend({
 		$("#container").html(projectView.render().el);
 	}
 });
-},{"../app/namespace.js":7,"../views/project.js":21,"backbone":23,"jquery":34}],9:[function(require,module,exports){
-var Handlebars	=	require("hbsfy/runtime"),
-	i18n		=	require("i18next-client"),
-	app			=	require("../app/namespace.js"),
-	$			=	require("jquery");
+},{"../app/namespace.js":7,"../views/project.js":25,"backbone":27,"jquery":38}],9:[function(require,module,exports){
+var Handlebars	=	require('hbsfy/runtime'),
+	i18n		=	require('i18next-client'),
+	app			=	require('../app/namespace.js'),
+	$			=	require('jquery');
 
 module.exports=(function(){
 
@@ -5512,31 +5538,43 @@ module.exports=(function(){
 			return publicUtils;
 		},
 		loadHome : function(){
-			var ViewHome=require("../views/index.js");
+			var ViewHome=require('../views/index.js');
 			var view=new ViewHome();
-			$("body").html(view.render().$el);
+			$('body').html(view.render().$el);
 			view.bindEvents();
 		},
 		t : function(i18n_key){
 			var result = i18n.t(i18n_key);
-			if(result===""||result===null||result===undefined)return i18n_key;
+			if(result===''||result===null||result===undefined)return i18n_key;
 			return result;
+		},
+		filter : function (obj,array){
+			var temp = {};
+			array.forEach(function(attr,i){
+				if(typeof attr === 'string'){
+					temp[attr] = obj[attr];
+				}
+				else{
+					temp [attr.attr] = obj[attr.attr][attr.subAttr];
+				}
+			});
+			return temp;
 		}
 	}
 
 	var privateUtils={
 		registerjQueryPlugins:function(){
 			window.jQuery = window.$ = $;
-			require("jquery_nicescroll");
-			require("jquery_fileupload");
-			require("select2");
+			require('jquery_nicescroll');
+			require('jquery_fileupload');
+			require('select2');
 			delete window.jQuery;
 			delete window.$;
 		},
 		registerHandlebarsHerlpers:function(){
 			Handlebars.registerHelper('t', function(i18n_key) {
 				var result = i18n.t(i18n_key);
-				if(result===""||result===null||result===undefined)return i18n_key;
+				if(result===''||result===null||result===undefined)return i18n_key;
 				return new Handlebars.SafeString(result);
 			});
 
@@ -5545,9 +5583,9 @@ module.exports=(function(){
 			});
 
 			Handlebars.registerHelper('selected', function(attr,value) {
-				var answer="";
+				var answer='';
 				if(attr===value){
-					answer="selected"
+					answer='selected'
 				}
 				return new Handlebars.SafeString(answer);
 			});
@@ -5555,43 +5593,83 @@ module.exports=(function(){
 			Handlebars.registerHelper('date', function(date) {
 				var d=new Date(date);
 				return [d.getDate(),d.getMonth()+1,d.getFullYear()].map(function(num){
-					if(num<10)return "0"+num;
+					if(num<10)return '0'+num;
 					return num;
-				}).join("/");
+				}).join('/');
 			});
 
 			Handlebars.registerHelper('join', function(array,separator) {
 				if(array instanceof Array){
 					return new Handlebars.SafeString(array.join(separator));
 				}
-				return "";
+				return '';
+			});
+			Handlebars.registerHelper('allow', function(array,separator) {
+				var args = Array.prototype.slice.call(arguments);
+				var options = args.pop();
+				var control = false;
+				args.forEach(function(role){
+					control |= app.role.get("role") === role & app.role.get("status") === 'ENABLED'
+				});
+				if(control){
+					return options.fn(this);
+				}
+				else{
+					return options.inverse(this);
+				}
 			});
 		}
 	}
 
 	return publicUtils.init
 })();
-},{"../app/namespace.js":7,"../views/index.js":20,"hbsfy/runtime":32,"i18next-client":33,"jquery":34,"jquery_fileupload":2,"jquery_nicescroll":4,"select2":35}],10:[function(require,module,exports){
+},{"../app/namespace.js":7,"../views/index.js":24,"hbsfy/runtime":36,"i18next-client":37,"jquery":38,"jquery_fileupload":2,"jquery_nicescroll":4,"select2":39}],10:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/enumeration')
 });
-},{"../models/enumeration":11,"backbone":23}],11:[function(require,module,exports){
+},{"../models/enumeration":13,"backbone":27}],11:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Collection.extend({
+	model : require('../models/participant')
+});
+},{"../models/participant":14,"backbone":27}],12:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Collection.extend({
+	model : require('../models/user')
+});
+},{"../models/user":16,"backbone":27}],13:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Enumeration',
 	idAttribute : '_id'
 });
-},{"backbone":23}],12:[function(require,module,exports){
+},{"backbone":27}],14:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Model.extend({
+	model 		: 'Participant',
+	idAttribute : '_id'
+});
+},{"backbone":27}],15:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Project',
 	idAttribute : '_id'
 });
-},{"backbone":23}],13:[function(require,module,exports){
+},{"backbone":27}],16:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Model.extend({
+	model 		: 'User',
+	idAttribute : '_id'
+});
+},{"backbone":27}],17:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -5610,7 +5688,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":32}],14:[function(require,module,exports){
+},{"hbsfy/runtime":36}],18:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -5625,7 +5703,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":32}],15:[function(require,module,exports){
+},{"hbsfy/runtime":36}],19:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -5670,7 +5748,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":32}],16:[function(require,module,exports){
+},{"hbsfy/runtime":36}],20:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -5693,14 +5771,31 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":32}],17:[function(require,module,exports){
+},{"hbsfy/runtime":36}],21:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
+  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function", self=this;
 
+function program1(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n		<div class=\"field\">\n			<label></label>\n			<button class=\"btn btn-primary\" id=\"view-enumerations\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Enumerations", options) : helperMissing.call(depth0, "t", "Enumerations", options)))
+    + "</button>\n		</div>\n		";
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n		<div class=\"field\">\n			<label></label>\n			<button class=\"btn btn-danger\" id=\"view-participants\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Participants", options) : helperMissing.call(depth0, "t", "Participants", options)))
+    + "</button>\n		</div>\n		";
+  return buffer;
+  }
 
   buffer += "<form>\n	<fieldset>\n		<legend>\n			<span>"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Edit Project", options) : helperMissing.call(depth0, "t", "Edit Project", options)))
@@ -5756,15 +5851,17 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression((helper = helpers.lower || (depth0 && depth0.lower),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.template), options) : helperMissing.call(depth0, "lower", (depth0 && depth0.template), options)))
     + ".png\" alt=\""
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Bootswatch Theme", options) : helperMissing.call(depth0, "t", "Bootswatch Theme", options)))
-    + "\">\n		</div>\n		<div class=\"field\">\n			<label></label>\n			<button class=\"btn btn-primary\" id=\"view-enumerations\">"
-    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Enumerations", options) : helperMissing.call(depth0, "t", "Enumerations", options)))
-    + "</button>\n		</div>\n		<div class=\"field\">\n			<label></label>\n			<button class=\"btn btn-danger\" id=\"view-participants\">"
-    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Participants", options) : helperMissing.call(depth0, "t", "Participants", options)))
-    + "</button>\n		</div>\n	</fieldset>\n</form>";
+    + "\">\n		</div>\n		";
+  stack1 = (helper = helpers.allow || (depth0 && depth0.allow),options={hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data},helper ? helper.call(depth0, "ADMIN", "EDITOR", options) : helperMissing.call(depth0, "allow", "ADMIN", "EDITOR", options));
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n		";
+  stack1 = (helper = helpers.allow || (depth0 && depth0.allow),options={hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data},helper ? helper.call(depth0, "ADMIN", options) : helperMissing.call(depth0, "allow", "ADMIN", options));
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	</fieldset>\n</form>";
   return buffer;
   });
 
-},{"hbsfy/runtime":32}],18:[function(require,module,exports){
+},{"hbsfy/runtime":36}],22:[function(require,module,exports){
 var Backbone	 =	require("backbone"),
 	$			 =	require("jquery"),
 	app			 = 	require("../app/namespace.js");
@@ -5807,7 +5904,7 @@ module.exports=Backbone.View.extend({
 		this.model.destroy();
 	}
 });
-},{"../app/namespace.js":7,"../templates/enumeration.hbs":13,"backbone":23,"jquery":34}],19:[function(require,module,exports){
+},{"../app/namespace.js":7,"../templates/enumeration.hbs":17,"backbone":27,"jquery":38}],23:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
@@ -5878,7 +5975,7 @@ module.exports=  Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":6,"../app/namespace":7,"../models/enumeration.js":11,"../templates/enumerationForm.hbs":14,"./enumeration.js":18,"backbone":23,"jquery":34}],20:[function(require,module,exports){
+},{"../app/modal":6,"../app/namespace":7,"../models/enumeration.js":13,"../templates/enumerationForm.hbs":18,"./enumeration.js":22,"backbone":27,"jquery":38}],24:[function(require,module,exports){
 var Backbone	 =	require("backbone"),
 	$			 =	require("jquery")
 	app			 = 	require("../app/namespace.js");
@@ -5940,7 +6037,7 @@ module.exports=Backbone.View.extend({
 		window.scrollTo(0,1);
 	}
 });
-},{"../app/namespace.js":7,"../templates/index.hbs":15,"backbone":23,"jquery":34}],21:[function(require,module,exports){
+},{"../app/namespace.js":7,"../templates/index.hbs":19,"backbone":27,"jquery":38}],25:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					=	require("../app/namespace.js"),
@@ -6000,7 +6097,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal.js":6,"../app/namespace.js":7,"../templates/project.hbs":17,"./enumerations.js":19,"backbone":23,"jquery":34}],22:[function(require,module,exports){
+},{"../app/modal.js":6,"../app/namespace.js":7,"../templates/project.hbs":21,"./enumerations.js":23,"backbone":27,"jquery":38}],26:[function(require,module,exports){
 (function (process){
 /*!
  * async
@@ -7127,7 +7224,7 @@ module.exports = Backbone.View.extend({
 }());
 
 }).call(this,require('_process'))
-},{"_process":24}],23:[function(require,module,exports){
+},{"_process":28}],27:[function(require,module,exports){
 //     Backbone.js 1.1.2
 
 //     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -8737,7 +8834,7 @@ module.exports = Backbone.View.extend({
 
 }));
 
-},{"underscore":84}],24:[function(require,module,exports){
+},{"underscore":88}],28:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -8825,7 +8922,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],25:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var base = require("./handlebars/base");
@@ -8858,7 +8955,7 @@ var Handlebars = create();
 Handlebars.create = create;
 
 exports["default"] = Handlebars;
-},{"./handlebars/base":26,"./handlebars/exception":27,"./handlebars/runtime":28,"./handlebars/safe-string":29,"./handlebars/utils":30}],26:[function(require,module,exports){
+},{"./handlebars/base":30,"./handlebars/exception":31,"./handlebars/runtime":32,"./handlebars/safe-string":33,"./handlebars/utils":34}],30:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -9039,7 +9136,7 @@ exports.log = log;var createFrame = function(object) {
   return obj;
 };
 exports.createFrame = createFrame;
-},{"./exception":27,"./utils":30}],27:[function(require,module,exports){
+},{"./exception":31,"./utils":34}],31:[function(require,module,exports){
 "use strict";
 
 var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
@@ -9068,7 +9165,7 @@ function Exception(message, node) {
 Exception.prototype = new Error();
 
 exports["default"] = Exception;
-},{}],28:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -9206,7 +9303,7 @@ exports.program = program;function invokePartial(partial, name, context, helpers
 exports.invokePartial = invokePartial;function noop() { return ""; }
 
 exports.noop = noop;
-},{"./base":26,"./exception":27,"./utils":30}],29:[function(require,module,exports){
+},{"./base":30,"./exception":31,"./utils":34}],33:[function(require,module,exports){
 "use strict";
 // Build out our basic SafeString type
 function SafeString(string) {
@@ -9218,7 +9315,7 @@ SafeString.prototype.toString = function() {
 };
 
 exports["default"] = SafeString;
-},{}],30:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 "use strict";
 /*jshint -W004 */
 var SafeString = require("./safe-string")["default"];
@@ -9295,15 +9392,15 @@ exports.escapeExpression = escapeExpression;function isEmpty(value) {
 }
 
 exports.isEmpty = isEmpty;
-},{"./safe-string":29}],31:[function(require,module,exports){
+},{"./safe-string":33}],35:[function(require,module,exports){
 // Create a simple path alias to allow browserify to resolve
 // the runtime on a supported path.
 module.exports = require('./dist/cjs/handlebars.runtime');
 
-},{"./dist/cjs/handlebars.runtime":25}],32:[function(require,module,exports){
+},{"./dist/cjs/handlebars.runtime":29}],36:[function(require,module,exports){
 module.exports = require("handlebars/runtime")["default"];
 
-},{"handlebars/runtime":31}],33:[function(require,module,exports){
+},{"handlebars/runtime":35}],37:[function(require,module,exports){
 // i18next, v1.7.7
 // Copyright (c)2014 Jan Mühlemann (jamuhl).
 // Distributed under MIT license
@@ -11426,7 +11523,7 @@ module.exports = require("handlebars/runtime")["default"];
     i18n.options = o;
 
 })();
-},{"jquery":34}],34:[function(require,module,exports){
+},{"jquery":38}],38:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v1.11.2
  * http://jquery.com/
@@ -21774,10 +21871,10 @@ return jQuery;
 
 }));
 
-},{}],35:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 $ = jQuery = require('jquery');
 module.exports = require('./select2.js');
-},{"./select2.js":36,"jquery":34}],36:[function(require,module,exports){
+},{"./select2.js":40,"jquery":38}],40:[function(require,module,exports){
 /*
 Copyright 2012 Igor Vaynberg
 
@@ -25320,11 +25417,11 @@ the specific language governing permissions and limitations under the Apache Lic
 
 }(jQuery));
 
-},{}],37:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 
 module.exports = require('./lib/');
 
-},{"./lib/":38}],38:[function(require,module,exports){
+},{"./lib/":42}],42:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -25413,7 +25510,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":39,"./socket":41,"./url":42,"debug":45,"socket.io-parser":79}],39:[function(require,module,exports){
+},{"./manager":43,"./socket":45,"./url":46,"debug":49,"socket.io-parser":83}],43:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -25888,7 +25985,7 @@ Manager.prototype.onreconnect = function(){
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":40,"./socket":41,"./url":42,"component-bind":43,"component-emitter":44,"debug":45,"engine.io-client":46,"indexof":75,"object-component":76,"socket.io-parser":79}],40:[function(require,module,exports){
+},{"./on":44,"./socket":45,"./url":46,"component-bind":47,"component-emitter":48,"debug":49,"engine.io-client":50,"indexof":79,"object-component":80,"socket.io-parser":83}],44:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -25914,7 +26011,7 @@ function on(obj, ev, fn) {
   };
 }
 
-},{}],41:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -26300,7 +26397,7 @@ Socket.prototype.disconnect = function(){
   return this;
 };
 
-},{"./on":40,"component-bind":43,"component-emitter":44,"debug":45,"has-binary":73,"socket.io-parser":79,"to-array":83}],42:[function(require,module,exports){
+},{"./on":44,"component-bind":47,"component-emitter":48,"debug":49,"has-binary":77,"socket.io-parser":83,"to-array":87}],46:[function(require,module,exports){
 (function (global){
 
 /**
@@ -26377,7 +26474,7 @@ function url(uri, loc){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":45,"parseuri":77}],43:[function(require,module,exports){
+},{"debug":49,"parseuri":81}],47:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -26402,7 +26499,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],44:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -26568,7 +26665,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],45:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 
 /**
  * Expose `debug()` as the module.
@@ -26707,11 +26804,11 @@ try {
   if (window.localStorage) debug.enable(localStorage.debug);
 } catch(e){}
 
-},{}],46:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 
 module.exports =  require('./lib/');
 
-},{"./lib/":47}],47:[function(require,module,exports){
+},{"./lib/":51}],51:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -26723,7 +26820,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":48,"engine.io-parser":60}],48:[function(require,module,exports){
+},{"./socket":52,"engine.io-parser":64}],52:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -27410,7 +27507,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":49,"./transports":50,"component-emitter":44,"debug":57,"engine.io-parser":60,"indexof":75,"parsejson":69,"parseqs":70,"parseuri":71}],49:[function(require,module,exports){
+},{"./transport":53,"./transports":54,"component-emitter":48,"debug":61,"engine.io-parser":64,"indexof":79,"parsejson":73,"parseqs":74,"parseuri":75}],53:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -27562,7 +27659,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":44,"engine.io-parser":60}],50:[function(require,module,exports){
+},{"component-emitter":48,"engine.io-parser":64}],54:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies
@@ -27619,7 +27716,7 @@ function polling(opts){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling-jsonp":51,"./polling-xhr":52,"./websocket":54,"xmlhttprequest":55}],51:[function(require,module,exports){
+},{"./polling-jsonp":55,"./polling-xhr":56,"./websocket":58,"xmlhttprequest":59}],55:[function(require,module,exports){
 (function (global){
 
 /**
@@ -27856,7 +27953,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":53,"component-inherit":56}],52:[function(require,module,exports){
+},{"./polling":57,"component-inherit":60}],56:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -28211,7 +28308,7 @@ function unloadHandler() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":53,"component-emitter":44,"component-inherit":56,"debug":57,"xmlhttprequest":55}],53:[function(require,module,exports){
+},{"./polling":57,"component-emitter":48,"component-inherit":60,"debug":61,"xmlhttprequest":59}],57:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -28458,7 +28555,7 @@ Polling.prototype.uri = function(){
   return schema + '://' + this.hostname + port + this.path + query;
 };
 
-},{"../transport":49,"component-inherit":56,"debug":57,"engine.io-parser":60,"parseqs":70,"xmlhttprequest":55}],54:[function(require,module,exports){
+},{"../transport":53,"component-inherit":60,"debug":61,"engine.io-parser":64,"parseqs":74,"xmlhttprequest":59}],58:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -28689,7 +28786,7 @@ WS.prototype.check = function(){
   return !!WebSocket && !('__initialize' in WebSocket && this.name === WS.prototype.name);
 };
 
-},{"../transport":49,"component-inherit":56,"debug":57,"engine.io-parser":60,"parseqs":70,"ws":72}],55:[function(require,module,exports){
+},{"../transport":53,"component-inherit":60,"debug":61,"engine.io-parser":64,"parseqs":74,"ws":76}],59:[function(require,module,exports){
 // browser shim for xmlhttprequest module
 var hasCORS = require('has-cors');
 
@@ -28727,7 +28824,7 @@ module.exports = function(opts) {
   }
 }
 
-},{"has-cors":67}],56:[function(require,module,exports){
+},{"has-cors":71}],60:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -28735,7 +28832,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],57:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -28884,7 +28981,7 @@ function load() {
 
 exports.enable(load());
 
-},{"./debug":58}],58:[function(require,module,exports){
+},{"./debug":62}],62:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -29083,7 +29180,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":59}],59:[function(require,module,exports){
+},{"ms":63}],63:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -29196,7 +29293,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],60:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -29766,7 +29863,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":61,"after":62,"arraybuffer.slice":63,"base64-arraybuffer":64,"blob":65,"utf8":66}],61:[function(require,module,exports){
+},{"./keys":65,"after":66,"arraybuffer.slice":67,"base64-arraybuffer":68,"blob":69,"utf8":70}],65:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -29787,7 +29884,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],62:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 module.exports = after
 
 function after(count, callback, err_cb) {
@@ -29817,7 +29914,7 @@ function after(count, callback, err_cb) {
 
 function noop() {}
 
-},{}],63:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 /**
  * An abstraction for slicing an arraybuffer even when
  * ArrayBuffer.prototype.slice is not supported
@@ -29848,7 +29945,7 @@ module.exports = function(arraybuffer, start, end) {
   return result.buffer;
 };
 
-},{}],64:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -29909,7 +30006,7 @@ module.exports = function(arraybuffer, start, end) {
   };
 })("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
-},{}],65:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 (function (global){
 /**
  * Create a blob builder even when vendor prefixes exist
@@ -29962,7 +30059,7 @@ module.exports = (function() {
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],66:[function(require,module,exports){
+},{}],70:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/utf8js v2.0.0 by @mathias */
 ;(function(root) {
@@ -30205,7 +30302,7 @@ module.exports = (function() {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],67:[function(require,module,exports){
+},{}],71:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -30230,7 +30327,7 @@ try {
   module.exports = false;
 }
 
-},{"global":68}],68:[function(require,module,exports){
+},{"global":72}],72:[function(require,module,exports){
 
 /**
  * Returns `this`. Execute this without a "context" (i.e. without it being
@@ -30240,7 +30337,7 @@ try {
 
 module.exports = (function () { return this; })();
 
-},{}],69:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 (function (global){
 /**
  * JSON parse.
@@ -30275,7 +30372,7 @@ module.exports = function parsejson(data) {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],70:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -30314,7 +30411,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],71:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -30355,7 +30452,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],72:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -30400,7 +30497,7 @@ function ws(uri, protocols, opts) {
 
 if (WebSocket) ws.prototype = WebSocket.prototype;
 
-},{}],73:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 (function (global){
 
 /*
@@ -30462,12 +30559,12 @@ function hasBinary(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":74}],74:[function(require,module,exports){
+},{"isarray":78}],78:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],75:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -30478,7 +30575,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],76:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 
 /**
  * HOP ref.
@@ -30563,7 +30660,7 @@ exports.length = function(obj){
 exports.isEmpty = function(obj){
   return 0 == exports.length(obj);
 };
-},{}],77:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -30590,7 +30687,7 @@ module.exports = function parseuri(str) {
   return uri;
 };
 
-},{}],78:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -30735,7 +30832,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":80,"isarray":81}],79:[function(require,module,exports){
+},{"./is-buffer":84,"isarray":85}],83:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -31133,7 +31230,7 @@ function error(data){
   };
 }
 
-},{"./binary":78,"./is-buffer":80,"component-emitter":44,"debug":45,"isarray":81,"json3":82}],80:[function(require,module,exports){
+},{"./binary":82,"./is-buffer":84,"component-emitter":48,"debug":49,"isarray":85,"json3":86}],84:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
@@ -31150,9 +31247,9 @@ function isBuf(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],81:[function(require,module,exports){
-arguments[4][74][0].apply(exports,arguments)
-},{"dup":74}],82:[function(require,module,exports){
+},{}],85:[function(require,module,exports){
+arguments[4][78][0].apply(exports,arguments)
+},{"dup":78}],86:[function(require,module,exports){
 /*! JSON v3.2.6 | http://bestiejs.github.io/json3 | Copyright 2012-2013, Kit Cambridge | http://kit.mit-license.org */
 ;(function (window) {
   // Convenience aliases.
@@ -32015,7 +32112,7 @@ arguments[4][74][0].apply(exports,arguments)
   }
 }(this));
 
-},{}],83:[function(require,module,exports){
+},{}],87:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -32030,7 +32127,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],84:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 //     Underscore.js 1.7.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -33447,4 +33544,46 @@ function toArray(list, index) {
   }
 }.call(this));
 
+},{}],89:[function(require,module,exports){
+/*
+* Webnotify - Simple Web Notications implimentation
+* https://github.com/cynicaljoy/webnotify
+* copyright Darren Cunningham 2012
+* MIT License
+*/
+!function (name, definition) {
+  if (typeof define == 'function') define(definition);
+  else if (typeof module != 'undefined' && module.exports)
+    module.exports.webnotify = definition();
+  else this[name] = definition();
+}('webnotify', function () {
+  if (!window.Notification) return;
+
+  var context = this,
+  version = '0.1.0',
+  testPermissions = function() {
+    if(Notification.permissionLevel() === 'default')
+    {
+      Notification.requestPermission(testPermissions);
+    }
+    else if (Notification.permissionLevel() === 'granted')
+    {
+      var n = new Notification(context.title, context.options);
+    }
+    else if (Notification.permissionLevel() == 'denied')
+    {
+      return;
+    }
+  };
+
+  function webnotify(title, options)
+  {
+    context.title = title;
+    context.options = (options === undefined) ? {} : options;
+
+    testPermissions();
+  }
+
+  return webnotify;
+});
 },{}]},{},[1]);

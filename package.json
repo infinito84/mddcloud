@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./backend/mddcloud.js",
     "prestart": "node ./node_modules/gulp/bin/gulp.js",
-    "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./frontend/js -r -o frontend/js/locales -l en,fr,es,pt"
+    "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./frontend/js -r -o frontend/js/locales -l en,fr,es,pt -f t,app.utils.t"
   },
   "author": "Sergio Andrés Ñustes <infinito84@gmail.com>",
   "license": "GPL",
@@ -27,7 +27,9 @@
     "express-session": "~1.10.1",
     "express-session-socket.io": "~1.0.1",
     "mongoose-deep-populate": "0.0.7",
-    "select2": "~3.5.2-browserify"
+    "select2": "~3.5.2-browserify",
+    "nodemailer": "~1.3.0",
+    "growl": "~1.8.1"
   },
   "devDependencies": {
     "node-static": "^0.7.6",

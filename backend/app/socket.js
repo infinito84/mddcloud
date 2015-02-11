@@ -1,7 +1,6 @@
 var availableSockets	= require('./availableSockets'),
 	ObjectId			= require('mongoose').Types.ObjectId,
-	Project				= require('../model/project'),
-	User				= require('../model/user'),
+	Project				= require('../models/project'),
 	async				= require('async');
 
 module.exports=(function(){
@@ -21,9 +20,13 @@ module.exports=(function(){
 			var session = socket.session||{};
 			var projectId = session.project;
 			var sessionID = session.sessionID;
+			var user = session.user;
 			if(projectId === undefined){
-				socket.emit('requestError',{error:'Project undefined'});
+				socket.emit('requestError', 'Project undefined');
 				return;
+			}
+			if(user === undefined){
+				socket.emit('requestError', 'User undefined');
 			}
 
 			//We create groups based to projectId for broacasting.
@@ -39,7 +42,7 @@ module.exports=(function(){
 						socket.emit('sync',params);
 					});
 				};
-				var Model = require("../model/"+params.model.toLowerCase());
+				var Model = require("../models/"+params.model.toLowerCase());
 				if(params.method === "create"){
 					Model.create(projectId,params.data,fn,notifyAll);
 				}
@@ -55,22 +58,59 @@ module.exports=(function(){
 					Model.delete(projectId,params.id,fn);
 				}
 			});
-						
-			//Send to client all project data		
-			Project.findById(projectId)
-			.deepPopulate('participants.user,enumerations')
-			.exec(function (error,project) {
-				if (error){
-					socket.emit('requestError',{error:'Internal error!'});
-					return;
+			
+			async.series([
+				function(callback){
+					//Send to client all project data		
+					Project.findById(projectId)
+					.deepPopulate('participants.user,enumerations')
+					.exec(function (error,project) {
+						if (error){
+							callback('Internal error');
+							return;
+						}
+						if (project) {
+							socket.emit('data',project,callback);
+						}
+						else{
+							callback('Dont\'s exits project: '+projectId+'!');
+						}
+					});		
+				},
+				function(callback){
+					//Send to client participation role
+					Project.findById(projectId)
+					.deepPopulate('participants.user',{
+						populate : {
+							'participants' : {
+								match : {
+									user : user
+								}
+							}
+						}
+					})
+					.exec(function (error,project) {
+						if (error){
+							callback('Internal error!');
+							return;
+						}
+						if (project) {
+							socket.emit('role',project.participants[0]._id,callback);
+						}
+						else{
+							callback('Dont\'n have role in this project');
+						}
+					});		
 				}
-				if (project) {
-					socket.emit('data',project);
+			],
+			function(error){
+				if(error){
+					socket.emit('requestError',error);;
 				}
 				else{
-					socket.emit('requestError',{error:'Dont\'s exits project: '+projectId+'!'});
+					socket.emit('finishData');
 				}
-			});				
+			});
 		});
 		console.log('Socket.IO ready!');
 	}	
