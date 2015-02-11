@@ -1,6 +1,6 @@
 var Handlebars	=	require('hbsfy/runtime'),
 	i18n		=	require('i18next-client'),
-	app			=	require('../app/namespace.js'),
+	app			=	require('./namespace.js'),
 	$			=	require('jquery');
 
 module.exports=(function(){
@@ -40,8 +40,9 @@ module.exports=(function(){
 		registerjQueryPlugins:function(){
 			window.jQuery = window.$ = $;
 			require('../libs/jquery.nicescroll/jquery.nicescroll.js');
-			require('../libs/jquery-file-upload/jquery.fileupload.js');
-			require('select2');
+			require('../libs/jquery-file-upload/js/jquery.fileupload.js');
+			require('../libs/growl/javascripts/jquery.growl.js');
+			require('../libs/select2/select2.js');
 			delete window.jQuery;
 			delete window.$;
 		},

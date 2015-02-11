@@ -6,6 +6,7 @@ var Backbone	=	require('backbone'),
 	Router 		=	require('./app/router'),
 	app			=	require('./app/namespace');
 	app.utils	=	require('./app/utils')();
+	app.$ 		=	$;
 	Backbone.$	=	$;	
 
 $(document).ready(function(){
@@ -17,16 +18,22 @@ $(document).ready(function(){
 				fallbackLng:'en',
 				resGetPath: 'js/locales/__lng__/__ns__.json'
 			},function(){
-				callback(null,'ok');
+				callback(null);
+				$.growl({ 
+					title: app.utils.t('Language loaded')
+				});
 			});
 		},
 		socket: function(callback){
 			socket=io.init(function(){
-				callback(null,'ok');
+				$.growl({ 
+					title: app.utils.t('Project data loaded')
+				});
+				callback(null);
 			});
 		}
 	},
-	function(err, results) {
+	function() {
 		app.utils.loadHome();
 		app.router=new Router();		
 		Backbone.history.start();

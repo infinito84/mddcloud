@@ -19,6 +19,8 @@ gulp.task('js', function () {
   });
   browserify('./frontend/js/mddcloud.js')
       .transform(hbsfy)
+      .ignore('jquery.mousewheel')
+      .ignore('jquery.select2')
       .bundle()
       .pipe(source('mddcloud.js'))
       //.pipe(streamify(uglify()))
@@ -34,8 +36,11 @@ gulp.task('i18n', function () {
 gulp.task('stylus', function () {
   gulp.src('frontend/css/mddcloud.styl')
     .pipe(stylus({
-      compress: true,
+      'include css': true,
       use: nib()
+    }))
+    .pipe(stylus({      
+      compress: true,     
     }))
     .pipe(gulp.dest('frontend/public/css'));
 });
@@ -45,12 +50,16 @@ gulp.task('images', function () {
     .pipe(changed("frontend/public/img"))
     .pipe(imagemin())
     .pipe(gulp.dest("frontend/public/img"));
+  gulp.src(['frontend/css/*.gif','frontend/css/*.png'])
+    .pipe(changed("frontend/public/css"))
+    .pipe(imagemin())
+    .pipe(gulp.dest("frontend/public/css"));
 });
 
 gulp.task('fonts', function () {
   gulp.src('frontend/fonts/**')
     .pipe(gulp.dest('frontend/public/fonts'));
-  gulp.src('bower_components/font-awesome-stylus/fonts/**')
+  gulp.src('frontend/js/libs/font-awesome-stylus/fonts/**')
     .pipe(gulp.dest('frontend/public/fonts'));
 });
 
