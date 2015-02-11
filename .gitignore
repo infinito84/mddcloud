@@ -1,3 +1,3 @@
-/public/*
+/frontend/public/*
 /node_modules/*
-/bower_components/*
+/frontend/js/libs/*

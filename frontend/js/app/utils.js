@@ -39,8 +39,8 @@ module.exports=(function(){
 	var privateUtils={
 		registerjQueryPlugins:function(){
 			window.jQuery = window.$ = $;
-			require('jquery_nicescroll');
-			require('jquery_fileupload');
+			require('../libs/jquery.nicescroll/jquery.nicescroll.js');
+			require('../libs/jquery-file-upload/jquery.fileupload.js');
 			require('select2');
 			delete window.jQuery;
 			delete window.$;
