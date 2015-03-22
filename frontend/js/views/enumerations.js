@@ -11,29 +11,21 @@ module.exports=  Backbone.View.extend({
 	},
 	template : require("../templates/enumerationForm.hbs"),
 	render : function(){
-		var html=this.template(this.model);
+		var html=this.template({});
 		this.$el.html(html);
 		return this;
 	},
-	attachedViews : [],	
+	SubView : EnumerationView,	
 	initialize : function() {
+		var view = this;
 		modal.show({
 			title : app.utils.t("Enumerations"),
-		},800,600,this.removeViews,this);
-		$(".modal .content").html(this.render().$el);
-		var view = this;
-		this.collection.forEach(function(enumeration){
-			view.addedEnumeration(enumeration);
+		},800,600,function(){
+			view.removeViews();
+			modal.close();
 		});
-		this.collection.bind("add",this.addedEnumeration,this);
-		this.collection.bind("remove",this.removedEnumeration,this);
-	},
-	removeViews : function(){
-		this.attachedViews.forEach(function(view,i){
-			view.remove();
-		});
-		this.remove();
-		modal.close();
+		$(".modal .content").html(this.render().$el);	
+		app.utils.listeningCollection(this);
 	},
 	clickButton : function(){
 		var name = this.$el.find("input.add-enumeration").val();
@@ -49,22 +41,5 @@ module.exports=  Backbone.View.extend({
 		else{
 			alert(app.utils.t("You must write a name"));
 		}
-	},
-	addedEnumeration : function(enumeration){
-		var $enumerations = this.$el.find(".enumerations");
-		var view = new EnumerationView({
-			model : enumeration
-		});
-		$enumerations.append(view.render().$el);
-		this.attachedViews.push(view);
-	},
-	removedEnumeration : function(enumeration){
-		this.attachedViews.filter(function(view){
-			if(view.model === enumeration){
-				view.remove();
-				return false;
-			}
-			return true;
-		});
 	}
 });

@@ -6,7 +6,6 @@ module.exports=Backbone.View.extend({
 	tagName : "div",
 	className : "field enumeration-view",
 	events : {
-		"change input" : "change",
 		"click button.delete-enumeration" : "delete"
 	},
 	template : require("../templates/enumeration.hbs"),
@@ -17,24 +16,9 @@ module.exports=Backbone.View.extend({
 			tags 			: true,
 			tokenSeparators	: [','],
 		});
+		app.utils.dataBinding(this);
 		return this;
 	},	
-	initialize : function() {
-		this.listenTo(this.model, "change", this.update,this);
-	},
-	change : function(e){
-		this.model.set("values",e.target.value.split(","));
-		this.model.save();
-		this.cacheChanged=this.model.changedAttributes();
-	},
-	update : function(){
-		var changed=this.model.changedAttributes();
-		if(changed!==this.cacheChanged){
-			var values = this.model.get("values");
-			this.$el.find("input").val(values.join(","));
-			this.$el.find("input").select2("val",values);
-		}
-	},
 	delete : function(){
 		app.collections.enumerations.remove(this.model);
 		this.model.destroy();

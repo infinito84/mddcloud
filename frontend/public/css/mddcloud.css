@@ -1943,6 +1943,18 @@ h1.loading {
   margin: 1em;
   color: #fff;
 }
+.center {
+  text-align: center;
+}
+.left {
+  text-align: left;
+}
+.right {
+  text-align: right;
+}
+.justify {
+  text-align: justify;
+}
 div.sidebar {
   background: url("data:image/gif;base64,R0lGODlhDAAMAJEAAGJwhktYallnfQAAACH5BAAAAAAALAAAAAAMAAwAAAIkjIBhCBYJxGtMxfROW1jn+VFe1lVcI0EphV2bq2ibF4G12HoFADs=") repeat;
   width: 20%;
@@ -2160,6 +2172,20 @@ div.field .large {
 }
 div.field .disable {
   background-color: #e2dfdf;
+}
+div.field>span {
+  border: 1px solid #cdd;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.428571429;
+  display: inline-block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  vertical-align: middle;
+  min-height: 1em;
 }
 .btn {
   display: inline-block;
@@ -2476,6 +2502,30 @@ div.field .disable {
   border: 1px solid #ccc;
   -webkit-border-radius: 4px;
   border-radius: 4px;
+}
+.participants-view table {
+  width: 100%;
+  margin-top: 2em;
+}
+.participants-view th {
+  border-top: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  padding: 7px;
+}
+.participant-view {
+  border-bottom: 1px solid #ccc;
+  padding: 3px;
+}
+.participant-view img {
+  max-height: 32px;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+}
+.participant-view .email {
+  font-size: 0.7em;
+}
+.participant-view td {
+  padding: 7px;
 }
 /*Import CSS*/
 /* jQuery Growl
@@ -3287,4 +3337,7 @@ html[dir="rtl"] .select2-container-multi .select2-search-choice-close {
   -webkit-box-shadow: 0px 0px 7px #6ea7fc;
   -webkit-box-shadow: 0px 0px 7px #6ea7fc;
   box-shadow: 0px 0px 7px #6ea7fc;
+}
+.notifyjs-container {
+  font-size: 14px;
 }

@@ -6,14 +6,22 @@ module.exports=(function(){
 
 	return {
 		init:function(next){
-			socket=io('http://localhost');
+			socket=io();
 			
 			socket.on('data', app.loadData);
 			socket.on('role', app.loadRole);
 			socket.on('finishData', next);
-			socket.on('requestError', alert);
+			socket.on('requestError', function(error){
+				$.notify(error,"error");
+			});
+			socket.on('info', function(info){
+				$.notify(info,"info");
+			});
 
 			socket.on('sync',function(params){
+				if(app.development){
+					console.log(params);
+				}
 				if(params.model==="Project"){
 					app.project.set(params.data);
 				}

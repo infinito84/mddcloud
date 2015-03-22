@@ -1,0 +1,18 @@
+{{#allow 'ADMIN'}}
+<div class="field">
+	<label>{{t 'New participant'}}</label>
+	<input class="add-participant medium" placeholder="{{t 'E-mail'}}"/>
+	<select class="role medium">
+		<option value="READER">{{t 'Can read'}}</option>
+		<option value="EDITOR">{{t 'Can edit'}}</option>
+		<option value="ADMIN">{{t 'Is owner'}}</option>
+	</select>
+	<button class="btn btn-success add-participant"><i class="fa fa-plus"></i></button>
+</div>
+{{/allow}}
+<table class="collection">
+	<th></th>
+	<th class="left">{{t 'User'}}</th>
+	<th>{{t 'Role'}}</th>
+	<th>{{t 'Status'}}</th>
+</table>

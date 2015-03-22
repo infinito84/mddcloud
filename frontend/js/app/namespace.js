@@ -7,7 +7,8 @@ var ProjectModel 			= require('../models/project'),
 	UserCollection			= require('../collections/users');
 
 
-var app = module.exports=window.app={
+var app = module.exports = {
+	development : true,
 	collections : {},
 
 	loadData : function(data,next){
@@ -27,7 +28,7 @@ var app = module.exports=window.app={
 			app.collections.participants.add(new ParticipantModel(app.utils.filter(elem,[
 				'_id', 'role', 'status', 'creationDate', {
 					attr 	: 'user',
-					subAttr : 'id'
+					subAttr : '_id'
 				}
 			])));
 			app.collections.users.add(new UserModel(elem.user));
@@ -39,4 +40,8 @@ var app = module.exports=window.app={
 		app.role = app.collections.participants.get(id);
 		next();
 	}
+}
+
+if(app.development){
+	window.app = app;
 }

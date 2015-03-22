@@ -33,6 +33,99 @@ module.exports=(function(){
 				}
 			});
 			return temp;
+		},
+		extend : function(obj1, obj2){
+			var attrs = Object.keys(obj2);
+			attrs.forEach(function(attr){
+				obj1[attr]=obj2[attr];
+			});
+		},
+		dataBinding : function(view){
+			var elements = view.$el.find('[data]');
+			var model = view.model;
+			elements.each(function(i,el){
+				var $el = $(el);				
+				var data = $el.attr('data');
+				var tag = el.tagName.toLowerCase();
+				var isMultiple = el.className.indexOf("multiple") !== -1;
+				if(['input','select','textarea'].indexOf(tag)!==-1){
+					$el.change(function(){
+						if(isMultiple){
+							model.set(data,this.value.split(","));
+						}
+						else{
+							model.set(data,this.value);
+						}
+						model.save();
+						view.cacheChanged = model.changedAttributes();
+					});
+				}
+			});
+			view.listenTo(model,"change",function(){
+				var changed=model.changedAttributes();
+				if(changed!==view.cacheChanged){
+					var array=Object.keys(changed);
+					for(var i=0;i<array.length;i++){
+						var attr=array[i];
+						view.$el.find("[data="+attr+"]").each(function(i,el){
+							var tag = el.tagName.toLowerCase();
+							var isMultiple = el.className.indexOf("multiple") !== -1;
+							var value = changed[attr];							
+							if(['input','select','textarea'].indexOf(tag)!==-1){
+								if(isMultiple){
+									$(el).select2("val",value);
+									value = value.join(",");
+								}
+								el.value = value;
+							}
+							else{
+								if(isMultiple){
+									value = value.join(", ");
+								}
+								el.innerHTML = value;
+							}
+						});
+					}
+				}
+				if(view.update)view.update();
+			});
+		},
+		listeningCollection : function(view){
+			var collection = view.collection;
+			var attachedViews = [];
+			var SubView = view.SubView;
+
+			var addModel = function(model){
+				var $collection = view.$el.find(".collection");
+				var temp = new SubView({
+					model : model
+				});
+				$collection.append(temp.render().$el);
+				attachedViews.push(temp);
+			};
+
+			var removeModel = function(model){
+				attachedViews.filter(function(view){
+					if(view.model === model){
+						view.remove();
+						return false;
+					}
+					return true;
+				});
+			}
+
+			view.removeViews = function(){
+				attachedViews.forEach(function(view,i){
+					view.remove();
+				});
+				this.remove();
+			}
+
+			collection.forEach(function(model){
+				addModel(model);
+			});
+			view.listenTo(collection,'add',addModel);
+			view.listenTo(collection,'remove',removeModel);
 		}
 	}
 
@@ -41,10 +134,23 @@ module.exports=(function(){
 			window.jQuery = window.$ = $;
 			require('../libs/jquery.nicescroll/jquery.nicescroll.js');
 			require('../libs/jquery-file-upload/js/jquery.fileupload.js');
-			require('../libs/growl/javascripts/jquery.growl.js');
 			require('../libs/select2/select2.js');
-			delete window.jQuery;
-			delete window.$;
+			require('../libs/notifyjs/dist/notify.js');
+			require('../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap.js');
+			//Configuring AJAX
+			$.ajaxSetup({
+				error : function(jqXHR){
+					if(!jqXHR.responseText){
+						jqXHR.responseText = app.utils.t('Has ocurred an error');
+					}
+					$.notify(jqXHR.responseText,'error');
+				}
+			})
+
+			if(!app.development){
+				delete window.jQuery;
+				delete window.$;
+			}
 		},
 		registerHandlebarsHerlpers:function(){
 			Handlebars.registerHelper('t', function(i18n_key) {
@@ -58,9 +164,9 @@ module.exports=(function(){
 			});
 
 			Handlebars.registerHelper('selected', function(attr,value) {
-				var answer='';
+				var answer='value="'+value+'"';
 				if(attr===value){
-					answer='selected'
+					answer+=' selected';
 				}
 				return new Handlebars.SafeString(answer);
 			});
@@ -79,12 +185,13 @@ module.exports=(function(){
 				}
 				return '';
 			});
-			Handlebars.registerHelper('allow', function(array,separator) {
+
+			Handlebars.registerHelper('allow', function() {
 				var args = Array.prototype.slice.call(arguments);
 				var options = args.pop();
 				var control = false;
 				args.forEach(function(role){
-					control |= app.role.get("role") === role & app.role.get("status") === 'ENABLED'
+					control |= app.role.get('role') === role & app.role.get('status') === 'ENABLED'
 				});
 				if(control){
 					return options.fn(this);
@@ -93,6 +200,17 @@ module.exports=(function(){
 					return options.inverse(this);
 				}
 			});
+
+			//Comparators
+			Handlebars.registerHelper('eq', function(v1,v2,options) {
+				if(v1 === v2){
+					return options.fn(this);
+				}
+				else{
+					return options.inverse(this);
+				}
+			});
+
 		}
 	}
 

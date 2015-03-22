@@ -1,0 +1,39 @@
+<td class="center">
+{{#if user.image}}
+	<img src="{{user.image}}">
+{{else}}
+	<img src="/img/users/guest.png">
+{{/if}}	
+</td>
+
+<td>
+{{#eq user.name user.email}}
+	{{user.name}}
+{{else}}
+	<div>{{user.name}}</div>
+	<div class="email">{{user.email}}</div>
+{{/eq}}
+</td>
+
+{{#allow 'ADMIN'}}
+	<td>
+		<select data="role">
+			<option {{selected role 'READER'}}>{{t 'Can read'}}</option>
+			<option {{selected role 'EDITOR'}}>{{t 'Can edit'}}</option>
+			<option {{selected role 'ADMIN'}}>{{t 'Is owner'}}</option>
+		</select>
+	</td>
+{{else}}
+	<td data="role" class="center">{{role}}</td>
+{{/allow}}
+
+{{#allow 'ADMIN'}}
+	<td>
+		<select data="status">
+			<option {{selected status 'ENABLED'}}>{{t 'Enabled'}}</option>
+			<option {{selected status 'DISABLED'}}>{{t 'Disabled'}}</option>
+		</select>
+	</td>
+{{else}}
+<td data="status" class="center">{{status}}</td>
+{{/allow}}

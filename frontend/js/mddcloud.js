@@ -6,8 +6,9 @@ var Backbone	=	require('backbone'),
 	Router 		=	require('./app/router'),
 	app			=	require('./app/namespace');
 	app.utils	=	require('./app/utils')();
-	app.$ 		=	$;
+	Backbone.UI = 	require('./libs/backbone-ui/index.js');
 	Backbone.$	=	$;	
+
 
 $(document).ready(function(){
 	var socket;
@@ -19,16 +20,10 @@ $(document).ready(function(){
 				resGetPath: 'js/locales/__lng__/__ns__.json'
 			},function(){
 				callback(null);
-				$.growl({ 
-					title: app.utils.t('Language loaded')
-				});
 			});
 		},
 		socket: function(callback){
 			socket=io.init(function(){
-				$.growl({ 
-					title: app.utils.t('Project data loaded')
-				});
 				callback(null);
 			});
 		}
@@ -55,7 +50,7 @@ $(document).ready(function(){
 					model.set('_id',id);
 				}
 			});
-		};
+		}; 
 	});
 	
 });

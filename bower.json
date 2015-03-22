@@ -20,7 +20,8 @@
     "font-awesome-stylus": "~1.2.1",
     "jquery-file-upload": "~9.9.2",
     "growl": "~1.2.5",
-    "select2": "git://github.com/select2/select2.git#~3.5.2"
+    "select2": "git://github.com/select2/select2.git#~3.5.2",
+    "notifyjs": "https://github.com/jpillora/notifyjs.git#~0.3.2"
   },
   "devDependencies": {}
 }

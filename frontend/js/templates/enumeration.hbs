@@ -1,5 +1,9 @@
 <label>{{name}}</label>
-<input value="{{values}}" style="width:50%"/>
+{{#allow 'ADMIN' 'EDITOR'}}
+<input value="{{values}}" style="width:50%" class="multiple" data="values"/>
 <button class="btn btn-danger delete-enumeration">
 	<i class="fa fa-trash-o"></i>
 </button>
+{{else}}
+<span data="values" class="multiple large">{{join values ', '}}</span>
+{{/allow}}

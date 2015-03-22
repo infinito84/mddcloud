@@ -1,30 +1,49 @@
 module.exports=(function(){
-	var sockets={};
+	var sockets=[];
 
 	return {
 		add:function(sessionID,socket,projectId){
-			if(sessionID===undefined)return;
-			if(socket===undefined)return;
-			sockets[sessionID]={
+			if(sessionID === undefined) return;
+			if(socket === undefined) return;
+			if(projectId === undefined) return;
+			sockets.push({
+				sessionID 	: sessionID,
 				socket 		: socket,
 				projectId 	: projectId
+			});
+		},
+		remove : function(sessionID,projectId){
+			sockets.filter(function(elem){
+				if(elem.sessionID === sessionID & elem.projectId === projectId) return false;
+				else return true;
+			});
+		},
+		getOwn : function(projectId,sessionID){
+			for(var i = 0; i < sockets.length; i++){
+				var socket = sockets[i];
+				if (socket.sessionID === sessionID && socket.projectId === projectId){
+					return socket.socket;
+				}
 			}
+			return null;
 		},
-		remove:function(sessionID){
-			if(sessionID===undefined)return;
-			delete sockets[sessionID];
+		getOthers : function(projectId,sessionID){
+			return sockets.slice(0).filter(function(elem){
+				return elem.sessionID !== sessionID & elem.projectId === projectId;
+			}).map(function(elem){
+				return elem.socket;
+			});
 		},
-		getSocket:function(sessionID){
-			if(sessionID===undefined)return undefined;
-			var elem = sockets[sessionID];
-			if(elem===undefined)return undefined;
-			return elem.socket;
+		getAll : function(projectId){
+			return sockets.slice(0).filter(function(elem){
+				return elem.projectId === projectId;
+			}).map(function(elem){
+				return elem.socket;
+			});
 		},
-		getSockets:function(projectId,sessionID){
-			return Object.keys(sockets).filter(function(index){
-				return index!==sessionID&&sockets[index].projectId===projectId;
-			}).map(function(index){
-				return sockets[index].socket;
+		notifyAll : function(sockets,data){
+			sockets.forEach(function(socket){
+				socket.emit('sync',data);
 			});
 		}
 	}

@@ -1,0 +1,94 @@
+<script>
+var project = {a:{b:{c:[{d:1},{d:2}]}},"_id":"54bdd57ddbebd1c00bad7ab3","__v":140,"actors":[],"classAssociations":[],"creationDate":"2015-01-20T04:11:41.978Z","description":"Queremos crear un framework MDD","enumerations":["54db8e99e733fee76bed0b61","54dc280445ea97be04eb6d93"],"functionalRequirements":[],"multimedias":[],"name":"MDDCloud :)","nonFunctionalRequirements":[],"objectives":[],"participants":[{"_id":"54bdd57ddbebd1c00bad7ab2","user":{"_id":"54d9a0584ef443845915b83c","name":"Test","email":"snustes@himediadigital.com","password":"fddd21b9d7ce17da93c30fa5a653a1df","sessionToken":null,"sessionDate":null,"image":null,"isActive":true,"__v":0},"role":"ADMIN","status":"ENABLED","creationDate":"2015-01-20T04:11:41.976Z","__v":0},{"_id":"54d9a0c14ef443845915b83d","user":{"_id":"54bdd57ddbebd1c00bad7ab1","name":"Sergio Andrés Ñustes","email":"infinito84@gmail.com","password":"fddd21b9d7ce17da93c30fa5a653a1df","sessionToken":null,"sessionDate":null,"image":"/img/users/sergio.png","isActive":true,"__v":0},"role":"EDITOR","status":"ENABLED","creationDate":"2015-02-10T04:11:41.976Z","__v":0}],"storageRequirements":[],"template":"JOURNAL","useCaseAssociations":[]}
+
+var getParent = function(obj,path){
+	var attrs = path.split(".");
+	var attr = attrs[0];
+	var subObj = obj[attr];
+	if(subObj === undefined) return null;
+	if(subObj instanceof Array){
+		var array = [];
+		subObj.forEach(function(subSubObj){
+			array.push(getParent(subSubObj,attrs.slice(1).join(".")));
+		});
+		return array;
+	}
+	else{
+		if(attrs.length === 1){
+			return obj;
+		}
+		else{
+			return getParent(subObj,attrs.slice(1).join("."));
+		}
+	}			
+}
+
+var check = function(parents,path,value){
+	var attr = path.split(".").pop();
+	if(typeof parents === 'object'){
+		if(parents instanceof Array){
+			var control = false;
+			parents.forEach(function(parent){
+				control = control || check(parent,path,value);
+			});
+			return control;
+		}
+		else{
+			return parents[attr] === value;
+		}
+	}
+	return false;
+}
+
+/*for(var i=0;i<10;i++){
+	(function(){
+		var num = i*100;
+		var name = "Sergio"+i;
+		var i2=i;
+		setTimeout(function(){
+			console.log(i2+".1) Num: "+num+", Name: "+name+", i_perdido: "+i);
+			setTimeout(function(){
+				console.log(i2+".2) Num: "+num+", Name: "+name+", i_perdido: "+i);
+				setTimeout(function(){
+					console.log(i2+".3) Num: "+num+", Name: "+name+", i_perdido: "+i);
+				},Math.random()*5000);
+			},Math.random()*5000);
+		},Math.random()*5000);
+	})();
+}*/
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+</head>
+<body>
+	<p>
+		{{t 'Hi'}} 
+		<b>{{name}}</b>,
+	</p>
+	<br>
+	<p>
+		{{t 'You have been invited to participate in'}}
+	</p>
+	<p>
+		<b>{{project}}: </b>
+		<span>{{description}}</span>,
+	</p>
+	<p>
+		{{t 'With the role: '}}
+		<b>{{role}}</b>
+	</p>
+	<br>
+	<p>
+		{{t 'Please'}} 
+		<a href="{{link}}">
+			{{t 'click here'}},
+		</a>
+		{{t 'for to begin to participate in this project!'}}
+	</p>
+	<br>
+	<p>MDDCloud</p>
+</body>
+</html>

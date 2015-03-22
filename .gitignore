@@ -1,3 +1,4 @@
 /frontend/public/*
 /node_modules/*
 /frontend/js/libs/*
+/backend/app/config.js

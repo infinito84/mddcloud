@@ -1,5 +1,7 @@
-var mongoose = require('mongoose');
-var Schema 	 = mongoose.Schema;
+var mongoose = require('mongoose'),
+	jsonpath = require('jsonpath'),
+	Schema 	 = mongoose.Schema;
+
 
 module.exports=(function(){
 	var projectSchema=new Schema({
@@ -75,6 +77,29 @@ module.exports=(function(){
 				next();
 			});
 		});
+	}
+
+	Project.checkDeep = function(project,deepPopulate,query,callback){
+		Project.findById(project)
+			.deepPopulate(deepPopulate)
+			.exec(function (error,project) {
+				if (error){
+					callback('Internal error');
+					return;
+				}
+				if (project) {
+					var result = jsonpath.query(project,query);
+					if(result===undefined){
+						callback("Error with query: "+query);
+					}
+					else{
+						callback(null,result.length !== 0);
+					}
+				}
+				else{
+					callback('Dont\'s exits project: '+project+'!');
+				}
+			});	
 	}
 
 	return Project;

@@ -32,13 +32,13 @@ module.exports=(function(){
 			//We create groups based to projectId for broacasting.
 			availableSockets.add(sessionID,socket,projectId);
 			socket.on('disconnect', function () {
-				availableSockets.remove(session.sessionID);
+				availableSockets.remove(sessionID,projectId);
 			});
 
 			socket.on('sync',function(params,fn){
 				console.log(params);
 				var notifyAll = function(params){
-					availableSockets.getSockets(projectId,sessionID).forEach(function(socket){
+					availableSockets.getOthers(projectId,sessionID).forEach(function(socket){
 						socket.emit('sync',params);
 					});
 				};
