@@ -2,7 +2,7 @@
 
 module.exports = {
 	host 	: 'http://localhost/',
-	folder 	: '/path_mddcloud/backend/',
+	folder 	: '/path_mddcloud/',
 	nodemailer : {
 		name 	: 'Your name <example@gmail.com>',
 		service	: 'Gmail',
@@ -10,6 +10,7 @@ module.exports = {
 			user: 'example@gmail.com',
 			pass: '******'
 	    }
-	}
-
+	},
+	mongodb : 'mongodb://localhost/mddcloud'
+	maxUploadFileSize : 20 * 1024 * 1024 //20MB
 }

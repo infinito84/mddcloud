@@ -9,7 +9,7 @@ module.exports = {
 		if (height === undefined){
 			height = 400;
 		}
-		var $body = $("body");
+		var $body = $('body');
 		$body.append(this.template(data));
 		
 		var h = $(window).height();
@@ -21,31 +21,31 @@ module.exports = {
 			height = h - 20;
 		}        
 		/*----Center modal----*/
-		var $modal = $(".modal");
+		var $modal = $('.modal');
 		$modal.css({
-			display : "block", 
-			left    : ((w - width) / 2) + "px", 
-			top     : ((h - height) / 2) + "px"
+			display : 'block', 
+			left    : ((w - width) / 2) + 'px', 
+			top     : ((h - height) / 2) + 'px'
 		}).width(width - 20).height(height - 20);
-		$modal.find(".content").height(height - 140);
+		$modal.find('.content').height(height - 140);
 		
-		if(typeof callback === "function"){
-			$(".mask").click(function(){
+		if(typeof callback === 'function'){
+			$('.mask').click(function(){
 				callback.apply(instance);
 			});
-			$modal.find("span.x").click(function(){
+			$modal.find('span.x,.footer > button').click(function(){
 				callback.apply(instance);
 			});
 		}
 		else{
-			$modal.find("span.x").click(this.close);
-			$(".mask").click(this.close);
+			$modal.find('span.x,.footer > button').click(this.close);
+			$('.mask').click(this.close);
 		}
-		$(".mask").css({display: "block"});1
+		$('.mask').css({display: 'block'});1
 
 	},
 	close: function() {
-		$(".modal,.mask").remove();
-		$("body").off("keydown");
+		$('.modal,.mask').remove();
+		$('body').off('keydown');
 	}
 };

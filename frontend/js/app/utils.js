@@ -1,6 +1,6 @@
 var Handlebars	=	require('hbsfy/runtime'),
 	i18n		=	require('i18next-client'),
-	app			=	require('./namespace.js'),
+	app			=	require('./namespace'),
 	$			=	require('jquery');
 
 module.exports=(function(){
@@ -12,10 +12,8 @@ module.exports=(function(){
 			return publicUtils;
 		},
 		loadHome : function(){
-			var ViewHome=require('../views/index.js');
-			var view=new ViewHome();
-			$('body').html(view.render().$el);
-			view.bindEvents();
+			var ViewHome=require('../views/index');
+			new ViewHome();			
 		},
 		t : function(i18n_key){
 			var result = i18n.t(i18n_key);
@@ -132,11 +130,11 @@ module.exports=(function(){
 	var privateUtils={
 		registerjQueryPlugins:function(){
 			window.jQuery = window.$ = $;
-			require('../libs/jquery.nicescroll/jquery.nicescroll.js');
-			require('../libs/jquery-file-upload/js/jquery.fileupload.js');
-			require('../libs/select2/select2.js');
-			require('../libs/notifyjs/dist/notify.js');
-			require('../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap.js');
+			require('../libs/jquery.nicescroll/jquery.nicescroll');
+			require('../libs/jquery-file-upload/js/jquery.fileupload');
+			require('../libs/select2/select2');
+			require('../libs/notifyjs/dist/notify');
+			require('../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap');
 			//Configuring AJAX
 			$.ajaxSetup({
 				error : function(jqXHR){

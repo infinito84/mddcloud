@@ -63,7 +63,7 @@ module.exports=(function(){
 				function(callback){
 					//Send to client all project data		
 					Project.findById(projectId)
-					.deepPopulate('participants.user,enumerations')
+					.deepPopulate('participants.user,enumerations,multimedias')
 					.exec(function (error,project) {
 						if (error){
 							callback('Internal error');
@@ -78,29 +78,7 @@ module.exports=(function(){
 					});		
 				},
 				function(callback){
-					//Send to client participation role
-					Project.findById(projectId)
-					.deepPopulate('participants.user',{
-						populate : {
-							'participants' : {
-								match : {
-									user : user
-								}
-							}
-						}
-					})
-					.exec(function (error,project) {
-						if (error){
-							callback('Internal error!');
-							return;
-						}
-						if (project) {
-							socket.emit('role',project.participants[0]._id,callback);
-						}
-						else{
-							callback('Dont\'n have role in this project');
-						}
-					});		
+					socket.emit('role',user,callback);	
 				}
 			],
 			function(error){

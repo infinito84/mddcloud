@@ -2,7 +2,6 @@ var express 	= require('express'),
 	http 		= require('http'),
 	session 	= require('express-session'),
 	bodyParser 	= require('body-parser'),
-	multer 		= require('multer'),
 	store 		= new session.MemoryStore(),
 	growl 		= require('growl'),
 	config 		= require('./config'),
@@ -18,8 +17,7 @@ module.exports=(function(){
 
 	//For req.body.key = value
 	app.use(bodyParser.json()); 
-	app.use(bodyParser.urlencoded({ extended: true })); 
-	app.use(multer()); 
+	app.use(bodyParser.urlencoded({ extended: true }));
 
 	//For to serve the frontend app
 	app.use(express.static("frontend/public"));
@@ -38,7 +36,7 @@ module.exports=(function(){
 	});
 	app.engine('.hbs', handlebars.engine);
 	app.set('view engine', '.hbs');
-	app.set('views',config.folder + 'views');
+	app.set('views',config.folder + 'backend/views');
 
 	//Custom session for Socket.IO support
 	app.use(session({
@@ -52,7 +50,7 @@ module.exports=(function(){
 	app.nodemailer = nodemailer.createTransport(config.nodemailer);
 	app.nodemailer.use('compile', hbs({
 		viewEngine 	: handlebars,
-		viewPath	: config.folder + 'views',
+		viewPath	: config.folder + 'backend/views',
 		extName 	: '.hbs'
 	}));
 
@@ -62,7 +60,7 @@ module.exports=(function(){
 		fallbackLng	:'en',
 		setJqueryExt: false,
 		preload 	: ['en','es','fr','pt'],
-		resGetPath	: config.folder + 'locales/__lng__/__ns__.json'
+		resGetPath	: config.folder + 'backend/locales/__lng__/__ns__.json'
 	});
 	app.use(i18next.handle);
 	i18next.registerAppHelper(app);

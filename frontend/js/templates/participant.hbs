@@ -16,7 +16,7 @@
 </td>
 
 {{#allow 'ADMIN'}}
-	<td>
+	<td class="center">
 		<select data="role">
 			<option {{selected role 'READER'}}>{{t 'Can read'}}</option>
 			<option {{selected role 'EDITOR'}}>{{t 'Can edit'}}</option>
@@ -28,7 +28,7 @@
 {{/allow}}
 
 {{#allow 'ADMIN'}}
-	<td>
+	<td class="center">
 		<select data="status">
 			<option {{selected status 'ENABLED'}}>{{t 'Enabled'}}</option>
 			<option {{selected status 'DISABLED'}}>{{t 'Disabled'}}</option>

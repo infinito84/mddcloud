@@ -2,8 +2,8 @@ var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
 	modal				=	require("../app/modal"),
-	EnumerationView  	=	require("./enumeration.js"),
-	EnumerationModel 	=	require("../models/enumeration.js") ;
+	EnumerationView  	=	require("./enumeration"),
+	EnumerationModel 	=	require("../models/enumeration") ;
 
 module.exports=  Backbone.View.extend({
 	events : {

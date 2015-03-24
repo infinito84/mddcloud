@@ -1,7 +1,8 @@
-var mongoose = require('mongoose');
-
+var mongoose 	= require('mongoose'),
+	config 		= require('../app/config');
+	
 module.exports=(function(){
-	mongoose.connect('mongodb://localhost/mddcloud');
+	mongoose.connect(config.mongodb);
 	
 	//require("./testData") //For Development
 	

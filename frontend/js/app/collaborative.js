@@ -1,5 +1,5 @@
 var io 	= require('socket.io-client'),
-	app	= require('../app/namespace.js');	
+	app	= require('../app/namespace');	
 
 module.exports=(function(){
 	var socket;

@@ -2,8 +2,8 @@ var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
 	modal				=	require("../app/modal"),
-	ParticipantView  	=	require("./participant.js"),
-	ParticipantModel 	=	require("../models/participant.js") ;
+	ParticipantView  	=	require("./participant"),
+	ParticipantModel 	=	require("../models/participant") ;
 
 module.exports=  Backbone.View.extend({
 	className : "participants-view",
@@ -38,8 +38,8 @@ module.exports=  Backbone.View.extend({
 				url : '/participant/add/',
 				type : 'POST',
 				data : {
-					email : name,
-					role : role,
+					email 	: name,
+					role 	: role,
 					project : app.project.get("_id")
 				}
 			});

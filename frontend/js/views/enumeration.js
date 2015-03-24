@@ -1,6 +1,6 @@
 var Backbone	 =	require("backbone"),
 	$			 =	require("jquery"),
-	app			 = 	require("../app/namespace.js");
+	app			 = 	require("../app/namespace");
 
 module.exports=Backbone.View.extend({
 	tagName : "div",

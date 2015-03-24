@@ -1,0 +1,30 @@
+<div class="form">
+	<fieldset>
+		<legend>
+			<span>{{t 'Management of meetings files'}}</span>
+		</legend>
+		{{#allow 'ADMIN' 'EDITOR'}}
+		<a class="file btn btn-primary">
+			<input type="file" accept="audio/*" data-upload="AUDIO" name="multimedia"/>
+			{{t 'Add audio'}}
+		</a>
+
+		<a class="file btn btn-danger">
+			<input type="file" accept="video/*" data-upload="VIDEO" name="multimedia"/>
+			{{t 'Add video'}}
+		</a>
+
+		<a class="file btn btn-success">
+			<input type="file" accept="image/*" data-upload="IMAGE" name="multimedia"/>
+			{{t 'Add image'}}
+		</a>
+
+		<a class="file btn btn-warning">
+			<input type="file"  data-upload="BINARY" name="multimedia"/>
+			{{t 'Add another file'}}
+		</a>
+		{{/allow}}
+
+		<div class="collection"></div>
+	</fieldset>
+</div>

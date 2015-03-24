@@ -2,9 +2,12 @@ var ProjectModel 			= require('../models/project'),
 	EnumerationModel		= require('../models/enumeration'),
 	ParticipantModel 		= require('../models/participant'),
 	UserModel 				= require('../models/user'),
+	MultimediaModel 		= require('../models/multimedia'),
 	EnumerationCollection 	= require('../collections/enumerations'),
 	ParticipantCollection 	= require('../collections/participants'),
-	UserCollection			= require('../collections/users');
+	UserCollection			= require('../collections/users'),
+	MultimediaCollection 	= require('../collections/multimedias');
+	$ 						= require('jquery');
 
 
 var app = module.exports = {
@@ -33,12 +36,27 @@ var app = module.exports = {
 			])));
 			app.collections.users.add(new UserModel(elem.user));
 		});
+		//Load multimedias
+		app.collections.multimedias = new MultimediaCollection();
+		data.multimedias.forEach(function(elem,i){
+			app.collections.multimedias.add(new MultimediaModel(elem));
+		});
 		next();
 	},
 
 	loadRole : function(id,next){
-		app.role = app.collections.participants.get(id);
+		app.role = app.collections.participants.findWhere({
+			user : id
+		});
 		next();
+	},
+	//We save the main view instance for remove it
+	setCurrentView : function(newView){
+		if(app.currentView){
+			app.currentView.remove();
+		}
+		app.currentView = newView;
+		$('#container').html(newView.render().el);
 	}
 }
 
