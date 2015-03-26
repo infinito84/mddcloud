@@ -3,12 +3,12 @@ var ProjectModel 			= require('../models/project'),
 	ParticipantModel 		= require('../models/participant'),
 	UserModel 				= require('../models/user'),
 	MultimediaModel 		= require('../models/multimedia'),
+	ObjectiveModel 			= require('../models/objective'),
 	EnumerationCollection 	= require('../collections/enumerations'),
 	ParticipantCollection 	= require('../collections/participants'),
 	UserCollection			= require('../collections/users'),
-	MultimediaCollection 	= require('../collections/multimedias');
-	$ 						= require('jquery');
-
+	MultimediaCollection 	= require('../collections/multimedias'),
+	ObjectiveCollection		= require('../collections/objectives');
 
 var app = module.exports = {
 	development : true,
@@ -41,6 +41,11 @@ var app = module.exports = {
 		data.multimedias.forEach(function(elem,i){
 			app.collections.multimedias.add(new MultimediaModel(elem));
 		});
+		//Load objectives
+		app.collections.objectives = new ObjectiveCollection();
+		data.objectives.forEach(function(elem,i){
+			app.collections.objectives.add(new ObjectiveModel(elem));
+		});
 		next();
 	},
 
@@ -56,7 +61,7 @@ var app = module.exports = {
 			app.currentView.remove();
 		}
 		app.currentView = newView;
-		$('#container').html(newView.render().el);
+		app.$('#container').html(newView.render().el);
 	}
 }
 

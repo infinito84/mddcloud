@@ -1,13 +1,13 @@
-var Backbone	=	require('backbone'),	
-	i18n		=	require('i18next-client'),
-	$			=	require('jquery'),
-	io			=	require('./app/collaborative'),
-	async		=	require('async'),
-	Router 		=	require('./app/router'),
-	app			=	require('./app/namespace');
-	app.utils	=	require('./app/utils')();
-	Backbone.UI = 	require('./libs/backbone-ui/index.js');
-	Backbone.$	=	$;	
+var Backbone	= require('backbone'),	
+	i18n		= require('i18next-client'),
+	$			= require('jquery'),
+	io			= require('./app/collaborative'),
+	async		= require('async'),
+	Router 		= require('./app/router'),
+	app			= require('./app/namespace');
+	app.utils	= require('./app/utils')();
+	Backbone.UI = require('./libs/backbone-ui/index.js');
+	Backbone.$	= app.$ = $;
 
 
 $(document).ready(function(){
@@ -17,7 +17,7 @@ $(document).ready(function(){
 		i18n: function(callback){
 			i18n.init({
 				fallbackLng:'en',
-				resGetPath: 'js/locales/__lng__/__ns__.json'
+				resGetPath: '/js/locales/__lng__/__ns__.json'
 			},function(){
 				callback(null);
 			});

@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "description": "A framework MDD on the cloud for generation of bussiness web application from software requirements",
   "scripts": {
-    "start": "node ./backend/mddcloud.js",
+    "start": "node ./backend/backend.js",
     "prestart": "node ./node_modules/gulp/bin/gulp.js",
     "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./frontend/js -r -o frontend/js/locales -l en,fr,es,pt -f t,app.utils.t",
     "i18n_backend": "node ./node_modules/i18next-parser/bin/cli.js ./backend -r -o backend/locales -l en,fr,es,pt -f t,req.i18n.t"
@@ -38,7 +38,8 @@
     "nodemailer-express-handlebars": "0.0.3",
     "i18next": "~1.7.10",
     "express-handlebars": "~1.2.2",
-    "fluent-ffmpeg": "~2.0.0-rc3"
+    "fluent-ffmpeg": "~2.0.0-rc3",
+    "laconic": "~0.2.2"
   },
   "devDependencies": {
     "node-static": "^0.7.6",

@@ -1,0 +1,42 @@
+<div class="field">
+	<label>{{t 'Name'}}</label>
+	<input class="medium" value="{{name}}" data="name"/>
+	<a class="help tooltip" data-tooltip="{{t 'Name of this resource'}}">?</a>
+</div>
+
+<div class="field">
+	<label>{{t 'Description'}}</label>
+	<textarea class="large" data="description">{{description}}</textarea>
+	<a class="help tooltip" data-tooltip="{{t 'Description of this resource'}}">?</a>
+</div>
+
+<div class="field">
+	<label>{{t 'Multimedias'}}</label>
+	<select class="large multiple" data="multimedias" multiple="multiple">
+		{{#each multimedias}}
+			<option value="{{_id}}">{{name}}</option>
+		{{/each}}
+	</select>
+	<a class="help tooltip" data-tooltip="{{t 'The resources that corroborate this objective'}}">?</a>
+</div>
+
+<div class="field">
+	<label>{{t 'Sources'}}</label>
+	<select class="large multiple" data="sources" multiple="multiple">
+		{{#each sources}}
+			<option value="{{_id}}">{{name}}</option>
+		{{/each}}
+	</select>
+	<a class="help tooltip" data-tooltip="{{t 'The people that gave this information'}}">?</a>
+</div>
+
+<div class="field">
+	<label>{{t 'Parent objective'}}</label>
+	<select class="large" data="parentObjective">
+		<option value="-1">{{t 'Neither'}}</option>
+		{{#each objectives}}
+			<option value="{{_id}}">{{name}}</option>
+		{{/each}}
+	</select>
+	<a class="help tooltip" data-tooltip="{{t 'The parent objective'}}">?</a>
+</div>

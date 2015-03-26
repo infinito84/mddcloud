@@ -33,12 +33,12 @@ module.exports = {
 			$('.mask').click(function(){
 				callback.apply(instance);
 			});
-			$modal.find('span.x,.footer > button').click(function(){
+			$modal.find('span.x,.footer > button.close').click(function(){
 				callback.apply(instance);
 			});
 		}
 		else{
-			$modal.find('span.x,.footer > button').click(this.close);
+			$modal.find('span.x,.footer > button.close').click(this.close);
 			$('.mask').click(this.close);
 		}
 		$('.mask').css({display: 'block'});1

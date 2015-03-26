@@ -8,6 +8,12 @@
 		{{{html}}}
 	</div>
 	<div class="footer">
-		<button class="btn btn-primary">{{t 'Exit'}}</button>
+		{{#if buttons}}
+			{{#each buttons}}
+				<button class="{{class}}">{{text}}</button>
+			{{/each}}
+		{{else}}
+			<button class="btn btn-primary close">{{t 'Exit'}}</button>
+		{{/if}}
 	</div>
 </div>

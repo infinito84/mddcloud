@@ -26,7 +26,7 @@ module.exports = Backbone.View.extend({
 	},
 	update : function(){
 		if(this.model.hasChanged('template')){
-			this.$el.find('.field img').attr('src','img/themes/'+this.model.get('template').toLowerCase()+'.png');
+			this.$el.find('.field img').attr('src','/img/themes/'+this.model.get('template').toLowerCase()+'.png');
 		}
 	},
 	viewParticipants : function(){

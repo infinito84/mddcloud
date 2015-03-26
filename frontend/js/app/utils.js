@@ -54,6 +54,15 @@ module.exports=(function(){
 						else{
 							model.set(data,this.value);
 						}
+						//If the model has authors, we add them by their modifications
+						var authors = model.get('authors');
+						if(authors instanceof Array){
+							var user = app.role.get('user');
+							if(authors.indexOf(user) === -1){
+								authors.push(user);
+								model.set('authors',authors);
+							}
+						}
 						model.save();
 						view.cacheChanged = model.changedAttributes();
 					});
@@ -96,9 +105,15 @@ module.exports=(function(){
 			var addModel = function(model){
 				var $collection = view.$el.find(".collection");
 				var temp = new SubView({
-					model : model
+					model : model,
+					extra : view.extra //Extra params in dynamic views
 				});
-				$collection.append(temp.render().$el);
+				if(typeof view.customAdd === 'function'){ //For dynamic views
+					view.customAdd($collection,temp);
+				}
+				else{
+					$collection.append(temp.render().$el);
+				}
 				attachedViews.push(temp);
 			};
 
@@ -135,6 +150,7 @@ module.exports=(function(){
 			require('../libs/select2/select2');
 			require('../libs/notifyjs/dist/notify');
 			require('../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap');
+			$.el = require('laconic');
 			//Configuring AJAX
 			$.ajaxSetup({
 				error : function(jqXHR){

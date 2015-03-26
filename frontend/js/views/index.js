@@ -1,6 +1,7 @@
-var Backbone	 =	require('backbone'),
-	$			 =	require('jquery')
-	app			 = 	require('../app/namespace');
+var Backbone	= require('backbone'),
+	$			= require('jquery'),
+	app			= require('../app/namespace'),
+	DropDown 	= require('./dropDown');
 
 module.exports = Backbone.View.extend({
 	tagName 	: 'div',
@@ -55,5 +56,10 @@ module.exports = Backbone.View.extend({
 			}
 		});
 		window.scrollTo(0,1);
+		new DropDown({
+			$el 		: $("#dropdown-objectives"),
+			collection 	: app.collections.objectives,
+			extra 		: {type : 'objective'}
+		});
 	}
 });

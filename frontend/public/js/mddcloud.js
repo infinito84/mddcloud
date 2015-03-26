@@ -1,14 +1,14 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Backbone	=	require('backbone'),	
-	i18n		=	require('i18next-client'),
-	$			=	require('jquery'),
-	io			=	require('./app/collaborative'),
-	async		=	require('async'),
-	Router 		=	require('./app/router'),
-	app			=	require('./app/namespace');
-	app.utils	=	require('./app/utils')();
-	Backbone.UI = 	require('./libs/backbone-ui/index.js');
-	Backbone.$	=	$;	
+var Backbone	= require('backbone'),	
+	i18n		= require('i18next-client'),
+	$			= require('jquery'),
+	io			= require('./app/collaborative'),
+	async		= require('async'),
+	Router 		= require('./app/router'),
+	app			= require('./app/namespace');
+	app.utils	= require('./app/utils')();
+	Backbone.UI = require('./libs/backbone-ui/index.js');
+	Backbone.$	= app.$ = $;
 
 
 $(document).ready(function(){
@@ -18,7 +18,7 @@ $(document).ready(function(){
 		i18n: function(callback){
 			i18n.init({
 				fallbackLng:'en',
-				resGetPath: 'js/locales/__lng__/__ns__.json'
+				resGetPath: '/js/locales/__lng__/__ns__.json'
 			},function(){
 				callback(null);
 			});
@@ -57,7 +57,7 @@ $(document).ready(function(){
 });
 
 
-},{"./app/collaborative":2,"./app/namespace":4,"./app/router":5,"./app/utils":6,"./libs/backbone-ui/index.js":11,"async":69,"backbone":70,"i18next-client":81,"jquery":82}],2:[function(require,module,exports){
+},{"./app/collaborative":2,"./app/namespace":4,"./app/router":5,"./app/utils":6,"./libs/backbone-ui/index.js":12,"async":77,"backbone":78,"i18next-client":89,"jquery":90}],2:[function(require,module,exports){
 var io 	= require('socket.io-client'),
 	app	= require('../app/namespace');	
 
@@ -113,7 +113,7 @@ module.exports=(function(){
 		}
 	}
 })();
-},{"../app/namespace":4,"socket.io-client":85}],3:[function(require,module,exports){
+},{"../app/namespace":4,"socket.io-client":93}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 module.exports = {
@@ -149,12 +149,12 @@ module.exports = {
 			$('.mask').click(function(){
 				callback.apply(instance);
 			});
-			$modal.find('span.x,.footer > button').click(function(){
+			$modal.find('span.x,.footer > button.close').click(function(){
 				callback.apply(instance);
 			});
 		}
 		else{
-			$modal.find('span.x,.footer > button').click(this.close);
+			$modal.find('span.x,.footer > button.close').click(this.close);
 			$('.mask').click(this.close);
 		}
 		$('.mask').css({display: 'block'});1
@@ -165,18 +165,18 @@ module.exports = {
 		$('body').off('keydown');
 	}
 };
-},{"../templates/modal.hbs":54,"jquery":82}],4:[function(require,module,exports){
+},{"../templates/modal.hbs":56,"jquery":90}],4:[function(require,module,exports){
 var ProjectModel 			= require('../models/project'),
 	EnumerationModel		= require('../models/enumeration'),
 	ParticipantModel 		= require('../models/participant'),
 	UserModel 				= require('../models/user'),
 	MultimediaModel 		= require('../models/multimedia'),
+	ObjectiveModel 			= require('../models/objective'),
 	EnumerationCollection 	= require('../collections/enumerations'),
 	ParticipantCollection 	= require('../collections/participants'),
 	UserCollection			= require('../collections/users'),
-	MultimediaCollection 	= require('../collections/multimedias');
-	$ 						= require('jquery');
-
+	MultimediaCollection 	= require('../collections/multimedias'),
+	ObjectiveCollection		= require('../collections/objectives');
 
 var app = module.exports = {
 	development : true,
@@ -209,6 +209,11 @@ var app = module.exports = {
 		data.multimedias.forEach(function(elem,i){
 			app.collections.multimedias.add(new MultimediaModel(elem));
 		});
+		//Load objectives
+		app.collections.objectives = new ObjectiveCollection();
+		data.objectives.forEach(function(elem,i){
+			app.collections.objectives.add(new ObjectiveModel(elem));
+		});
 		next();
 	},
 
@@ -224,14 +229,14 @@ var app = module.exports = {
 			app.currentView.remove();
 		}
 		app.currentView = newView;
-		$('#container').html(newView.render().el);
+		app.$('#container').html(newView.render().el);
 	}
 }
 
 if(app.development){
 	window.app = app;
 }
-},{"../collections/enumerations":7,"../collections/multimedias":8,"../collections/participants":9,"../collections/users":10,"../models/enumeration":45,"../models/multimedia":46,"../models/participant":47,"../models/project":48,"../models/user":49,"jquery":82}],5:[function(require,module,exports){
+},{"../collections/enumerations":7,"../collections/multimedias":8,"../collections/objectives":9,"../collections/participants":10,"../collections/users":11,"../models/enumeration":46,"../models/multimedia":47,"../models/objective":48,"../models/participant":49,"../models/project":50,"../models/user":51}],5:[function(require,module,exports){
 var Backbone	 = require('backbone'),
 	$			 = require('jquery'),
 	app			 = require('../app/namespace'),	
@@ -246,8 +251,10 @@ var removeCurrentView = function(){
 
 module.exports=Backbone.Router.extend({
 	routes:{
-		'project' : 'project',
-		'meetings': 'meetings',
+		'project' 			: 'project',
+		'meetings'			: 'meetings',
+		'create/:model'		: 'create',
+		'view/:model/:id'	: 'view'
 	},
 	project:function(){		
 		var projectView = new ProjectView({
@@ -260,9 +267,39 @@ module.exports=Backbone.Router.extend({
 			collection : app.collections.multimedias
 		});
 		app.setCurrentView(mettingsView);
+	},
+	create : function(model){
+		var role = app.role.get('role');
+		if(role === 'READER'){
+			$.notify(app.utils.t('You don\'t have privileges to create')+'!','error');
+			return;
+		}
+		var View = null;
+		if(model === 'objective'){
+			View = require('../views/objectiveForm');
+		}
+		//Add others
+		if(View !== null){
+			new View();
+		}
+	},
+	view : function(model,id){
+		var View = null;
+		var collection = null;
+		if(model === 'objective'){
+			View = require('../views/objective');
+			collection = app.collections.objectives;
+		}
+		//Add others
+		if(View !== null){
+			var view = new View({
+				model : collection.get(id)
+			});
+			app.setCurrentView(view);
+		}
 	}
 });
-},{"../app/namespace":4,"../views/meetings":63,"../views/project":68,"backbone":70,"jquery":82}],6:[function(require,module,exports){
+},{"../app/namespace":4,"../views/meetings":69,"../views/objective":72,"../views/objectiveForm":73,"../views/project":76,"backbone":78,"jquery":90}],6:[function(require,module,exports){
 var Handlebars	=	require('hbsfy/runtime'),
 	i18n		=	require('i18next-client'),
 	app			=	require('./namespace'),
@@ -319,6 +356,15 @@ module.exports=(function(){
 						else{
 							model.set(data,this.value);
 						}
+						//If the model has authors, we add them by their modifications
+						var authors = model.get('authors');
+						if(authors instanceof Array){
+							var user = app.role.get('user');
+							if(authors.indexOf(user) === -1){
+								authors.push(user);
+								model.set('authors',authors);
+							}
+						}
 						model.save();
 						view.cacheChanged = model.changedAttributes();
 					});
@@ -361,9 +407,15 @@ module.exports=(function(){
 			var addModel = function(model){
 				var $collection = view.$el.find(".collection");
 				var temp = new SubView({
-					model : model
+					model : model,
+					extra : view.extra //Extra params in dynamic views
 				});
-				$collection.append(temp.render().$el);
+				if(typeof view.customAdd === 'function'){ //For dynamic views
+					view.customAdd($collection,temp);
+				}
+				else{
+					$collection.append(temp.render().$el);
+				}
 				attachedViews.push(temp);
 			};
 
@@ -400,6 +452,7 @@ module.exports=(function(){
 			require('../libs/select2/select2');
 			require('../libs/notifyjs/dist/notify');
 			require('../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap');
+			$.el = require('laconic');
 			//Configuring AJAX
 			$.ajaxSetup({
 				error : function(jqXHR){
@@ -479,34 +532,40 @@ module.exports=(function(){
 
 	return publicUtils.init
 })();
-},{"../libs/jquery-file-upload/js/jquery.fileupload":39,"../libs/jquery.nicescroll/jquery.nicescroll":41,"../libs/notifyjs/dist/notify":42,"../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap":43,"../libs/select2/select2":44,"../views/index":62,"./namespace":4,"hbsfy/runtime":80,"i18next-client":81,"jquery":82}],7:[function(require,module,exports){
+},{"../libs/jquery-file-upload/js/jquery.fileupload":40,"../libs/jquery.nicescroll/jquery.nicescroll":42,"../libs/notifyjs/dist/notify":43,"../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap":44,"../libs/select2/select2":45,"../views/index":68,"./namespace":4,"hbsfy/runtime":88,"i18next-client":89,"jquery":90,"laconic":91}],7:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/enumeration')
 });
-},{"../models/enumeration":45,"backbone":70}],8:[function(require,module,exports){
+},{"../models/enumeration":46,"backbone":78}],8:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/multimedia')
 });
-},{"../models/multimedia":46,"backbone":70}],9:[function(require,module,exports){
+},{"../models/multimedia":47,"backbone":78}],9:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Collection.extend({
+	model : require('../models/objective')
+});
+},{"../models/objective":48,"backbone":78}],10:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/participant')
 });
-},{"../models/participant":47,"backbone":70}],10:[function(require,module,exports){
+},{"../models/participant":49,"backbone":78}],11:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/user')
 });
-},{"../models/user":49,"backbone":70}],11:[function(require,module,exports){
+},{"../models/user":51,"backbone":78}],12:[function(require,module,exports){
 module.exports = require('./src/js/backbone_ui');
 
-},{"./src/js/backbone_ui":12}],12:[function(require,module,exports){
+},{"./src/js/backbone_ui":13}],13:[function(require,module,exports){
 var Backbone = this.Backbone || require('backbone');
 var _ = require('underscore');
 var $ = require('./util');
@@ -611,7 +670,7 @@ if (!_(Backbone.$).exists()) {
   Backbone.$ = exports.Util;
 }
 
-},{"./base_view":13,"./button":14,"./calendar":15,"./checkbox":16,"./collection_view":17,"./date_picker":18,"./has_alternative_property":19,"./has_error":20,"./has_focus":21,"./has_form_label":22,"./has_glyph":23,"./has_model":24,"./has_text_input":25,"./keys":26,"./label":27,"./link":28,"./list":29,"./menu":30,"./pulldown":31,"./radio_group":32,"./tab_set":33,"./table_view":34,"./text_area":35,"./text_field":36,"./time_picker":37,"./util":38,"backbone":70,"underscore":132}],13:[function(require,module,exports){
+},{"./base_view":14,"./button":15,"./calendar":16,"./checkbox":17,"./collection_view":18,"./date_picker":19,"./has_alternative_property":20,"./has_error":21,"./has_focus":22,"./has_form_label":23,"./has_glyph":24,"./has_model":25,"./has_text_input":26,"./keys":27,"./label":28,"./link":29,"./list":30,"./menu":31,"./pulldown":32,"./radio_group":33,"./tab_set":34,"./table_view":35,"./text_area":36,"./text_field":37,"./time_picker":38,"./util":39,"backbone":78,"underscore":140}],14:[function(require,module,exports){
 var Backbone = require('backbone');
 var _ = require('underscore');
 
@@ -668,7 +727,7 @@ module.exports = Backbone.View.extend({
   }
 });
 
-},{"backbone":70,"underscore":132}],14:[function(require,module,exports){
+},{"backbone":78,"underscore":140}],15:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -748,7 +807,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_glyph":23,"./has_model":24,"./util":38,"bean":71,"underscore":132}],15:[function(require,module,exports){
+},{"./base_view":14,"./has_glyph":24,"./has_model":25,"./util":39,"bean":79,"underscore":140}],16:[function(require,module,exports){
 var moment = require('moment');
 var _ = require('underscore');
 
@@ -967,7 +1026,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./util":38,"moment":84,"underscore":132}],16:[function(require,module,exports){
+},{"./base_view":14,"./util":39,"moment":92,"underscore":140}],17:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -1066,7 +1125,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_error":20,"./has_glyph":23,"./has_model":24,"./util":38,"bean":71,"underscore":132}],17:[function(require,module,exports){
+},{"./base_view":14,"./has_error":21,"./has_glyph":24,"./has_model":25,"./util":39,"bean":79,"underscore":140}],18:[function(require,module,exports){
 var _ = require('underscore');
 
 var $ = require('./util');
@@ -1211,7 +1270,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./util":38,"underscore":132}],18:[function(require,module,exports){
+},{"./base_view":14,"./util":39,"underscore":140}],19:[function(require,module,exports){
 var bean = require('bean');
 var moment = require('moment');
 var _ = require('underscore');
@@ -1373,7 +1432,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./calendar":15,"./has_error":20,"./has_form_label":22,"./has_model":24,"./keys":26,"./text_field":36,"bean":71,"moment":84,"underscore":132}],19:[function(require,module,exports){
+},{"./base_view":14,"./calendar":16,"./has_error":21,"./has_form_label":23,"./has_model":25,"./keys":27,"./text_field":37,"bean":79,"moment":92,"underscore":140}],20:[function(require,module,exports){
 // A mixin for dealing with collection alternatives
 
 var _ = require('underscore');
@@ -1452,7 +1511,7 @@ module.exports = {
   }
 };
 
-},{"underscore":132}],20:[function(require,module,exports){
+},{"underscore":140}],21:[function(require,module,exports){
 // A mixin for dealing with errors in widgets.
 
 var bean = require('bean');
@@ -1577,7 +1636,7 @@ module.exports = {
   }
 };
 
-},{"./util":38,"bean":71,"underscore":132}],21:[function(require,module,exports){
+},{"./util":39,"bean":79,"underscore":140}],22:[function(require,module,exports){
 // A mixin for dealing with focus in / focus out.
 
 var bean = require('bean');
@@ -1597,7 +1656,7 @@ module.exports = {
   }
 };
 
-},{"./util":38,"bean":71}],22:[function(require,module,exports){
+},{"./util":39,"bean":79}],23:[function(require,module,exports){
 // A mixin for dealing with glyphs in widgets.
 
 var $ = require('./util');
@@ -1617,7 +1676,7 @@ module.exports = {
   }
 };
 
-},{"./util":38}],23:[function(require,module,exports){
+},{"./util":39}],24:[function(require,module,exports){
 // A mixin for dealing with glyphs in widgets.
 
 var _ = require('underscore');
@@ -1661,7 +1720,7 @@ module.exports = {
   }
 };
 
-},{"./util":38,"underscore":132}],24:[function(require,module,exports){
+},{"./util":39,"underscore":140}],25:[function(require,module,exports){
 // A mixin for those views that are model bound.
 
 var _ = require('underscore');
@@ -1719,7 +1778,7 @@ module.exports = {
   }
 };
 
-},{"underscore":132}],25:[function(require,module,exports){
+},{"underscore":140}],26:[function(require,module,exports){
 // A mixin for dealing with a special input event.
 
 var bean = require('bean');
@@ -1816,7 +1875,7 @@ module.exports = {
   }
 };
 
-},{"bean":71,"underscore":132}],26:[function(require,module,exports){
+},{"bean":79,"underscore":140}],27:[function(require,module,exports){
 module.exports = {
   KEY_BACKSPACE: 8,
   KEY_TAB:       9,
@@ -1834,7 +1893,7 @@ module.exports = {
   KEY_INSERT:   45
 };
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 var _ = require('underscore');
 
 var BaseView = require('./base_view');
@@ -1878,7 +1937,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_model":24,"underscore":132}],28:[function(require,module,exports){
+},{"./base_view":14,"./has_model":25,"underscore":140}],29:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -1948,7 +2007,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_glyph":23,"./has_model":24,"./util":38,"bean":71,"underscore":132}],29:[function(require,module,exports){
+},{"./base_view":14,"./has_glyph":24,"./has_model":25,"./util":39,"bean":79,"underscore":140}],30:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -2021,7 +2080,7 @@ module.exports = CollectionView.extend({
   }
 });
 
-},{"./collection_view":17,"./util":38,"bean":71,"underscore":132}],30:[function(require,module,exports){
+},{"./collection_view":18,"./util":39,"bean":79,"underscore":140}],31:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -2206,7 +2265,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_alternative_property":19,"./has_error":20,"./has_form_label":22,"./has_model":24,"./util":38,"bean":71,"underscore":132}],31:[function(require,module,exports){
+},{"./base_view":14,"./has_alternative_property":20,"./has_error":21,"./has_form_label":23,"./has_model":25,"./util":39,"bean":79,"underscore":140}],32:[function(require,module,exports){
 var _ = require('underscore');
 
 var $ = require('./util');
@@ -2285,7 +2344,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_alternative_property":19,"./has_error":20,"./has_focus":21,"./has_form_label":22,"./has_glyph":23,"./has_model":24,"./menu":30,"./util":38,"underscore":132}],32:[function(require,module,exports){
+},{"./base_view":14,"./has_alternative_property":20,"./has_error":21,"./has_focus":22,"./has_form_label":23,"./has_glyph":24,"./has_model":25,"./menu":31,"./util":39,"underscore":140}],33:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -2399,7 +2458,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_alternative_property":19,"./has_error":20,"./has_form_label":22,"./has_glyph":23,"./has_model":24,"./util":38,"bean":71,"underscore":132}],33:[function(require,module,exports){
+},{"./base_view":14,"./has_alternative_property":20,"./has_error":21,"./has_form_label":23,"./has_glyph":24,"./has_model":25,"./util":39,"bean":79,"underscore":140}],34:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -2514,7 +2573,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./util":38,"bean":71,"underscore":132}],34:[function(require,module,exports){
+},{"./base_view":14,"./util":39,"bean":79,"underscore":140}],35:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -2697,7 +2756,7 @@ module.exports = CollectionView.extend({
   }
 });
 
-},{"./collection_view":17,"./util":38,"bean":71,"underscore":132}],35:[function(require,module,exports){
+},{"./collection_view":18,"./util":39,"bean":79,"underscore":140}],36:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -2809,7 +2868,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_error":20,"./has_focus":21,"./has_form_label":22,"./has_model":24,"./util":38,"bean":71,"underscore":132}],36:[function(require,module,exports){
+},{"./base_view":14,"./has_error":21,"./has_focus":22,"./has_form_label":23,"./has_model":25,"./util":39,"bean":79,"underscore":140}],37:[function(require,module,exports){
 var bean = require('bean');
 var _ = require('underscore');
 
@@ -2940,7 +2999,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_error":20,"./has_focus":21,"./has_form_label":22,"./has_glyph":23,"./has_model":24,"./has_text_input":25,"./util":38,"bean":71,"underscore":132}],37:[function(require,module,exports){
+},{"./base_view":14,"./has_error":21,"./has_focus":22,"./has_form_label":23,"./has_glyph":24,"./has_model":25,"./has_text_input":26,"./util":39,"bean":79,"underscore":140}],38:[function(require,module,exports){
 var Backbone = require('backbone');
 var bean = require('bean');
 var moment = require('moment');
@@ -3123,7 +3182,7 @@ module.exports = BaseView.extend({
   }
 });
 
-},{"./base_view":13,"./has_error":20,"./has_form_label":22,"./has_model":24,"./keys":26,"./menu":30,"./text_field":36,"backbone":70,"bean":71,"moment":84,"underscore":132}],38:[function(require,module,exports){
+},{"./base_view":14,"./has_error":21,"./has_form_label":23,"./has_model":25,"./keys":27,"./menu":31,"./text_field":37,"backbone":78,"bean":79,"moment":92,"underscore":140}],39:[function(require,module,exports){
 // micro DOM utility library used as
 // DOMSelectorLibrary for Backbone.$
 // plus some helper functions
@@ -3477,7 +3536,7 @@ $.noop = function() { };
 
 module.exports = $;
 
-},{"bean":71,"laconic":83,"underscore":132}],39:[function(require,module,exports){
+},{"bean":79,"laconic":91,"underscore":140}],40:[function(require,module,exports){
 /*
  * jQuery File Upload Plugin 5.42.3
  * https://github.com/blueimp/jQuery-File-Upload
@@ -4946,7 +5005,7 @@ module.exports = $;
 
 }));
 
-},{"./vendor/jquery.ui.widget":40,"jquery":82}],40:[function(require,module,exports){
+},{"./vendor/jquery.ui.widget":41,"jquery":90}],41:[function(require,module,exports){
 /*! jQuery UI - v1.11.1+CommonJS - 2014-09-17
 * http://jqueryui.com
 * Includes: widget.js
@@ -5511,7 +5570,7 @@ var widget = $.widget;
 
 }));
 
-},{"jquery":82}],41:[function(require,module,exports){
+},{"jquery":90}],42:[function(require,module,exports){
 /* jquery.nicescroll
 -- version 3.5.6
 -- copyright 2014-10-09 InuYaksa*2014
@@ -8774,7 +8833,7 @@ var widget = $.widget;
 }));
   
 
-},{}],42:[function(require,module,exports){
+},{}],43:[function(require,module,exports){
 /** Notify.js - v0.3.1 - 2014/06/29
  * http://notifyjs.com/
  * Copyright (c) 2014 Jaime Pillora - MIT
@@ -9326,7 +9385,7 @@ $(function() {
 });
 
 }(window,document,jQuery));
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 
 $.notify.addStyle("bootstrap", {
   html: "<div>\n<span data-notify-text></span>\n</div>",
@@ -9370,7 +9429,7 @@ $.notify.addStyle("bootstrap", {
   }
 });
 
-},{}],44:[function(require,module,exports){
+},{}],45:[function(require,module,exports){
 /*
 Copyright 2012 Igor Vaynberg
 
@@ -12913,42 +12972,49 @@ the specific language governing permissions and limitations under the Apache Lic
 
 }(jQuery));
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Enumeration',
 	idAttribute : '_id'
 });
-},{"backbone":70}],46:[function(require,module,exports){
+},{"backbone":78}],47:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Multimedia',
 	idAttribute : '_id'
 });
-},{"backbone":70}],47:[function(require,module,exports){
+},{"backbone":78}],48:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Model.extend({
+	model 		: 'Objective',
+	idAttribute : '_id'
+});
+},{"backbone":78}],49:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Participant',
 	idAttribute : '_id'
 });
-},{"backbone":70}],48:[function(require,module,exports){
+},{"backbone":78}],50:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Project',
 	idAttribute : '_id'
 });
-},{"backbone":70}],49:[function(require,module,exports){
+},{"backbone":78}],51:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'User',
 	idAttribute : '_id'
 });
-},{"backbone":70}],50:[function(require,module,exports){
+},{"backbone":78}],52:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -12987,7 +13053,7 @@ function program3(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],51:[function(require,module,exports){
+},{"hbsfy/runtime":88}],53:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13010,7 +13076,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],52:[function(require,module,exports){
+},{"hbsfy/runtime":88}],54:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13019,13 +13085,13 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
 
 
-  buffer += "<div class=\"logo\">\n	<img src=\"img/logo.png\" alt=\"MDDCloud logo\"/>\n</div>\n<div class=\"sidebar\">		\n	<ul class=\"menu scroll\" data-scroll=\"left\">			\n		<li><a href=\"#project\">"
+  buffer += "<div class=\"logo\">\n	<img src=\"/img/logo.png\" alt=\"MDDCloud logo\"/>\n</div>\n<div class=\"sidebar\">		\n	<ul class=\"menu scroll\" data-scroll=\"left\">			\n		<li><a href=\"#project\">"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Project", options) : helperMissing.call(depth0, "t", "Project", options)))
     + "</a></li>\n		<li><a href=\"#meetings\">"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Meetings", options) : helperMissing.call(depth0, "t", "Meetings", options)))
-    + "</a></li>\n		<li id=\"btn-objectives\">\n			<a class=\"dropdown\">"
+    + "</a></li>\n		<li id=\"dropdown-objectives\">\n			<a class=\"dropdown\">"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Objectives", options) : helperMissing.call(depth0, "t", "Objectives", options)))
-    + "</a>\n			<i class=\"fa fa-chevron-circle-right\"></i>\n			<ul>\n				<li><a class=\"add\"><i class=\"fa fa-plus\"></i> "
+    + "</a>\n			<i class=\"fa fa-chevron-circle-right\"></i>\n			<ul class=\"collection\">\n				<li><a href=\"#create/objective\" class=\"add\"><i class=\"fa fa-plus\"></i> "
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "create", options) : helperMissing.call(depth0, "t", "create", options)))
     + "</a></li>\n			</ul>	\n		</li>\n		<li id=\"btn-actors\">\n			<a class=\"dropdown\">"
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Actors", options) : helperMissing.call(depth0, "t", "Actors", options)))
@@ -13055,7 +13121,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],53:[function(require,module,exports){
+},{"hbsfy/runtime":88}],55:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13087,14 +13153,46 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],54:[function(require,module,exports){
+},{"hbsfy/runtime":88}],56:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
 
+function program1(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n			";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.buttons), {hash:{},inverse:self.noop,fn:self.program(2, program2, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n		";
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = "", stack1, helper;
+  buffer += "\n				<button class=\"";
+  if (helper = helpers['class']) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0['class']); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\">";
+  if (helper = helpers.text) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.text); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</button>\n			";
+  return buffer;
+  }
+
+function program4(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n			<button class=\"btn btn-primary close\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Exit", options) : helperMissing.call(depth0, "t", "Exit", options)))
+    + "</button>\n		";
+  return buffer;
+  }
 
   buffer += "<div class=\"mask\"></div>\n<div class=\"modal\">\n	<span class=\"x\">\n		<i class=\"fa fa-close\"></i>\n	</span>\n	<div class=\"title\">";
   if (helper = helpers.title) { stack1 = helper.call(depth0, {hash:{},data:data}); }
@@ -13104,13 +13202,14 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (helper = helpers.html) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.html); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n	</div>\n	<div class=\"footer\">\n		<button class=\"btn btn-primary\">"
-    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Exit", options) : helperMissing.call(depth0, "t", "Exit", options)))
-    + "</button>\n	</div>\n</div>";
+  buffer += "\n	</div>\n	<div class=\"footer\">\n		";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.buttons), {hash:{},inverse:self.program(4, program4, data),fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	</div>\n</div>";
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],55:[function(require,module,exports){
+},{"hbsfy/runtime":88}],57:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13182,7 +13281,7 @@ function program9(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],56:[function(require,module,exports){
+},{"hbsfy/runtime":88}],58:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13211,7 +13310,108 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],57:[function(require,module,exports){
+},{"hbsfy/runtime":88}],59:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+
+
+  buffer += "<div class=\"form\">\n	<fieldset>\n		<legend>\n			<span data=\"name\">";
+  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</span>\n		</legend>\n		<div class=\"field\">\n			<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Creation date", options) : helperMissing.call(depth0, "t", "Creation date", options)))
+    + "</label>\n			<span class=\"small\" data=\"creationDate\">"
+    + escapeExpression((helper = helpers.date || (depth0 && depth0.date),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.creationDate), options) : helperMissing.call(depth0, "date", (depth0 && depth0.creationDate), options)))
+    + "</span>\n		</div>\n		<div class=\"field\">\n			<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Description", options) : helperMissing.call(depth0, "t", "Description", options)))
+    + "</label>\n			<span class=\"large\" data=\"description\">";
+  if (helper = helpers.description) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.description); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</span>\n		</div>\n		<div class=\"field\">\n			<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Multimedias", options) : helperMissing.call(depth0, "t", "Multimedias", options)))
+    + "</label>\n			<span class=\"large\"></span>\n		</div>\n		<div class=\"field\">\n			<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Sources", options) : helperMissing.call(depth0, "t", "Sources", options)))
+    + "</label>\n			<span class=\"large\"></span>\n		</div>\n		<div class=\"field\">\n			<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Contributors", options) : helperMissing.call(depth0, "t", "Contributors", options)))
+    + "</label>\n			<span class=\"large\"></span>\n		</div>\n		<div class=\"field\">\n			<label></label>\n			<button class=\"btn btn-primary medium\" id=\"edit-objective\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Edit this objective", options) : helperMissing.call(depth0, "t", "Edit this objective", options)))
+    + "</button>\n		</div>\n	</fieldset>\n</div>";
+  return buffer;
+  });
+
+},{"hbsfy/runtime":88}],60:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = "", stack1, helper;
+  buffer += "\n			<option value=\"";
+  if (helper = helpers._id) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0._id); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\">";
+  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</option>\n		";
+  return buffer;
+  }
+
+  buffer += "<div class=\"field\">\n	<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Name", options) : helperMissing.call(depth0, "t", "Name", options)))
+    + "</label>\n	<input class=\"medium\" value=\"";
+  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" data=\"name\"/>\n	<a class=\"help tooltip\" data-tooltip=\""
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Name of this resource", options) : helperMissing.call(depth0, "t", "Name of this resource", options)))
+    + "\">?</a>\n</div>\n\n<div class=\"field\">\n	<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Description", options) : helperMissing.call(depth0, "t", "Description", options)))
+    + "</label>\n	<textarea class=\"large\" data=\"description\">";
+  if (helper = helpers.description) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.description); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</textarea>\n	<a class=\"help tooltip\" data-tooltip=\""
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Description of this resource", options) : helperMissing.call(depth0, "t", "Description of this resource", options)))
+    + "\">?</a>\n</div>\n\n<div class=\"field\">\n	<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Multimedias", options) : helperMissing.call(depth0, "t", "Multimedias", options)))
+    + "</label>\n	<select class=\"large multiple\" data=\"multimedias\" multiple=\"multiple\">\n		";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.multimedias), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	</select>\n	<a class=\"help tooltip\" data-tooltip=\""
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "The resources that corroborate this objective", options) : helperMissing.call(depth0, "t", "The resources that corroborate this objective", options)))
+    + "\">?</a>\n</div>\n\n<div class=\"field\">\n	<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Sources", options) : helperMissing.call(depth0, "t", "Sources", options)))
+    + "</label>\n	<select class=\"large multiple\" data=\"sources\" multiple=\"multiple\">\n		";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.sources), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	</select>\n	<a class=\"help tooltip\" data-tooltip=\""
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "The people that gave this information", options) : helperMissing.call(depth0, "t", "The people that gave this information", options)))
+    + "\">?</a>\n</div>\n\n<div class=\"field\">\n	<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Parent objective", options) : helperMissing.call(depth0, "t", "Parent objective", options)))
+    + "</label>\n	<select class=\"large\" data=\"parentObjective\">\n		<option value=\"-1\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Neither", options) : helperMissing.call(depth0, "t", "Neither", options)))
+    + "</option>\n		";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.objectives), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	</select>\n	<a class=\"help tooltip\" data-tooltip=\""
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "The parent objective", options) : helperMissing.call(depth0, "t", "The parent objective", options)))
+    + "\">?</a>\n</div>";
+  return buffer;
+  });
+
+},{"hbsfy/runtime":88}],61:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13325,7 +13525,7 @@ function program15(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],58:[function(require,module,exports){
+},{"hbsfy/runtime":88}],62:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13362,7 +13562,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],59:[function(require,module,exports){
+},{"hbsfy/runtime":88}],63:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -13502,7 +13702,7 @@ function program15(depth0,data) {
     + "</label>\n			";
   stack1 = (helper = helpers.allow || (depth0 && depth0.allow),options={hash:{},inverse:self.program(15, program15, data),fn:self.program(13, program13, data),data:data},helper ? helper.call(depth0, "ADMIN", "EDITOR", options) : helperMissing.call(depth0, "allow", "ADMIN", "EDITOR", options));
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n		</div>\n		<div class=\"field\">\n			<label></label>\n			<img src=\"img/themes/"
+  buffer += "\n		</div>\n		<div class=\"field\">\n			<label></label>\n			<img src=\"/img/themes/"
     + escapeExpression((helper = helpers.lower || (depth0 && depth0.lower),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.template), options) : helperMissing.call(depth0, "lower", (depth0 && depth0.template), options)))
     + ".png\" alt=\""
     + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Bootswatch Theme", options) : helperMissing.call(depth0, "t", "Bootswatch Theme", options)))
@@ -13514,25 +13714,83 @@ function program15(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":80}],60:[function(require,module,exports){
-var Backbone	 =	require("backbone"),
-	$			 =	require("jquery"),
-	app			 = 	require("../app/namespace");
+},{"hbsfy/runtime":88}],64:[function(require,module,exports){
+var Backbone		= require("backbone"),
+	$				= require("jquery"),
+	app				= require("../app/namespace"),
+	DropDownItem 	= require("./dropDownItem");
+
+module.exports=  Backbone.View.extend({
+	SubView : DropDownItem,	
+	initialize : function(options) {
+		this.$el = options.$el;
+		this.extra = options.extra;
+		app.utils.listeningCollection(this);
+	},
+	customAdd : function($collection,model){
+		var that = this;
+		$collection.find('[href="#create/'+that.extra.type+'"]').parent().remove();
+		$collection.append(model.render().el);
+		$collection.append($.el.li(
+			$.el.a({
+				href  : '#create/'+that.extra.type,
+				class : 'add'
+			},$.el.i({
+				class : 'fa fa-plus'
+			}),' ',app.utils.t('create'))
+		));
+	}
+});
+},{"../app/namespace":4,"./dropDownItem":65,"backbone":78,"jquery":90}],65:[function(require,module,exports){
+var Backbone	 =	require('backbone'),
+	$			 =	require('jquery'),
+	app			 = 	require('../app/namespace');
 
 module.exports=Backbone.View.extend({
-	tagName : "div",
-	className : "field enumeration-view",
-	events : {
-		"click button.delete-enumeration" : "delete"
+	tagName : 'li',
+	initialize : function(options) {
+		var that = this;
+		this.extra = options.extra;
+		this.listenToOnce(this.model,'change:_id',function(){
+			that.$el.find('a').attr('href','#view/'+that.extra.type+'/'+that.model.id);
+		});
 	},
-	template : require("../templates/enumeration.hbs"),
+	render : function(){
+		var that = this;
+		this.$el.html($.el.a({
+			href : '#view/'+that.extra.type+'/'+that.model.id,
+			data : 'name'
+		},that.model.get('name')));	
+		app.utils.dataBinding(this);
+		return this;
+	}
+});
+},{"../app/namespace":4,"backbone":78,"jquery":90}],66:[function(require,module,exports){
+var Backbone	 =	require('backbone'),
+	$			 =	require('jquery'),
+	app			 = 	require('../app/namespace');
+
+module.exports=Backbone.View.extend({
+	tagName : 'div',
+	className : 'field enumeration-view',
+	events : {
+		'click button.delete-enumeration' : 'delete'
+	},
+	template : require('../templates/enumeration.hbs'),
 	render : function(){
 		var html=this.template(this.model.toJSON());
 		this.$el.html(html);
-		this.$el.find("input").select2({
+		this.$el.find('input').select2({
 			tags 			: true,
 			tokenSeparators	: [','],
+			minimumResultsForSearch : Infinity
 		});
+		//Hack for hide the search box on tags
+		this.$el.find('input')
+			.select2('container')
+			.find('.select2-display-none')
+			.addClass('select2-hidden');
+			
 		app.utils.dataBinding(this);
 		return this;
 	},	
@@ -13541,7 +13799,7 @@ module.exports=Backbone.View.extend({
 		this.model.destroy();
 	}
 });
-},{"../app/namespace":4,"../templates/enumeration.hbs":50,"backbone":70,"jquery":82}],61:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/enumeration.hbs":52,"backbone":78,"jquery":90}],67:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
@@ -13587,10 +13845,11 @@ module.exports=  Backbone.View.extend({
 		}
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/enumeration":45,"../templates/enumerationForm.hbs":51,"./enumeration":60,"backbone":70,"jquery":82}],62:[function(require,module,exports){
-var Backbone	 =	require('backbone'),
-	$			 =	require('jquery')
-	app			 = 	require('../app/namespace');
+},{"../app/modal":3,"../app/namespace":4,"../models/enumeration":46,"../templates/enumerationForm.hbs":53,"./enumeration":66,"backbone":78,"jquery":90}],68:[function(require,module,exports){
+var Backbone	= require('backbone'),
+	$			= require('jquery'),
+	app			= require('../app/namespace'),
+	DropDown 	= require('./dropDown');
 
 module.exports = Backbone.View.extend({
 	tagName 	: 'div',
@@ -13645,9 +13904,14 @@ module.exports = Backbone.View.extend({
 			}
 		});
 		window.scrollTo(0,1);
+		new DropDown({
+			$el 		: $("#dropdown-objectives"),
+			collection 	: app.collections.objectives,
+			extra 		: {type : 'objective'}
+		});
 	}
 });
-},{"../app/namespace":4,"../templates/index.hbs":52,"backbone":70,"jquery":82}],63:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/index.hbs":54,"./dropDown":64,"backbone":78,"jquery":90}],69:[function(require,module,exports){
 var Backbone			=	require('backbone'),
 	$					=	require('jquery'),
 	app					=	require('../app/namespace'),
@@ -13680,7 +13944,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/meetings.hbs":53,"./multimedia":64,"backbone":70,"jquery":82}],64:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/meetings.hbs":55,"./multimedia":70,"backbone":78,"jquery":90}],70:[function(require,module,exports){
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),
@@ -13705,7 +13969,7 @@ module.exports=Backbone.View.extend({
 		});
 	}
 });
-},{"../app/namespace":4,"../templates/multimedia.hbs":55,"./multimediaForm":65,"backbone":70,"jquery":82}],65:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/multimedia.hbs":57,"./multimediaForm":71,"backbone":78,"jquery":90}],71:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
@@ -13727,7 +13991,94 @@ module.exports=  Backbone.View.extend({
 		app.utils.dataBinding(this);
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/multimediaForm.hbs":56,"backbone":70,"jquery":82}],66:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/multimediaForm.hbs":58,"backbone":78,"jquery":90}],72:[function(require,module,exports){
+var Backbone			=	require('backbone'),
+	$					=	require('jquery'),
+	app					=	require('../app/namespace'),
+	modal 				= 	require('../app/modal'),
+	EnumerationsView 	=	require('./enumerations'),
+	ParticipantsView 	=	require('./participants');
+
+module.exports = Backbone.View.extend({
+	tagName 	: 'div',
+	className 	: 'project-view',
+	events : { 
+		'click #edit-objective' : 'edit'
+	},
+	template:require('../templates/objective.hbs'),
+	render:function(){
+		$('.menu li').removeClass('active');
+		$('#dropdown-objectives').addClass('active');
+		var html=this.template(this.model.toJSON());
+		this.$el.html(html);
+		app.utils.dataBinding(this);
+		return this;
+	},	
+	edit : function(){
+		alert("hola");
+	}
+});
+},{"../app/modal":3,"../app/namespace":4,"../templates/objective.hbs":59,"./enumerations":67,"./participants":75,"backbone":78,"jquery":90}],73:[function(require,module,exports){
+var Backbone		= require('backbone'),
+	$				= require('jquery'),
+	app				= require('../app/namespace'),
+	modal			= require('../app/modal'),
+	ObjectiveModel 	= require('../models/objective');
+
+module.exports=  Backbone.View.extend({
+	template : require('../templates/objectiveForm.hbs'),
+	render : function(){
+		var html=this.template({
+			multimedias : app.collections.multimedias.toJSON(),
+			sources		: app.collections.users.toJSON(),
+			objectives	: app.collections.objectives.toJSON()
+		});
+		this.$el.html(html);	
+		this.$el.find("select").select2();
+		return this;
+	},
+	initialize : function() {
+		var view = this;
+		modal.show({
+			title 	: app.utils.t('New objective'),
+			buttons : [
+				{class : 'btn btn-default close', text : app.utils.t('Cancel')},
+				{class : 'btn btn-success create', text : app.utils.t('Create')}
+			]
+		},800,500);
+		$('.modal .content').html(this.render().el);
+		$('.modal button.create').click(function(){
+			view.create();
+		});
+	},
+	create : function(){
+		var name = this.$el.find("[data=name]").val();
+		var description = this.$el.find("[data=description]").val();
+		var multimedias = this.$el.find("[data=multimedias]").val();
+		var sources = this.$el.find("[data=sources]").val();
+		var parentObjective = this.$el.find("[data=parentObjective]").val();
+		if(parentObjective === '-1'){
+			parentObjective = null;
+		}
+		if(name === ''){
+			$.notify(app.utils.t('You must write a name')+'!','error');
+			return;
+		}
+		var objective = new ObjectiveModel({
+			name 			: name,
+			description 	: description,
+			multimedias		: multimedias || [],
+			authors 		: [app.role.get('user')],
+			sources			: sources || [],
+			parentObjective : parentObjective
+		});
+		objective.save();
+		app.collections.objectives.add(objective);
+		modal.close();
+		this.remove();
+	}
+});
+},{"../app/modal":3,"../app/namespace":4,"../models/objective":48,"../templates/objectiveForm.hbs":60,"backbone":78,"jquery":90}],74:[function(require,module,exports){
 var Backbone	 =	require("backbone"),
 	$			 =	require("jquery"),
 	app			 = 	require("../app/namespace");
@@ -13757,7 +14108,7 @@ module.exports=Backbone.View.extend({
 		this.model.save();
 	}
 });
-},{"../app/namespace":4,"../templates/participant.hbs":57,"backbone":70,"jquery":82}],67:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/participant.hbs":61,"backbone":78,"jquery":90}],75:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
@@ -13809,7 +14160,7 @@ module.exports=  Backbone.View.extend({
 		}
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/participant":47,"../templates/participantForm.hbs":58,"./participant":66,"backbone":70,"jquery":82}],68:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/participant":49,"../templates/participantForm.hbs":62,"./participant":74,"backbone":78,"jquery":90}],76:[function(require,module,exports){
 var Backbone			=	require('backbone'),
 	$					=	require('jquery'),
 	app					=	require('../app/namespace'),
@@ -13838,7 +14189,7 @@ module.exports = Backbone.View.extend({
 	},
 	update : function(){
 		if(this.model.hasChanged('template')){
-			this.$el.find('.field img').attr('src','img/themes/'+this.model.get('template').toLowerCase()+'.png');
+			this.$el.find('.field img').attr('src','/img/themes/'+this.model.get('template').toLowerCase()+'.png');
 		}
 	},
 	viewParticipants : function(){
@@ -13852,7 +14203,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/project.hbs":59,"./enumerations":61,"./participants":67,"backbone":70,"jquery":82}],69:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/project.hbs":63,"./enumerations":67,"./participants":75,"backbone":78,"jquery":90}],77:[function(require,module,exports){
 (function (process){
 /*!
  * async
@@ -14979,7 +15330,7 @@ module.exports = Backbone.View.extend({
 }());
 
 }).call(this,require('_process'))
-},{"_process":72}],70:[function(require,module,exports){
+},{"_process":80}],78:[function(require,module,exports){
 //     Backbone.js 1.1.2
 
 //     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -16589,7 +16940,7 @@ module.exports = Backbone.View.extend({
 
 }));
 
-},{"underscore":132}],71:[function(require,module,exports){
+},{"underscore":140}],79:[function(require,module,exports){
 /*!
   * Bean - copyright (c) Jacob Thornton 2011-2012
   * https://github.com/fat/bean
@@ -17332,7 +17683,7 @@ module.exports = Backbone.View.extend({
   return bean
 });
 
-},{}],72:[function(require,module,exports){
+},{}],80:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -17420,7 +17771,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],73:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var base = require("./handlebars/base");
@@ -17453,7 +17804,7 @@ var Handlebars = create();
 Handlebars.create = create;
 
 exports["default"] = Handlebars;
-},{"./handlebars/base":74,"./handlebars/exception":75,"./handlebars/runtime":76,"./handlebars/safe-string":77,"./handlebars/utils":78}],74:[function(require,module,exports){
+},{"./handlebars/base":82,"./handlebars/exception":83,"./handlebars/runtime":84,"./handlebars/safe-string":85,"./handlebars/utils":86}],82:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -17634,7 +17985,7 @@ exports.log = log;var createFrame = function(object) {
   return obj;
 };
 exports.createFrame = createFrame;
-},{"./exception":75,"./utils":78}],75:[function(require,module,exports){
+},{"./exception":83,"./utils":86}],83:[function(require,module,exports){
 "use strict";
 
 var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
@@ -17663,7 +18014,7 @@ function Exception(message, node) {
 Exception.prototype = new Error();
 
 exports["default"] = Exception;
-},{}],76:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -17801,7 +18152,7 @@ exports.program = program;function invokePartial(partial, name, context, helpers
 exports.invokePartial = invokePartial;function noop() { return ""; }
 
 exports.noop = noop;
-},{"./base":74,"./exception":75,"./utils":78}],77:[function(require,module,exports){
+},{"./base":82,"./exception":83,"./utils":86}],85:[function(require,module,exports){
 "use strict";
 // Build out our basic SafeString type
 function SafeString(string) {
@@ -17813,7 +18164,7 @@ SafeString.prototype.toString = function() {
 };
 
 exports["default"] = SafeString;
-},{}],78:[function(require,module,exports){
+},{}],86:[function(require,module,exports){
 "use strict";
 /*jshint -W004 */
 var SafeString = require("./safe-string")["default"];
@@ -17890,15 +18241,15 @@ exports.escapeExpression = escapeExpression;function isEmpty(value) {
 }
 
 exports.isEmpty = isEmpty;
-},{"./safe-string":77}],79:[function(require,module,exports){
+},{"./safe-string":85}],87:[function(require,module,exports){
 // Create a simple path alias to allow browserify to resolve
 // the runtime on a supported path.
 module.exports = require('./dist/cjs/handlebars.runtime');
 
-},{"./dist/cjs/handlebars.runtime":73}],80:[function(require,module,exports){
+},{"./dist/cjs/handlebars.runtime":81}],88:[function(require,module,exports){
 module.exports = require("handlebars/runtime")["default"];
 
-},{"handlebars/runtime":79}],81:[function(require,module,exports){
+},{"handlebars/runtime":87}],89:[function(require,module,exports){
 // i18next, v1.7.7
 // Copyright (c)2014 Jan Mühlemann (jamuhl).
 // Distributed under MIT license
@@ -20021,7 +20372,7 @@ module.exports = require("handlebars/runtime")["default"];
     i18n.options = o;
 
 })();
-},{"jquery":82}],82:[function(require,module,exports){
+},{"jquery":90}],90:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v1.11.2
  * http://jquery.com/
@@ -30369,7 +30720,7 @@ return jQuery;
 
 }));
 
-},{}],83:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 // Laconic simplifies the generation of DOM content.
 (function(context) {
 
@@ -30566,7 +30917,7 @@ return jQuery;
   }
 }(this));
 
-},{}],84:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 (function (global){
 //! moment.js
 //! version : 2.9.0
@@ -33613,11 +33964,11 @@ return jQuery;
 }).call(this);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],85:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 
 module.exports = require('./lib/');
 
-},{"./lib/":86}],86:[function(require,module,exports){
+},{"./lib/":94}],94:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -33706,7 +34057,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":87,"./socket":89,"./url":90,"debug":93,"socket.io-parser":127}],87:[function(require,module,exports){
+},{"./manager":95,"./socket":97,"./url":98,"debug":101,"socket.io-parser":135}],95:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -34181,7 +34532,7 @@ Manager.prototype.onreconnect = function(){
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":88,"./socket":89,"./url":90,"component-bind":91,"component-emitter":92,"debug":93,"engine.io-client":94,"indexof":123,"object-component":124,"socket.io-parser":127}],88:[function(require,module,exports){
+},{"./on":96,"./socket":97,"./url":98,"component-bind":99,"component-emitter":100,"debug":101,"engine.io-client":102,"indexof":131,"object-component":132,"socket.io-parser":135}],96:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -34207,7 +34558,7 @@ function on(obj, ev, fn) {
   };
 }
 
-},{}],89:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -34593,7 +34944,7 @@ Socket.prototype.disconnect = function(){
   return this;
 };
 
-},{"./on":88,"component-bind":91,"component-emitter":92,"debug":93,"has-binary":121,"socket.io-parser":127,"to-array":131}],90:[function(require,module,exports){
+},{"./on":96,"component-bind":99,"component-emitter":100,"debug":101,"has-binary":129,"socket.io-parser":135,"to-array":139}],98:[function(require,module,exports){
 (function (global){
 
 /**
@@ -34670,7 +35021,7 @@ function url(uri, loc){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":93,"parseuri":125}],91:[function(require,module,exports){
+},{"debug":101,"parseuri":133}],99:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -34695,7 +35046,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],92:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -34861,7 +35212,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],93:[function(require,module,exports){
+},{}],101:[function(require,module,exports){
 
 /**
  * Expose `debug()` as the module.
@@ -35000,11 +35351,11 @@ try {
   if (window.localStorage) debug.enable(localStorage.debug);
 } catch(e){}
 
-},{}],94:[function(require,module,exports){
+},{}],102:[function(require,module,exports){
 
 module.exports =  require('./lib/');
 
-},{"./lib/":95}],95:[function(require,module,exports){
+},{"./lib/":103}],103:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -35016,7 +35367,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":96,"engine.io-parser":108}],96:[function(require,module,exports){
+},{"./socket":104,"engine.io-parser":116}],104:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -35703,7 +36054,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":97,"./transports":98,"component-emitter":92,"debug":105,"engine.io-parser":108,"indexof":123,"parsejson":117,"parseqs":118,"parseuri":119}],97:[function(require,module,exports){
+},{"./transport":105,"./transports":106,"component-emitter":100,"debug":113,"engine.io-parser":116,"indexof":131,"parsejson":125,"parseqs":126,"parseuri":127}],105:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -35855,7 +36206,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":92,"engine.io-parser":108}],98:[function(require,module,exports){
+},{"component-emitter":100,"engine.io-parser":116}],106:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies
@@ -35912,7 +36263,7 @@ function polling(opts){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling-jsonp":99,"./polling-xhr":100,"./websocket":102,"xmlhttprequest":103}],99:[function(require,module,exports){
+},{"./polling-jsonp":107,"./polling-xhr":108,"./websocket":110,"xmlhttprequest":111}],107:[function(require,module,exports){
 (function (global){
 
 /**
@@ -36149,7 +36500,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":101,"component-inherit":104}],100:[function(require,module,exports){
+},{"./polling":109,"component-inherit":112}],108:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -36504,7 +36855,7 @@ function unloadHandler() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":101,"component-emitter":92,"component-inherit":104,"debug":105,"xmlhttprequest":103}],101:[function(require,module,exports){
+},{"./polling":109,"component-emitter":100,"component-inherit":112,"debug":113,"xmlhttprequest":111}],109:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -36751,7 +37102,7 @@ Polling.prototype.uri = function(){
   return schema + '://' + this.hostname + port + this.path + query;
 };
 
-},{"../transport":97,"component-inherit":104,"debug":105,"engine.io-parser":108,"parseqs":118,"xmlhttprequest":103}],102:[function(require,module,exports){
+},{"../transport":105,"component-inherit":112,"debug":113,"engine.io-parser":116,"parseqs":126,"xmlhttprequest":111}],110:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -36982,7 +37333,7 @@ WS.prototype.check = function(){
   return !!WebSocket && !('__initialize' in WebSocket && this.name === WS.prototype.name);
 };
 
-},{"../transport":97,"component-inherit":104,"debug":105,"engine.io-parser":108,"parseqs":118,"ws":120}],103:[function(require,module,exports){
+},{"../transport":105,"component-inherit":112,"debug":113,"engine.io-parser":116,"parseqs":126,"ws":128}],111:[function(require,module,exports){
 // browser shim for xmlhttprequest module
 var hasCORS = require('has-cors');
 
@@ -37020,7 +37371,7 @@ module.exports = function(opts) {
   }
 }
 
-},{"has-cors":115}],104:[function(require,module,exports){
+},{"has-cors":123}],112:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -37028,7 +37379,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],105:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -37177,7 +37528,7 @@ function load() {
 
 exports.enable(load());
 
-},{"./debug":106}],106:[function(require,module,exports){
+},{"./debug":114}],114:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -37376,7 +37727,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":107}],107:[function(require,module,exports){
+},{"ms":115}],115:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -37489,7 +37840,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],108:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -38059,7 +38410,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":109,"after":110,"arraybuffer.slice":111,"base64-arraybuffer":112,"blob":113,"utf8":114}],109:[function(require,module,exports){
+},{"./keys":117,"after":118,"arraybuffer.slice":119,"base64-arraybuffer":120,"blob":121,"utf8":122}],117:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -38080,7 +38431,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],110:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 module.exports = after
 
 function after(count, callback, err_cb) {
@@ -38110,7 +38461,7 @@ function after(count, callback, err_cb) {
 
 function noop() {}
 
-},{}],111:[function(require,module,exports){
+},{}],119:[function(require,module,exports){
 /**
  * An abstraction for slicing an arraybuffer even when
  * ArrayBuffer.prototype.slice is not supported
@@ -38141,7 +38492,7 @@ module.exports = function(arraybuffer, start, end) {
   return result.buffer;
 };
 
-},{}],112:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -38202,7 +38553,7 @@ module.exports = function(arraybuffer, start, end) {
   };
 })("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
-},{}],113:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 (function (global){
 /**
  * Create a blob builder even when vendor prefixes exist
@@ -38255,7 +38606,7 @@ module.exports = (function() {
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],114:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/utf8js v2.0.0 by @mathias */
 ;(function(root) {
@@ -38498,7 +38849,7 @@ module.exports = (function() {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],115:[function(require,module,exports){
+},{}],123:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -38523,7 +38874,7 @@ try {
   module.exports = false;
 }
 
-},{"global":116}],116:[function(require,module,exports){
+},{"global":124}],124:[function(require,module,exports){
 
 /**
  * Returns `this`. Execute this without a "context" (i.e. without it being
@@ -38533,7 +38884,7 @@ try {
 
 module.exports = (function () { return this; })();
 
-},{}],117:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 (function (global){
 /**
  * JSON parse.
@@ -38568,7 +38919,7 @@ module.exports = function parsejson(data) {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],118:[function(require,module,exports){
+},{}],126:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -38607,7 +38958,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],119:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -38648,7 +38999,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],120:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -38693,7 +39044,7 @@ function ws(uri, protocols, opts) {
 
 if (WebSocket) ws.prototype = WebSocket.prototype;
 
-},{}],121:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 (function (global){
 
 /*
@@ -38755,12 +39106,12 @@ function hasBinary(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":122}],122:[function(require,module,exports){
+},{"isarray":130}],130:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],123:[function(require,module,exports){
+},{}],131:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -38771,7 +39122,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],124:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 
 /**
  * HOP ref.
@@ -38856,7 +39207,7 @@ exports.length = function(obj){
 exports.isEmpty = function(obj){
   return 0 == exports.length(obj);
 };
-},{}],125:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -38883,7 +39234,7 @@ module.exports = function parseuri(str) {
   return uri;
 };
 
-},{}],126:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -39028,7 +39379,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":128,"isarray":129}],127:[function(require,module,exports){
+},{"./is-buffer":136,"isarray":137}],135:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -39426,7 +39777,7 @@ function error(data){
   };
 }
 
-},{"./binary":126,"./is-buffer":128,"component-emitter":92,"debug":93,"isarray":129,"json3":130}],128:[function(require,module,exports){
+},{"./binary":134,"./is-buffer":136,"component-emitter":100,"debug":101,"isarray":137,"json3":138}],136:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
@@ -39443,9 +39794,9 @@ function isBuf(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],129:[function(require,module,exports){
-arguments[4][122][0].apply(exports,arguments)
-},{"dup":122}],130:[function(require,module,exports){
+},{}],137:[function(require,module,exports){
+arguments[4][130][0].apply(exports,arguments)
+},{"dup":130}],138:[function(require,module,exports){
 /*! JSON v3.2.6 | http://bestiejs.github.io/json3 | Copyright 2012-2013, Kit Cambridge | http://kit.mit-license.org */
 ;(function (window) {
   // Convenience aliases.
@@ -40308,7 +40659,7 @@ arguments[4][122][0].apply(exports,arguments)
   }
 }(this));
 
-},{}],131:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -40323,7 +40674,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],132:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 //     Underscore.js 1.7.0
 //     http://underscorejs.org
 //     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors

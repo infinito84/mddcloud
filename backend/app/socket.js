@@ -63,7 +63,7 @@ module.exports=(function(){
 				function(callback){
 					//Send to client all project data		
 					Project.findById(projectId)
-					.deepPopulate('participants.user,enumerations,multimedias')
+					.deepPopulate('participants.user,enumerations,multimedias,objectives')
 					.exec(function (error,project) {
 						if (error){
 							callback('Internal error');
