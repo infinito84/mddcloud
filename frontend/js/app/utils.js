@@ -32,6 +32,14 @@ module.exports=(function(){
 			});
 			return temp;
 		},
+		filterCollection : function(collection,arrayIds){
+			var collection2 = collection.clone();
+			collection2.reset();
+			collection2.add(collection.models.filter(function(model){
+				return arrayIds.indexOf(model.id) !== -1;
+			}));
+			return collection2;
+		},
 		extend : function(obj1, obj2){
 			var attrs = Object.keys(obj2);
 			attrs.forEach(function(attr){
@@ -45,11 +53,11 @@ module.exports=(function(){
 				var $el = $(el);				
 				var data = $el.attr('data');
 				var tag = el.tagName.toLowerCase();
-				var isMultiple = el.className.indexOf("multiple") !== -1;
+				var isMultiple = el.className.indexOf('multiple') !== -1;
 				if(['input','select','textarea'].indexOf(tag)!==-1){
 					$el.change(function(){
 						if(isMultiple){
-							model.set(data,this.value.split(","));
+							model.set(data,this.value.split(','));
 						}
 						else{
 							model.set(data,this.value);
@@ -64,37 +72,47 @@ module.exports=(function(){
 							}
 						}
 						model.save();
-						view.cacheChanged = model.changedAttributes();
+						view.cacheElement = this;
 					});
 				}
 			});
-			view.listenTo(model,"change",function(){
+			view.listenTo(model,'change',function(){
 				var changed=model.changedAttributes();
-				if(changed!==view.cacheChanged){
-					var array=Object.keys(changed);
-					for(var i=0;i<array.length;i++){
-						var attr=array[i];
-						view.$el.find("[data="+attr+"]").each(function(i,el){
-							var tag = el.tagName.toLowerCase();
-							var isMultiple = el.className.indexOf("multiple") !== -1;
-							var value = changed[attr];							
-							if(['input','select','textarea'].indexOf(tag)!==-1){
-								if(isMultiple){
-									$(el).select2("val",value);
-									value = value.join(",");
-								}
-								el.value = value;
+				var array=Object.keys(changed);
+				for(var i=0;i<array.length;i++){
+					var attr=array[i];
+					view.$el.find('[data='+attr+']').each(function(i,el){
+						if(view.cacheElement === el){
+							view.cacheElement = null;
+							return;
+						}
+						var tag = el.tagName.toLowerCase();
+						var value = changed[attr];							
+						if(['input','select','textarea'].indexOf(tag)!==-1){
+							var isMultiple = el.className.indexOf('multiple') !== -1;
+							if(isMultiple){
+								$(el).select2('val',value);
+								value = value.join(',');
+							}
+							el.value = value;
+						}
+						else{
+							var isCustom = el.attributes.getNamedItem('data-custom');
+							if(isCustom){
+								var $el = $(el);
+								var custom = $el.attr('data-custom');
+								view.customRender[custom](view,$el,value);
 							}
 							else{
+								var isMultiple = el.className.indexOf('multiple') !== -1;
 								if(isMultiple){
-									value = value.join(", ");
+									value = value.join(', ');
 								}
 								el.innerHTML = value;
 							}
-						});
-					}
+						}
+					});
 				}
-				if(view.update)view.update();
 			});
 		},
 		listeningCollection : function(view){
@@ -103,7 +121,7 @@ module.exports=(function(){
 			var SubView = view.SubView;
 
 			var addModel = function(model){
-				var $collection = view.$el.find(".collection");
+				var $collection = view.$el.find('.collection');
 				var temp = new SubView({
 					model : model,
 					extra : view.extra //Extra params in dynamic views

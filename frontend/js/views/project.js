@@ -24,9 +24,9 @@ module.exports = Backbone.View.extend({
 	initialize : function() {
 		this.listenTo(this.model, 'change', this.update,this);
 	},
-	update : function(){
-		if(this.model.hasChanged('template')){
-			this.$el.find('.field img').attr('src','/img/themes/'+this.model.get('template').toLowerCase()+'.png');
+	customRender : {
+		imgTemplate : function(view,$elem,value){
+			$elem.attr('src','/img/themes/'+value.toLowerCase()+'.png');
 		}
 	},
 	viewParticipants : function(){

@@ -2191,6 +2191,9 @@ div.field>span {
   vertical-align: middle;
   min-height: 1em;
 }
+div.field>span.no-border {
+  border: none;
+}
 .btn.file {
   position: relative;
   z-index: 10;
@@ -2588,6 +2591,15 @@ i.success {
   padding-left: 0.5em;
   font-size: 0.8em;
   max-width: 55%;
+}
+img.author_source {
+  max-width: 23px;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  vertical-align: middle;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  margin-top: 5px;
 }
 /*Import CSS*/
 /*

@@ -1,0 +1,13 @@
+{{#eq type 'IMAGE'}}
+	<i class="fa fa-file-image-o success"></i>
+{{/eq}}
+{{#eq type 'AUDIO'}}
+	<i class="fa fa-file-audio-o primary"></i>
+{{/eq}}
+{{#eq type 'VIDEO'}}
+	<i class="fa fa-file-video-o danger"></i>
+{{/eq}}
+{{#eq type 'BINARY'}}
+	<i class="fa fa-file-o warning"></i>
+{{/eq}}
+<a href="{{url}}" target="_blank" data="name">{{name}}</a>
