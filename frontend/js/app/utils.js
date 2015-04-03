@@ -47,7 +47,10 @@ module.exports=(function(){
 			});
 		},
 		dataBinding : function(view){
-			var elements = view.$el.find('[data]');
+			//When we build views that has nested views we filter elements with
+			//Differente scope (other views)
+			var $notSelector = '[data] [data]';
+			var elements = view.$el.find('[data]').not(view.$el.find($notSelector));
 			var model = view.model;
 			elements.each(function(i,el){
 				var $el = $(el);				
@@ -56,21 +59,35 @@ module.exports=(function(){
 				var isMultiple = el.className.indexOf('multiple') !== -1;
 				if(['input','select','textarea'].indexOf(tag)!==-1){
 					$el.change(function(){
-						if(isMultiple){
-							model.set(data,this.value.split(','));
+						var value = $el.val();
+						var values = {};
+						if(isMultiple){							
+							if(typeof value === 'string'){
+								value = value.split(',')
+							}
+							if(value === null){
+								value = [];
+							}
 						}
 						else{
-							model.set(data,this.value);
+							if(tag === 'select'){
+								if(value == '-1'){
+									value = null;
+								}
+							}
 						}
+						values[data] = value;
 						//If the model has authors, we add them by their modifications
 						var authors = model.get('authors');
 						if(authors instanceof Array){
+							authors = authors.slice(0); 
 							var user = app.role.get('user');
 							if(authors.indexOf(user) === -1){
 								authors.push(user);
-								model.set('authors',authors);
+								values.authors = authors;
 							}
 						}
+						model.set(values);
 						model.save();
 						view.cacheElement = this;
 					});
@@ -81,7 +98,7 @@ module.exports=(function(){
 				var array=Object.keys(changed);
 				for(var i=0;i<array.length;i++){
 					var attr=array[i];
-					view.$el.find('[data='+attr+']').each(function(i,el){
+					view.$el.find('[data='+attr+']').not(view.$el.find($notSelector)).each(function(i,el){
 						if(view.cacheElement === el){
 							view.cacheElement = null;
 							return;
@@ -93,6 +110,13 @@ module.exports=(function(){
 							if(isMultiple){
 								$(el).select2('val',value);
 								value = value.join(',');
+							}
+							else{
+								if(tag === 'select'){
+									if(value === null){
+										value = '-1';
+									}
+								}
 							}
 							el.value = value;
 						}

@@ -5,6 +5,16 @@ var availableSockets	= require('./availableSockets'),
 
 module.exports=(function(){
 
+	var deepPopulateArray = [
+		'participants.user',
+		'actors',
+		'enumerations',
+		'multimedias',
+		'objectives',
+		'storageRequirements.attributes',
+		'functionalRequirements.diagramActivities.activities',
+		'nonFunctionalRequirements,actors'
+	];
 
 	return function(server,store){
 		var	io = require('socket.io')(server);
@@ -58,12 +68,12 @@ module.exports=(function(){
 					Model.delete(projectId,params.id,fn);
 				}
 			});
-			
+
 			async.series([
 				function(callback){
 					//Send to client all project data		
 					Project.findById(projectId)
-					.deepPopulate('participants.user,enumerations,multimedias,objectives')
+					.deepPopulate(deepPopulateArray)
 					.exec(function (error,project) {
 						if (error){
 							callback('Internal error');

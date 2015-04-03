@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema 	 = mongoose.Schema;
 
 module.exports=(function(){
-	var nonFunctionalRequirementSchema=Schema({
+	var nonFunctionalRequirementSchema = Schema({
 		name 			: {type : String, trim : true},
 		description 	: String,
 		creationDate 	: {type : Date, default : Date.now},

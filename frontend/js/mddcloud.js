@@ -45,9 +45,9 @@ $(document).ready(function(){
 			if(method==='create'){
 				data.data = model.toJSON();
 			}
-			socket.emit('sync',data,function(id){
+			socket.emit('sync',data,function(extraData){
 				if(method==='create'){
-					model.set('_id',id);
+					model.set(extraData);
 				}
 			});
 		}; 

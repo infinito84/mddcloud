@@ -40,7 +40,7 @@ module.exports=(function(){
 			}
 		],function(error,objective){
 			if(error)return console.error(error);
-			fn(objective._id);
+			fn(objective);
 		});
 	}
 

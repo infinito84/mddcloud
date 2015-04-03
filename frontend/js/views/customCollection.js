@@ -3,7 +3,7 @@ var Backbone				= require("backbone"),
 	app						= require("../app/namespace"),
 	CustomCollectionItem 	= require("./customCollectionItem");
 
-module.exports=  Backbone.View.extend({
+module.exports = Backbone.View.extend({
 	SubView : CustomCollectionItem,	
 	initialize : function(options) {
 		this.$el = options.$el;

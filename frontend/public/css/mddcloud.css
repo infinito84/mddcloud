@@ -2018,7 +2018,7 @@ ul.menu {
 ul.menu>li {
   position: relative;
 }
-ul.menu>li.active>a {
+ul.menu li.active>a {
   color: #466788;
   background-color: #fff;
   text-shadow: none;
@@ -2026,6 +2026,10 @@ ul.menu>li.active>a {
   z-index: 105;
   -webkit-box-shadow: 0px 0px 7px #000;
   box-shadow: 0px 0px 7px #000;
+}
+ul.collection li.active>a {
+  background-color: #b3b3b3;
+  color: #000;
 }
 ul.menu>li.active>i {
   color: #2e69c3;

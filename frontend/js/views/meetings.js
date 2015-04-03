@@ -23,6 +23,7 @@ module.exports = Backbone.View.extend({
 		this.$el.find('input[type=file]').fileupload({
 			url  : '/multimedia/upload/',
 		}).bind('fileuploadsubmit', function (e, data) {
+			$.notify(app.utils.t('Uploading file...'),'info');
 			data.formData = {
 				project : app.project.get('_id'),
 				type 	: data.fileInput.data('upload')

@@ -61,5 +61,10 @@ module.exports = Backbone.View.extend({
 			collection 	: app.collections.objectives,
 			extra 		: {type : 'objective'}
 		});
+		new DropDown({
+			$el 		: $("#dropdown-actors"),
+			collection 	: app.collections.actors,
+			extra 		: {type : 'actor'}
+		});
 	}
 });

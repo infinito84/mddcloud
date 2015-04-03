@@ -11,21 +11,23 @@
 			<label>{{t 'Description'}}</label>
 			<span class="large" data="description">{{description}}</span>
 		</div>
-		<div class="field">
-			<label>{{t 'Multimedias'}}</label>
-			<span class="large no-border" data="multimedias" data-custom="multimedias"></span>
-		</div>
-		<div class="field">
-			<label>{{t 'Sources'}}</label>
-			<span class="large no-border" data="sources" data-custom="sources"></span>
-		</div>
-		<div class="field">
-			<label>{{t 'Contributors'}}</label>
-			<span class="large no-border" data="authors" data-custom="contributors"></span>
-		</div>
-		<div class="field">
-			<label>{{t 'Parent Objective'}}</label>
-			<span class="medium" data="parentObjective" data-custom="parentObjective"></span>
+		<div class="different-scope">
+			<div class="field">
+				<label>{{t 'Multimedias'}}</label>
+				<span class="large no-border" data="multimedias" data-custom="multimedias"></span>
+			</div>
+			<div class="field">
+				<label>{{t 'Sources'}}</label>
+				<span class="large no-border" data="sources" data-custom="sources"></span>
+			</div>
+			<div class="field">
+				<label>{{t 'Contributors'}}</label>
+				<span class="large no-border" data="authors" data-custom="contributors"></span>
+			</div>
+			<div class="field">
+				<label>{{t 'Parent Objective'}}</label>
+				<span class="medium" data="parentObjective" data-custom="parentObjective"></span>
+			</div>
 		</div>
 		{{#allow 'ADMIN' 'EDITOR'}}
 		<div class="field">

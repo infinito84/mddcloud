@@ -37,7 +37,7 @@ module.exports=(function(){
 			}
 		],function(error,enumeration){
 			if(error)return console.error(error);
-			fn(enumeration._id);
+			fn(enumeration);
 		});
 	}
 

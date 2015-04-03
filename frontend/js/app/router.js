@@ -39,6 +39,9 @@ module.exports=Backbone.Router.extend({
 		if(model === 'objective'){
 			View = require('../views/objectiveForm');
 		}
+		else if (model === 'actor'){
+			View = require('../views/actorForm');
+		}
 		//Add others
 		if(View !== null){
 			new View();

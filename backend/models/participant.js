@@ -47,12 +47,12 @@ module.exports=(function(){
 			function(project,participant,next){
 				project.participants.push(participant);
 				project.save(function(error){
-					next(error);
+					next(error,participant);
 				});
 			}
-		],function(error){
+		],function(error,participant){
 			if(error)return console.error(error);
-			fn(null);
+			fn(participant);
 		});
 	}
 

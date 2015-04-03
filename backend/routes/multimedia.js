@@ -14,14 +14,6 @@ module.exports=(function(){
 		limits 	: {
 			fileSize : app.config.maxUploadFileSize
 		},
-		onFileUploadStart : function(file, req, res){
-			var socket = availableSockets.getOwn(req.body.project,req.sessionID);
-			socket.emit('info',req.i18n.t('Reciving data from') + ': ' + file.originalname);
-		},
-		onFileUploadComplete : function(file, req, res){
-			var socket = availableSockets.getOwn(req.body.project,req.sessionID);
-			socket.emit('info', file.size + ' ' + req.i18n.t('bytes received'));
-		},
 		onFileSizeLimit: function (file) {
 			file.failSize = true;
 			fs.unlink(file.path);
@@ -38,6 +30,7 @@ module.exports=(function(){
 			socket.emit('requestError',file.originalname +' '+ req.i18n.t('exceeds the max file size') + ': '+app.config.maxUploadFileSize+' '+req.i18n.t('bytes'));
 			return;
 		}
+		socket.emit('info', file.size + ' ' + req.i18n.t('bytes received'));
 		var end = function(){
 			var url = file.path.replace(app.config.folder+'frontend/public','');
 			Multimedia.create(project,{

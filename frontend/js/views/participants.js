@@ -32,6 +32,19 @@ module.exports=  Backbone.View.extend({
 		var input = this.$el.find("input.add-participant");
 		var role = this.$el.find("select.role").val();
 		var name = input.val();
+		var error = false;
+		if(name === ''){
+			$.notify(app.utils.t('You must write a E-mail'),'error');
+			error = true;
+		}
+		var filter=/^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+		if (!filter.test(name)){
+			$.notify(app.utils.t('Verify your e-mail'),'error');
+			error = true;
+		}
+		if(error){
+			return;
+		}
 		input.val("");
 		if(name){
 			$.ajax({
