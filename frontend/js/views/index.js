@@ -66,5 +66,25 @@ module.exports = Backbone.View.extend({
 			collection 	: app.collections.actors,
 			extra 		: {type : 'actor'}
 		});
+		new DropDown({
+			$el 		: $("#dropdown-actors"),
+			collection 	: app.collections.actors,
+			extra 		: {type : 'actor'}
+		});
+		new DropDown({
+			$el 		: $("#dropdown-functionalRequirements"),
+			collection 	: app.collections.functionalRequirements,
+			extra 		: {type : 'functionalRequirement'}
+		});
+		new DropDown({
+			$el 		: $("#dropdown-storageRequirements"),
+			collection 	: app.collections.storageRequirements,
+			extra 		: {type : 'storageRequirement'}
+		});
+		new DropDown({
+			$el 		: $("#dropdown-nonFunctionalRequirements"),
+			collection 	: app.collections.nonFunctionalRequirements,
+			extra 		: {type : 'nonFunctionalRequirement'}
+		});
 	}
 });

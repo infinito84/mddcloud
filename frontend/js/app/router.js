@@ -42,6 +42,15 @@ module.exports=Backbone.Router.extend({
 		else if (model === 'actor'){
 			View = require('../views/actorForm');
 		}
+		else if (model === 'functionalRequirement'){
+			View = require('../views/functionalRequirementForm');
+		}
+		else if (model === 'nonFunctionalRequirement'){
+			View = require('../views/nonFunctionalRequirementForm');
+		}
+		else if (model === 'storageRequirement'){
+			View = require('../views/storageRequirementForm');
+		}
 		//Add others
 		if(View !== null){
 			new View();
@@ -54,9 +63,21 @@ module.exports=Backbone.Router.extend({
 			View = require('../views/objective');
 			collection = app.collections.objectives;
 		}
-		if(model === 'actor'){
+		else if(model === 'actor'){
 			View = require('../views/actor');
 			collection = app.collections.actors;
+		}
+		else if(model === 'functionalRequirement'){
+			View = require('../views/functionalRequirement');
+			collection = app.collections.functionalRequirements;
+		}
+		else if(model === 'nonFunctionalRequirement'){
+			View = require('../views/nonFunctionalRequirement');
+			collection = app.collections.nonFunctionalRequirements;
+		}
+		else if(model === 'storageRequirement'){
+			View = require('../views/storageRequirement');
+			collection = app.collections.storageRequirements;
 		}
 		//Add others
 		if(View !== null){

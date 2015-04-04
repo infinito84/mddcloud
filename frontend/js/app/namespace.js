@@ -28,7 +28,7 @@ var	Collection = {
 	DiagramActivity 			: require('../collections/diagramActivities'),
 	StorageRequirement 			: require('../collections/storageRequirements'),
 	FunctionalRequirement		: require('../collections/functionalRequirements'),
-	nonFunctionalRequirement 	: require('../collections/nonFunctionalRequirements')
+	NonFunctionalRequirement 	: require('../collections/nonFunctionalRequirements')
 };
 	
 var app = module.exports = {
@@ -71,6 +71,21 @@ var app = module.exports = {
 		app.collections.actors = new Collection.Actor();
 		data.actors.forEach(function(elem,i){
 			app.collections.actors.add(new Model.Actor(elem));
+		});
+		//Load functional requirements
+		app.collections.functionalRequirements = new Collection.FunctionalRequirement();
+		data.functionalRequirements.forEach(function(elem,i){
+			app.collections.functionalRequirements.add(new Model.FunctionalRequirement(elem));
+		});
+		//Load non functional requirements
+		app.collections.nonFunctionalRequirements = new Collection.NonFunctionalRequirement();
+		data.nonFunctionalRequirements.forEach(function(elem,i){
+			app.collections.nonFunctionalRequirements.add(new Model.NonFunctionalRequirement(elem));
+		});
+		//Load storage requirements
+		app.collections.storageRequirements = new Collection.StorageRequirement();
+		data.storageRequirements.forEach(function(elem,i){
+			app.collections.storageRequirements.add(new Model.StorageRequirement(elem));
 		});
 		next();
 	},

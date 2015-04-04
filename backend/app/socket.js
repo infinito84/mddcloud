@@ -13,7 +13,7 @@ module.exports=(function(){
 		'objectives',
 		'storageRequirements.attributes',
 		'functionalRequirements.diagramActivities.activities',
-		'nonFunctionalRequirements,actors'
+		'nonFunctionalRequirements'
 	];
 
 	return function(server,store){
@@ -52,7 +52,8 @@ module.exports=(function(){
 						socket.emit('sync',params);
 					});
 				};
-				var Model = require("../models/"+params.model.toLowerCase());
+				var nameModel = params.model.charAt(0).toLowerCase()+params.model.substr(1,params.model.length);
+				var Model = require("../models/" + nameModel);
 				if(params.method === "create"){
 					Model.create(projectId,params.data,fn,notifyAll);
 				}
