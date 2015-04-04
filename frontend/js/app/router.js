@@ -54,6 +54,10 @@ module.exports=Backbone.Router.extend({
 			View = require('../views/objective');
 			collection = app.collections.objectives;
 		}
+		if(model === 'actor'){
+			View = require('../views/actor');
+			collection = app.collections.actors;
+		}
 		//Add others
 		if(View !== null){
 			var view = new View({
