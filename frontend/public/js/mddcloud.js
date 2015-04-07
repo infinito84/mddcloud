@@ -200,7 +200,7 @@ var	Collection = {
 };
 	
 var app = module.exports = {
-	development : true,
+	development : false,
 	collections : {},
 
 	loadData : function(data,next){
@@ -14993,11 +14993,6 @@ module.exports = Backbone.View.extend({
 			$el 		: $("#dropdown-objectives"),
 			collection 	: app.collections.objectives,
 			extra 		: {type : 'objective'}
-		});
-		new DropDown({
-			$el 		: $("#dropdown-actors"),
-			collection 	: app.collections.actors,
-			extra 		: {type : 'actor'}
 		});
 		new DropDown({
 			$el 		: $("#dropdown-actors"),

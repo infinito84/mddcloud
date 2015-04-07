@@ -6,7 +6,6 @@ var Backbone	= require('backbone'),
 	Router 		= require('./app/router'),
 	app			= require('./app/namespace');
 	app.utils	= require('./app/utils')();
-	Backbone.UI = require('./libs/backbone-ui/index.js');
 	Backbone.$	= app.$ = $;
 
 
