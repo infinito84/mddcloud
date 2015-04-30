@@ -1959,6 +1959,10 @@ h1.loading {
 .justify {
   text-align: justify;
 }
+svg {
+  width: 100%;
+  height: 100%;
+}
 div.sidebar {
   background: url("data:image/gif;base64,R0lGODlhDAAMAJEAAGJwhktYallnfQAAACH5BAAAAAAALAAAAAAMAAwAAAIkjIBhCBYJxGtMxfROW1jn+VFe1lVcI0EphV2bq2ibF4G12HoFADs=") repeat;
   width: 20%;

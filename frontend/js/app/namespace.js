@@ -32,7 +32,7 @@ var	Collection = {
 };
 	
 var app = module.exports = {
-	development : false,
+	development : true,
 	collections : {},
 
 	loadData : function(data,next){
