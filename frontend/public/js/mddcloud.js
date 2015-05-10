@@ -61,6 +61,9 @@ module.exports=(function(){
 		socket.emit('sync',data,function(extraData){
 			if(method==='create'){
 				model.set(extraData);
+				if(typeof options.success === 'function'){
+					options.success(model);
+				}
 			}
 		});
 	};
@@ -19614,7 +19617,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<svg id=\"useCase\"></svg>";
+  return "<div class=\"svg-menu svg-menu-use-case\">\n   <a href=\"#create/actor\">Crear actor</a>\n</div>\n<svg id=\"useCase\"></svg>";
   });
 
 },{"hbsfy/runtime":104}],62:[function(require,module,exports){
@@ -19812,15 +19815,19 @@ module.exports=  Backbone.View.extend({
 			$.notify(app.utils.t('You must write a name')+'!','error');
 			return;
 		}
-		var actor = new ActorModel({
+		var actor = new ActorModel();
+		actor.save({
 			name 			: name,
 			description 	: description,
 			multimedias		: multimedias || [],
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
+		},
+		{
+			success : function(){
+				app.collections.actors.add(actor);	
+			}
 		});
-		actor.save();
-		app.collections.actors.add(actor);
 		modal.close();
 		this.remove();
 	}
@@ -20985,10 +20992,20 @@ var Backbone   = require('backbone'),
    plugins     = require('../../app/plugins');
 
 module.exports = Backbone.View.extend({
-   initialize:function(options){
+   initialize : function(options){
       this.svg = options.svg;
+      this.listenTo(this.model, 'change:name', this.updateName, this);
+      this.listenTo(this.model, 'change:x', this.updatePosition, this);
+      this.listenTo(this.model, 'change:y', this.updatePosition, this);
    },
-   render:function(){
+   updateName : function(){
+      this.label.attr({text : this.model.get('name')});
+      this.label.transform(['T',(this.group.getBBox().w / 2) - (this.label.getBBox().w / 2),',',this.group.getBBox().h + 15].join(''));
+   },
+   updatePosition : function(){
+      this.actor.transform(['T',this.model.get('x'),',',this.model.get('y')].join(''));
+   },
+   render : function(){
       var svg = this.svg;
       this.group = svg.group(
          svg.circle(10,10,10).attr({stroke:'black',strokeWidth:2,fill:'white'}),
@@ -20998,29 +21015,33 @@ module.exports = Backbone.View.extend({
          svg.line(10,40,20,50).attr({stroke:'black',strokeWidth:2})
       );
       this.label = svg.text(0, 0, this.model.get('name'));
-      this.label.transform(
-         ['T',(this.group.getBBox().width / 2) - (this.label.getBBox().width / 2),',',this.group.getBBox().height + 15].join('')
-      );
-      this.actor = svg.group(
-         this.group,
-         this.label
-      );
+      this.label.transform(['T',(this.group.getBBox().w / 2) - (this.label.getBBox().w / 2),',',this.group.getBBox().h + 15].join(''));
+      this.actor = svg.group(this.group, this.label);
+      
       var svgWidth = $("#container").width() - 30;
       var svgHeight = $("#container").height() - 65;
-      console.log(
-         svgWidth,
-         svgHeight
-      );
       var x = this.model.get('x') || Math.random() * svgWidth + 20;
       var y = this.model.get('y') || Math.random() * svgHeight;
-      this.model.set({
-         x : x,
-         y : y
-      }).save();
-      this.actor.transform(
-         ['T',x,',',y].join('')
-      );
+      this.actor.transform(['T',x,',',y].join(''));
+      this.actor.drag(this.moveDrag, this.startDrag, this.endDrag, this, this, this);
+
+      this.model.set({x : x, y : y}).save();
       return this.actor;
+   },
+   moveDrag : function(dx, dy, x, y, event){
+      this.nx = this.ox + dx;
+      this.ny = this.oy + dy;
+      this.actor.transform(['T',this.nx,',',this.ny].join(''));
+   },
+   startDrag : function(x, y, event){
+      this.ox = this.model.get('x');
+      this.oy = this.model.get('y');
+   },
+   endDrag : function(event){
+      this.model.set({
+         x : this.nx,
+         y : this.ny
+      }).save();
    }
 });
 },{"../../app/plugins":5,"backbone":94,"jquery":106}],92:[function(require,module,exports){
@@ -21034,26 +21055,36 @@ module.exports = Backbone.View.extend({
 	tagName 	: 'div',
 	className 	: 'useCase-view',
 	template:require('../templates/useCase.hbs'),
-	render:function(){
+	attachedViews : [],
+	initialize : function(){
+		this.listenTo(app.collections.actors, 'add', this.addActor, this);
+	},
+	render : function(){
 		$('.menu li').removeClass('active');
 		$('[href="#useCase"]').parent().addClass('active');
 		var html=this.template({});
 		this.$el.html(html);
 		return this;
 	},	
-	svg:function() {
-		var svg = plugins.Snap("svg");
+	svg : function() {
+		this.svg = plugins.Snap("svg");
+		var that = this;
 		app.collections.actors.forEach(function(actor){
-			var actor = new actorSVG({
-				svg : svg,
-				model : actor
-			}).render();
+			that.addActor.apply(that, [actor]);
 		});
-		/*$("svg").mousemove(function(e){
-			var offset = $(this).offset();
-			actor.transform(['T',e.clientX-offset.left,',',e.clientY-offset.top].join(''));
-		});*/
-		
+	},
+	addActor : function(actor){
+		var actorView = new actorSVG({
+			svg 	: this.svg,
+			model : actor
+		}).render();
+		this.attachedViews.push(actorView);
+	},
+	removeViews : function(){
+		this.attachedViews.forEach(function(view, i){
+			view.remove();
+		});
+		this.remove();
 	}
 });
 },{"../app/namespace":4,"../app/plugins":5,"../templates/useCase.hbs":61,"./svg/actor":91,"backbone":94,"jquery":106}],93:[function(require,module,exports){
