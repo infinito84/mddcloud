@@ -99,7 +99,12 @@ var app = module.exports = {
 	//We save the main view instance for remove it
 	setCurrentView : function(newView){
 		if(app.currentView){
-			app.currentView.remove();
+			if(typeof app.currentView.removeViews === 'function'){
+				app.currentView.removeViews();
+			}
+			else{
+				app.currentView.remove();
+			}
 		}
 		app.currentView = newView;
 		app.$('#container').html(newView.render().el);
