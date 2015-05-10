@@ -2612,6 +2612,24 @@ img.author_source {
 .useCase-view {
   height: 100%;
 }
+.svg-menu {
+  background: #252525;
+}
+.svg-menu a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.8em;
+  text-transform: capitalize;
+  padding: 1em 0.5em;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  display: inline-block;
+}
+.svg-menu a:hover {
+  background: #eee;
+  color: #252525;
+}
 /*Import CSS*/
 /*
 Version: 3.5.2 Timestamp: Sat Nov  1 14:43:36 EDT 2014

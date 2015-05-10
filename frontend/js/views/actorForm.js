@@ -38,15 +38,19 @@ module.exports=  Backbone.View.extend({
 			$.notify(app.utils.t('You must write a name')+'!','error');
 			return;
 		}
-		var actor = new ActorModel({
+		var actor = new ActorModel();
+		actor.save({
 			name 			: name,
 			description 	: description,
 			multimedias		: multimedias || [],
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
+		},
+		{
+			success : function(){
+				app.collections.actors.add(actor);	
+			}
 		});
-		actor.save();
-		app.collections.actors.add(actor);
 		modal.close();
 		this.remove();
 	}
