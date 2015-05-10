@@ -1,8 +1,29 @@
-var io 	= require('socket.io-client'),
+var Backbone	= require('backbone'),
+	io 	= require('socket.io-client'),
 	app	= require('../app/namespace');	
 
 module.exports=(function(){
 	var socket;
+
+	Backbone.sync = function(method, model, options) {
+		var data={
+			method : method,
+			model  : model.model,
+			id 	   : model.id
+		};
+		if(method==='update'){
+			data.data = model.changedAttributes();
+			if(data.data===false)return;
+		}
+		if(method==='create'){
+			data.data = model.toJSON();
+		}
+		socket.emit('sync',data,function(extraData){
+			if(method==='create'){
+				model.set(extraData);
+			}
+		});
+	};
 
 	return {
 		init:function(next){

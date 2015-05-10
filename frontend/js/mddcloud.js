@@ -31,25 +31,6 @@ $(document).ready(function(){
 		app.utils.loadHome();
 		app.router=new Router();		
 		Backbone.history.start();
-		Backbone.sync = function(method, model, options) {
-			var data={
-				method : method,
-				model  : model.model,
-				id 	   : model.id
-			};
-			if(method==='update'){
-				data.data = model.changedAttributes();
-				if(data.data===false)return;
-			}
-			if(method==='create'){
-				data.data = model.toJSON();
-			}
-			socket.emit('sync',data,function(extraData){
-				if(method==='create'){
-					model.set(extraData);
-				}
-			});
-		}; 
 	});
 	
 });
