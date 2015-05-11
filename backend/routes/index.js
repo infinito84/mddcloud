@@ -30,7 +30,9 @@ module.exports=(function(){
 							email : email,
 							image : 'http://www.gravatar.com/avatar/'+ utils.md5(email.trim()) +'?d=mm'
 						});
-						user.save(callback);
+						user.save(function(error,user){
+							callback(error,user);
+						});
 					}
 				});
 			},
@@ -45,11 +47,13 @@ module.exports=(function(){
 							role  	: role,
 							user  	: user._id,
 							project : project
-						},callback,function(params){})
+						},function(participant){
+							callback(null);
+						},function(){});
 					}
 				});
 			}
-		],function(error,user){
+		],function(error){
 			res.render('mddcloud');
 		});		
 	});

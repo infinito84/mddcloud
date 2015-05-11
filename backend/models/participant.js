@@ -46,6 +46,7 @@ module.exports=(function(){
 			},
 			function(project,participant,next){
 				project.participants.push(participant);
+				console.log("hasta aquí");
 				project.save(function(error){
 					next(error,participant);
 				});
