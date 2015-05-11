@@ -15,6 +15,7 @@ module.exports=(function(){
 	router.post('/demo/', function(req, res) {
 		req.session.project = '54bdd57ddbebd1c00bad7ab3';
 		req.session.sessionID = req.sessionID;
+		var project = '54bdd57ddbebd1c00bad7ab3';
 		var role = req.body.role;
 		var email = req.body.email;
 		async.waterfall([
@@ -36,7 +37,7 @@ module.exports=(function(){
 			function(user,callback){
 				req.session.user = user._id;
 				Participant.findOne({user : user._id},function(error,participant){
-					if(user){
+					if(participant){
 						Participant.update(participant._id, {role : role}, callback);
 					}
 					else{
