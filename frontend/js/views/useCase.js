@@ -2,7 +2,8 @@ var Backbone	= require('backbone'),
 	$			= require('jquery'),
 	app			= require('../app/namespace'),
 	plugins		= require('../app/plugins'),
-	actorSVG		= require('./svg/actor');
+	actorSVG		= require('./svg/actor'),
+	useCaseSVG	= require('./svg/useCase');
 
 module.exports = Backbone.View.extend({
 	tagName 	: 'div',
@@ -11,6 +12,7 @@ module.exports = Backbone.View.extend({
 	attachedViews : [],
 	initialize : function(){
 		this.listenTo(app.collections.actors, 'add', this.addActor, this);
+		this.listenTo(app.collections.functionalRequirements, 'add', this.addUseCase, this);
 	},
 	render : function(){
 		$('.menu li').removeClass('active');
@@ -25,6 +27,9 @@ module.exports = Backbone.View.extend({
 		app.collections.actors.forEach(function(actor){
 			that.addActor.apply(that, [actor]);
 		});
+		app.collections.functionalRequirements.forEach(function(useCase){
+			that.addUseCase.apply(that, [useCase]);
+		});
 	},
 	addActor : function(actor){
 		var actorView = new actorSVG({
@@ -33,6 +38,14 @@ module.exports = Backbone.View.extend({
 		}).render();
 		this.attachedViews.push(actorView);
 	},
+	addUseCase : function(useCase){
+		var useCaseView = new useCaseSVG({
+			svg 	: this.svg,
+			model : useCase
+		}).render();
+		this.attachedViews.push(useCaseView);
+	},
+
 	removeViews : function(){
 		this.attachedViews.forEach(function(view, i){
 			view.remove();
