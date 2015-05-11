@@ -1994,6 +1994,13 @@ div.logo>img {
   margin: auto;
   max-width: 90%;
 }
+div.logo>p {
+  position: absolute;
+  bottom: 0;
+  margin: 0;
+  color: #fff;
+  font-size: 12px;
+}
 ul.menu>li>a {
   color: #fff;
   border-top: 1px solid #858585;
@@ -2629,6 +2636,9 @@ img.author_source {
 .svg-menu a:hover {
   background: #eee;
   color: #252525;
+}
+.classDiagram-view {
+  height: 100%;
 }
 /*Import CSS*/
 /*

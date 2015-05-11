@@ -1,9 +1,10 @@
-var Backbone	 = require('backbone'),
-	$			 = require('jquery'),
-	app			 = require('../app/namespace'),	
-	ProjectView  = require('../views/project'),
-	MettingsView = require('../views/meetings'),
-	UseCaseView  = require('../views/useCase');
+var Backbone		= require('backbone'),
+	$				= require('jquery'),
+	app				= require('../app/namespace'),	
+	ProjectView 	= require('../views/project'),
+	MettingsView 	= require('../views/meetings'),
+	UseCaseView  	= require('../views/useCase'),
+	ClassView		= require('../views/classDiagram');
 
 var removeCurrentView = function(){
 	if(app.currentView){
@@ -17,7 +18,8 @@ module.exports=Backbone.Router.extend({
 		'meetings'			: 'meetings',
 		'create/:model'		: 'create',
 		'view/:model/:id'	: 'view',
-		'useCase'			: 'useCase'
+		'useCase'			: 'useCase',
+		'classDiagram'		: 'classDiagram'
 	},
 	project:function(){		
 		var projectView = new ProjectView({
@@ -93,5 +95,10 @@ module.exports=Backbone.Router.extend({
 		var useCaseView = new UseCaseView();
 		app.setCurrentView(useCaseView);
 		useCaseView.svg();
+	},
+	classDiagram : function(){
+		var classView = new ClassView();
+		app.setCurrentView(classView);
+		classView.svg();
 	}
 });

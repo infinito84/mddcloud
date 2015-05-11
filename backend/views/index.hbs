@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>@mddcloud</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+    table{
+    	width : 100%;
+    	text-align: left;
+    }
+    form{
+    	text-align: center;
+    	width : 50%;
+    	margin : 2em 0 10em 0;
+    }
+    button{
+    	margin-top: 1em;
+		border: 1px solid black;
+		color: white;
+		background-color: rgb(65, 121, 169);
+		font-weight: bold;
+		padding: 0.2em 1em;
+		cursor: pointer;
+		border-radius: 0.5em;
+    }
+    button:hover{
+    	background-color:rgb(0, 71, 255);
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to <a href="https://twitter.com/mddcloud" target="_blank">@mddcloud</a></h1>
+
+<p>We are in construction :D</p>
+
+<p>For entering to our demo, please write your e-mail</p>
+
+<form action="/demo" method="post">
+	<table>
+		<tr>
+			<td>E-mail</td>
+			<td>
+				<input name="email" type="email" required/>
+			</td>
+		</tr>
+		<tr>
+			<td>Role</td>
+			<td>
+				<select name="role">
+					<option>READER</option>
+					<option>EDITOR</option>
+					<option>ADMIN</option>
+				</select>
+			</td>
+		</tr>
+	</table>
+	<button type="submit">Accessing to demo</button>
+</form>
+
+<p>
+	Developed by 
+	<a href="https://twitter.com/SergioGNU" target="_blank">@SergioGNU</a> and 
+	<a href="https://twitter.com/inghurtado91" target="_blank">@inghurtado91</a>
+</p>
+</body>
+</html>
