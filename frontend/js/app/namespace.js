@@ -32,7 +32,7 @@ var	Collection = {
 };
 	
 var app = module.exports = {
-	development : true,
+	development : false,
 	collections : {},
 
 	loadData : function(data,next){
@@ -93,6 +93,9 @@ var app = module.exports = {
 	loadRole : function(id,next){
 		app.role = app.collections.participants.findWhere({
 			user : id
+		});
+		app.currentUser = app.collections.users.findWhere({
+			_id : id
 		});
 		next();
 	},

@@ -23,7 +23,7 @@ gulp.task('js', function () {
       .ignore('jquery.select2')
       .bundle()
       .pipe(source('mddcloud.js'))
-      //.pipe(streamify(uglify()))
+      .pipe(streamify(uglify()))
       .pipe(gulp.dest('frontend/public/js'));
 });
 
@@ -37,10 +37,8 @@ gulp.task('stylus', function () {
   gulp.src('frontend/css/mddcloud.styl')
     .pipe(stylus({
       'include css': true,
-      use: nib()
-    }))
-    .pipe(stylus({      
-      compress: true,     
+      use: nib(),
+      compress : true
     }))
     .pipe(gulp.dest('frontend/public/css'));
 });

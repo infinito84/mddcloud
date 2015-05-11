@@ -9,7 +9,7 @@ module.exports = Backbone.View.extend({
 	template 	: require('../templates/index.hbs'),
 
 	render:function(){
-		var html=this.template({});
+		var html=this.template(app.currentUser.toJSON());
 		this.$el.html(html);
 		return this;
 	},	
