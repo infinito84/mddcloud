@@ -1,4 +1,10 @@
+!/frontend/
 /frontend/public/*
+/frontend/public/js/*
+/frontend/public/css/*
+/frontend/public/img/*
+/frontend/public/fonts/*
 /node_modules/*
+!/frontend/js/
 /frontend/js/libs/*
 /backend/app/config.js

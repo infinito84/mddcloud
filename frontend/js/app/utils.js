@@ -181,6 +181,26 @@ module.exports=(function(){
 			});
 			view.listenTo(collection,'add',addModel);
 			view.listenTo(collection,'remove',removeModel);
+		},
+		helperAdjustTextSVG : function(text){
+			var strings = text.split(' ');
+			var result = [];
+			var limit = 30;
+			var temp = '';
+			strings.forEach(function(item){
+				if(temp.length + item.length + 1 > limit){
+					result.push(temp);
+					temp = '';
+				}
+				if(temp !== ''){
+					temp += ' ';
+				}
+				temp += item;
+			});
+			if(temp !== ''){
+				result.push(temp);
+			}
+			return result;
 		}
 	}
 
