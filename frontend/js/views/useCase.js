@@ -1,9 +1,10 @@
-var Backbone	= require('backbone'),
-	$			= require('jquery'),
-	app			= require('../app/namespace'),
-	plugins		= require('../app/plugins'),
+var Backbone		= require('backbone'),
+	$				= require('jquery'),
+	app				= require('../app/namespace'),
+	plugins			= require('../app/plugins'),
 	actorSVG		= require('./svg/actor'),
-	useCaseSVG	= require('./svg/useCase');
+	useCaseSVG		= require('./svg/useCase'),
+	associationSVG 	= require('./svg/useCaseAssociation');
 
 module.exports = Backbone.View.extend({
 	tagName 	: 'div',
@@ -11,6 +12,7 @@ module.exports = Backbone.View.extend({
 	template:require('../templates/useCase.hbs'),
 	attachedViews : [],
 	initialize : function(){
+		this.listenTo(app.collections.useCaseAssociations, 'add', this.addAssociation, this);
 		this.listenTo(app.collections.actors, 'add', this.addActor, this);
 		this.listenTo(app.collections.functionalRequirements, 'add', this.addUseCase, this);
 	},
@@ -24,17 +26,28 @@ module.exports = Backbone.View.extend({
 	svg : function() {
 		this.svg = plugins.Snap("svg");
 		var that = this;
+		app.collections.useCaseAssociations.forEach(function(useCaseAssociation){
+			that.addAssociation.apply(that, [useCaseAssociation]);
+		});
 		app.collections.actors.forEach(function(actor){
 			that.addActor.apply(that, [actor]);
 		});
 		app.collections.functionalRequirements.forEach(function(useCase){
 			that.addUseCase.apply(that, [useCase]);
 		});
+		this.addEvents();
+	},
+	addAssociation : function(useCaseAssociation){
+		var associationView = new associationSVG({
+			svg 	: this.svg,
+			model 	: useCaseAssociation
+		}).render();
+		this.attachedViews.push(associationView);
 	},
 	addActor : function(actor){
 		var actorView = new actorSVG({
 			svg 	: this.svg,
-			model : actor
+			model 	: actor
 		}).render();
 		this.attachedViews.push(actorView);
 	},
@@ -45,11 +58,20 @@ module.exports = Backbone.View.extend({
 		}).render();
 		this.attachedViews.push(useCaseView);
 	},
-
 	removeViews : function(){
 		this.attachedViews.forEach(function(view, i){
 			view.remove();
 		});
 		this.remove();
+	},
+	addEvents : function(){
+		this.svg.mousemove(function(event){
+			if(app.selectingActor || app.selectingUseCase){
+				app.useCaseAssociation.attr({
+					x2 : event.layerX, 
+					y2 : event.layerY
+				});
+			}
+		});
 	}
 });

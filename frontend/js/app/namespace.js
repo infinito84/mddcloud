@@ -11,6 +11,7 @@ var Model = {
 	Participant 				: require('../models/participant'),
 	DiagramActivity 			: require('../models/diagramActivity'),
 	StorageRequirement 			: require('../models/storageRequirement'),
+	UseCaseAssociation 			: require('../models/useCaseAssociation'),
 	FunctionalRequirement		: require('../models/functionalRequirement'),
 	NonFunctionalRequirement 	: require('../models/nonFunctionalRequirement')
 };
@@ -27,12 +28,13 @@ var	Collection = {
 	Participant 				: require('../collections/participants'),
 	DiagramActivity 			: require('../collections/diagramActivities'),
 	StorageRequirement 			: require('../collections/storageRequirements'),
+	UseCaseAssociation			: require('../collections/useCaseAssociations'),
 	FunctionalRequirement		: require('../collections/functionalRequirements'),
 	NonFunctionalRequirement 	: require('../collections/nonFunctionalRequirements')
 };
 	
 var app = module.exports = {
-	development : false,
+	development : true,
 	collections : {},
 
 	loadData : function(data,next){
@@ -86,6 +88,11 @@ var app = module.exports = {
 		app.collections.storageRequirements = new Collection.StorageRequirement();
 		data.storageRequirements.forEach(function(elem,i){
 			app.collections.storageRequirements.add(new Model.StorageRequirement(elem));
+		});
+		//Load use case associations
+		app.collections.useCaseAssociations = new Collection.UseCaseAssociation();
+		data.useCaseAssociations.forEach(function(elem,i){
+			app.collections.useCaseAssociations.add(new Model.UseCaseAssociation(elem));
 		});
 		next();
 	},

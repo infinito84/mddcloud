@@ -13,7 +13,8 @@ module.exports=(function(){
 		'objectives',
 		'storageRequirements.attributes',
 		'functionalRequirements.diagramActivities.activities',
-		'nonFunctionalRequirements'
+		'nonFunctionalRequirements',
+		'useCaseAssociations'
 	];
 
 	return function(server,store){

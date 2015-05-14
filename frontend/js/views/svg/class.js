@@ -24,12 +24,13 @@ module.exports = Backbone.View.extend({
 			'font-size' : '12px'
 		});
 
-		this.rect1 = svg.rect(0,0,this.label.getBBox().w + 10,this.label.getBBox().h + 10);
-		this.rect2 = svg.rect(0,20,this.label.getBBox().w + 10,40);
+		this.rect1 = svg.rect(0,0,this.label.getBBox().w + 30,this.label.getBBox().h + 20);
+		this.rect2 = svg.rect(0,20,this.label.getBBox().w + 30,40);
 		this.rects = svg.group(this.rect1,this.rect2);
 		this.rects.attr({
-			stroke 	: 'black',
-			fill 	: '#AEC6CF'
+			stroke 		: 'black',
+			strokeWidth : 2,
+			fill 		: '#AEC6CF'
 		});
 		this.addAttribute = svg.image('/img/diagrams/add_attribute.png',0,-20,20,20);
 		this.addAttribute.attr({display : 'none'});
