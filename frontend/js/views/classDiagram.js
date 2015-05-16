@@ -1,8 +1,9 @@
-var Backbone	= require('backbone'),
-	$			= require('jquery'),
-	app			= require('../app/namespace'),
-	plugins		= require('../app/plugins'),
-	classSVG	= require('./svg/class');
+var Backbone		= require('backbone'),
+	$				= require('jquery'),
+	app				= require('../app/namespace'),
+	plugins			= require('../app/plugins'),
+	classSVG		= require('./svg/class'),
+	enumerationSVG 	= require('./svg/enumeration');
 
 module.exports = Backbone.View.extend({
 	tagName 	: 'div',
@@ -25,6 +26,9 @@ module.exports = Backbone.View.extend({
 		app.collections.storageRequirements.forEach(function(storageRequirement){
 			that.addClass.apply(that, [storageRequirement]);
 		});
+		app.collections.enumerations.forEach(function(enumeration){
+			that.addEnumeration.apply(that, [enumeration]);
+		});
 	},
 	addClass : function(storageRequirement){
 		var classView = new classSVG({
@@ -32,6 +36,13 @@ module.exports = Backbone.View.extend({
 			model 	: storageRequirement
 		}).render();
 		this.attachedViews.push(classView);
+	},
+	addEnumeration : function(enumeration){
+		var enumerationView = new enumerationSVG({
+			svg 	: this.svg,
+			model 	: enumeration
+		}).render();
+		this.attachedViews.push(enumerationView);
 	},
 	removeViews : function(){
 		this.attachedViews.forEach(function(view, i){

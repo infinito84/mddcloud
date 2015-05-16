@@ -13,6 +13,7 @@ module.exports = Backbone.View.extend({
 	attachedViews : [],
 	initialize : function(){
 		this.listenTo(app.collections.useCaseAssociations, 'add', this.addAssociation, this);
+		this.listenTo(app.collections.useCaseAssociations, 'remove', this.removeAssociation, this);
 		this.listenTo(app.collections.actors, 'add', this.addActor, this);
 		this.listenTo(app.collections.functionalRequirements, 'add', this.addUseCase, this);
 	},
@@ -43,6 +44,13 @@ module.exports = Backbone.View.extend({
 			model 	: useCaseAssociation
 		}).render();
 		this.attachedViews.push(associationView);
+	},
+	removeAssociation : function(useCaseAssociation){
+		this.attachedViews.forEach(function(view){
+			if(view.model.id === useCaseAssociation.id){
+				view.destroyModel(useCaseAssociation);
+			}
+		});
 	},
 	addActor : function(actor){
 		var actorView = new actorSVG({

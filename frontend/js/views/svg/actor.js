@@ -48,7 +48,7 @@ module.exports = Backbone.View.extend({
 		this.addEvents();
 
 		this.model.set({x : x, y : y}).save();
-		return this.actor;
+		return this;
 	},
 	addEvents : function(){
 		var that = this;

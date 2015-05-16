@@ -39,5 +39,34 @@ module.exports=(function(){
 		});
 	}
 
+	UseCaseAssociation.delete = function (projectId,id,fn){
+		async.waterfall([
+			function(next){
+				UseCaseAssociation.findById(id,function(error,useCaseAssociation){
+					next(error,useCaseAssociation)
+				});
+			},
+			function(useCaseAssociation,next){
+				Project.findById(projectId,function(error,project){
+					next(error,project,useCaseAssociation);
+				});
+			},
+			function(project,useCaseAssociation,next){
+				project.useCaseAssociations.remove(useCaseAssociation);
+				project.save(function(error){
+					next(error,useCaseAssociation);
+				});
+			},
+			function(useCaseAssociation,next){
+				useCaseAssociation.remove(function(error){
+					next(error);
+				});
+			}
+		],function(error){
+			if(error)return console.error(error);
+			fn();
+		});
+	}
+
 	return UseCaseAssociation;
 })();

@@ -23,6 +23,7 @@ module.exports = Backbone.View.extend({
 		this.listenTo(this.model, 'change:y1', this.updateCoordinates, this);
 		this.listenTo(this.model, 'change:x2', this.updateCoordinates, this);
 		this.listenTo(this.model, 'change:y2', this.updateCoordinates, this);
+		this.listenTo(this.model, 'destroy' , this.destroyModel, this);
 	},
 	updateCoordinates : function(){
 		var that = this;
@@ -41,14 +42,23 @@ module.exports = Backbone.View.extend({
 		var svg = this.svg;
 		this.association = svg.line(0,0,0,0);
 		this.text = svg.text(0,0,app.utils.t('Click for deleting'));
-		this.svg.group(this.association,this.text)
+		this.group = this.svg
+			.group(this.association,this.text)
 			.addClass("use-case-association")
 			.prependTo(svg);
 		this.updateCoordinates();
 		this.addEvents();
-		return this.association;
+		return this;
 	},
 	addEvents : function(){
-		
+		var that = this;
+		this.association.click(function(){
+			that.model.destroy();
+			app.collections.useCaseAssociations.remove(that.model);
+		});
+	},
+	destroyModel : function(){
+		this.group.remove();
+		this.remove();
 	}
 });

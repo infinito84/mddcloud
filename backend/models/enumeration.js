@@ -6,7 +6,9 @@ var mongoose= require('mongoose'),
 module.exports=(function(){
 	var enumerationSchema=Schema({
 		name 	: {type : String, trim : true},
-		values 	: [{type : String, trim : true}]
+		values 	: [{type : String, trim : true}],
+		x		: Number,
+		y		: Number,
 	});
 
 	var Enumeration = mongoose.model('Enumeration',enumerationSchema);
