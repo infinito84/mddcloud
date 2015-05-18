@@ -23,7 +23,7 @@ gulp.task('js', function () {
       .ignore('jquery.select2')
       .bundle()
       .pipe(source('mddcloud.js'))
-      //.pipe(streamify(uglify()))
+      .pipe(streamify(uglify()))
       .pipe(gulp.dest('frontend/public/js'));
 });
 

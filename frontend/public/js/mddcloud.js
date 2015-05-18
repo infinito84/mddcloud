@@ -18603,7 +18603,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<svg id=\"classDiagram\"></svg>";
+  return "<div class=\"svg-menu svg-menu-use-case\">\n   <a href=\"#create/actor\" class=\"add-class\"></a>\n   <a href=\"#create/functionalRequirement\" class=\"add-enumeration\"></a>\n</div>\n<svg id=\"classDiagram\"></svg>";
   });
 
 },{"hbsfy/runtime":112}],45:[function(require,module,exports){

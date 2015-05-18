@@ -8,8 +8,6 @@ module.exports=(function(){
 		creationDate 	: {type : Date, default : Date.now},
 		x				: Number,
 		y				: Number,
-		width			: Number,
-		height			: Number,
 		multimedias		: [{type : Schema.ObjectId, ref : 'Multimedia'}],
 		authors 		: [{type : Schema.ObjectId, ref : 'User'}],
 		sources			: [{type : Schema.ObjectId, ref : 'User'}]
