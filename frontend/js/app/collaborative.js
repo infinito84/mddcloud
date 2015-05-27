@@ -21,8 +21,8 @@ module.exports=(function(){
 		socket.emit('sync',data,function(extraData){
 			if(method==='create'){
 				model.set(extraData);
-				if(typeof options.success === 'function'){
-					options.success(model);
+				if(typeof options.successfully === 'function'){
+					options.successfully(model);
 				}
 			}
 		});

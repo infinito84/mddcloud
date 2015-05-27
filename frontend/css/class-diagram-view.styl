@@ -14,3 +14,62 @@
 	
 .svg-menu .add-enumeration
 	background-image url(/img/diagrams/add_enumeration.png)
+	
+.class-svg > rect
+	fill white
+	
+.class-svg .boxes rect,.select-class .class-svg.no-select .boxes rect
+	stroke black
+	strokeWidth  2
+	fill : #AEC6CF
+	
+.select-class .class-svg .boxes rect
+	stroke black
+	strokeWidth 2
+	fill  #87E687
+	
+.class-svg image, .select-class .class-svg:hover image
+	display none
+	
+.class-svg:hover image
+	display block
+	
+.class-svg text
+	font-size 12px
+	
+.class-svg text.label
+	font-weight bold
+	
+.class-svg tspan:hover
+	fill red
+	font-weight bold
+	
+.select-class .class-svg tspan:hover
+	fill black
+	font-weight normal
+	
+.class-association line
+	stroke black
+	stroke-width 2
+	
+.class-association:hover line
+	stroke red
+	stroke-width 4
+	
+.class-association text
+	text-anchor middle
+	font-size 12px
+	display none
+	fill red
+	
+.class-association:hover text
+	display block
+
+.class-association .multiplicity
+	display block !important
+	fill #524343
+	font-size 10px
+	font-weight bold
+
+.transparent
+	fill transparent!important

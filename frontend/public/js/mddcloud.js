@@ -37,7 +37,7 @@ $(document).ready(function(){
 });
 
 
-},{"./app/collaborative":2,"./app/namespace":4,"./app/router":6,"./app/utils":7,"async":101,"backbone":102,"i18next-client":113,"jquery":114}],2:[function(require,module,exports){
+},{"./app/collaborative":2,"./app/namespace":4,"./app/router":6,"./app/utils":7,"async":106,"backbone":107,"i18next-client":118,"jquery":119}],2:[function(require,module,exports){
 var Backbone	= require('backbone'),
 	io 	= require('socket.io-client'),
 	app	= require('../app/namespace');	
@@ -61,8 +61,8 @@ module.exports=(function(){
 		socket.emit('sync',data,function(extraData){
 			if(method==='create'){
 				model.set(extraData);
-				if(typeof options.success === 'function'){
-					options.success(model);
+				if(typeof options.successfully === 'function'){
+					options.successfully(model);
 				}
 			}
 		});
@@ -117,7 +117,7 @@ module.exports=(function(){
 		}
 	}
 })();
-},{"../app/namespace":4,"backbone":102,"socket.io-client":116}],3:[function(require,module,exports){
+},{"../app/namespace":4,"backbone":107,"socket.io-client":121}],3:[function(require,module,exports){
 var $ = require('jquery');
 
 module.exports = {
@@ -169,7 +169,7 @@ module.exports = {
 		$('body').off('keydown');
 	}
 };
-},{"../templates/modal.hbs":51,"jquery":114}],4:[function(require,module,exports){
+},{"../templates/modal.hbs":54,"jquery":119}],4:[function(require,module,exports){
 //Load models
 var Model = {
 	User 						: require('../models/user'),
@@ -182,6 +182,7 @@ var Model = {
 	Enumeration					: require('../models/enumeration'),
 	Participant 				: require('../models/participant'),
 	DiagramActivity 			: require('../models/diagramActivity'),
+	ClassAssociation 			: require('../models/classAssociation'),
 	StorageRequirement 			: require('../models/storageRequirement'),
 	UseCaseAssociation 			: require('../models/useCaseAssociation'),
 	FunctionalRequirement		: require('../models/functionalRequirement'),
@@ -199,6 +200,7 @@ var	Collection = {
 	Enumeration	 				: require('../collections/enumerations'),
 	Participant 				: require('../collections/participants'),
 	DiagramActivity 			: require('../collections/diagramActivities'),
+	ClassAssociation 			: require('../collections/classAssociations'),
 	StorageRequirement 			: require('../collections/storageRequirements'),
 	UseCaseAssociation			: require('../collections/useCaseAssociations'),
 	FunctionalRequirement		: require('../collections/functionalRequirements'),
@@ -256,15 +258,27 @@ var app = module.exports = {
 		data.nonFunctionalRequirements.forEach(function(elem,i){
 			app.collections.nonFunctionalRequirements.add(new Model.NonFunctionalRequirement(elem));
 		});
-		//Load storage requirements
+		//Load storage requirements and attributes
 		app.collections.storageRequirements = new Collection.StorageRequirement();
+		app.collections.attributes = new Collection.Attribute();
 		data.storageRequirements.forEach(function(elem,i){
+			var attributes = elem.attributes || [];
+			elem.attributes = attributes.map(function(attribute){
+				app.collections.attributes.add(new Model.Attribute(attribute));	
+				return attribute._id;
+			});
 			app.collections.storageRequirements.add(new Model.StorageRequirement(elem));
+			
 		});
 		//Load use case associations
 		app.collections.useCaseAssociations = new Collection.UseCaseAssociation();
 		data.useCaseAssociations.forEach(function(elem,i){
 			app.collections.useCaseAssociations.add(new Model.UseCaseAssociation(elem));
+		});
+		//Load class associations
+		app.collections.classAssociations = new Collection.ClassAssociation();
+		data.classAssociations.forEach(function(elem,i){
+			app.collections.classAssociations.add(new Model.ClassAssociation(elem));
 		});
 		next();
 	},
@@ -296,7 +310,7 @@ var app = module.exports = {
 if(app.development){
 	window.app = app;
 }
-},{"../collections/activities":8,"../collections/actors":9,"../collections/attributes":10,"../collections/diagramActivities":11,"../collections/enumerations":12,"../collections/functionalRequirements":13,"../collections/multimedias":14,"../collections/nonFunctionalRequirements":15,"../collections/objectives":16,"../collections/participants":17,"../collections/storageRequirements":18,"../collections/useCaseAssociations":19,"../collections/users":20,"../models/activity":28,"../models/actor":29,"../models/attribute":30,"../models/diagramActivity":31,"../models/enumeration":32,"../models/functionalRequirement":33,"../models/multimedia":34,"../models/nonFunctionalRequirement":35,"../models/objective":36,"../models/participant":37,"../models/project":38,"../models/storageRequirement":39,"../models/useCaseAssociation":40,"../models/user":41}],5:[function(require,module,exports){
+},{"../collections/activities":8,"../collections/actors":9,"../collections/attributes":10,"../collections/classAssociations":11,"../collections/diagramActivities":12,"../collections/enumerations":13,"../collections/functionalRequirements":14,"../collections/multimedias":15,"../collections/nonFunctionalRequirements":16,"../collections/objectives":17,"../collections/participants":18,"../collections/storageRequirements":19,"../collections/useCaseAssociations":20,"../collections/users":21,"../models/activity":29,"../models/actor":30,"../models/attribute":31,"../models/classAssociation":32,"../models/diagramActivity":33,"../models/enumeration":34,"../models/functionalRequirement":35,"../models/multimedia":36,"../models/nonFunctionalRequirement":37,"../models/objective":38,"../models/participant":39,"../models/project":40,"../models/storageRequirement":41,"../models/useCaseAssociation":42,"../models/user":43}],5:[function(require,module,exports){
 var app = require('./namespace');
 
 module.exports = {
@@ -309,7 +323,7 @@ module.exports = {
 		return Snap;
 	})()
 }
-},{"../libs/snap.svg/dist/snap.svg":27,"./namespace":4}],6:[function(require,module,exports){
+},{"../libs/snap.svg/dist/snap.svg":28,"./namespace":4}],6:[function(require,module,exports){
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),	
@@ -414,7 +428,7 @@ module.exports=Backbone.Router.extend({
 		classView.svg();
 	}
 });
-},{"../app/namespace":4,"../views/actor":66,"../views/actorForm":68,"../views/classDiagram":69,"../views/functionalRequirement":76,"../views/functionalRequirementForm":78,"../views/meetings":80,"../views/nonFunctionalRequirement":83,"../views/nonFunctionalRequirementForm":85,"../views/objective":86,"../views/objectiveForm":88,"../views/project":91,"../views/storageRequirement":92,"../views/storageRequirementForm":94,"../views/useCase":100,"backbone":102,"jquery":114}],7:[function(require,module,exports){
+},{"../app/namespace":4,"../views/actor":69,"../views/actorForm":71,"../views/classDiagram":73,"../views/functionalRequirement":80,"../views/functionalRequirementForm":82,"../views/meetings":84,"../views/nonFunctionalRequirement":87,"../views/nonFunctionalRequirementForm":89,"../views/objective":90,"../views/objectiveForm":92,"../views/project":95,"../views/storageRequirement":96,"../views/storageRequirementForm":98,"../views/useCase":105,"backbone":107,"jquery":119}],7:[function(require,module,exports){
 var Handlebars	=	require('hbsfy/runtime'),
 	i18n		=	require('i18next-client'),
 	app			=	require('./namespace'),
@@ -618,6 +632,9 @@ module.exports=(function(){
 				result.push(temp);
 			}
 			return result;
+		},
+		fixName : function(text){
+			return text.replace(/ /g, '_');
 		}
 	}
 
@@ -709,85 +726,91 @@ module.exports=(function(){
 
 	return publicUtils.init
 })();
-},{"../libs/jquery-file-upload/js/jquery.fileupload":21,"../libs/jquery.nicescroll/jquery.nicescroll":23,"../libs/notifyjs/dist/notify":24,"../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap":25,"../libs/select2/select2":26,"../views/index":79,"./namespace":4,"hbsfy/runtime":112,"i18next-client":113,"jquery":114,"laconic":115}],8:[function(require,module,exports){
+},{"../libs/jquery-file-upload/js/jquery.fileupload":22,"../libs/jquery.nicescroll/jquery.nicescroll":24,"../libs/notifyjs/dist/notify":25,"../libs/notifyjs/dist/styles/bootstrap/notify-bootstrap":26,"../libs/select2/select2":27,"../views/index":83,"./namespace":4,"hbsfy/runtime":117,"i18next-client":118,"jquery":119,"laconic":120}],8:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/activity')
 });
-},{"../models/activity":28,"backbone":102}],9:[function(require,module,exports){
+},{"../models/activity":29,"backbone":107}],9:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/actor')
 });
-},{"../models/actor":29,"backbone":102}],10:[function(require,module,exports){
+},{"../models/actor":30,"backbone":107}],10:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/attribute')
 });
-},{"../models/attribute":30,"backbone":102}],11:[function(require,module,exports){
+},{"../models/attribute":31,"backbone":107}],11:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Collection.extend({
+	model : require('../models/classAssociation')
+});
+},{"../models/classAssociation":32,"backbone":107}],12:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/diagramActivity')
 });
-},{"../models/diagramActivity":31,"backbone":102}],12:[function(require,module,exports){
+},{"../models/diagramActivity":33,"backbone":107}],13:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/enumeration')
 });
-},{"../models/enumeration":32,"backbone":102}],13:[function(require,module,exports){
+},{"../models/enumeration":34,"backbone":107}],14:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/functionalRequirement')
 });
-},{"../models/functionalRequirement":33,"backbone":102}],14:[function(require,module,exports){
+},{"../models/functionalRequirement":35,"backbone":107}],15:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/multimedia')
 });
-},{"../models/multimedia":34,"backbone":102}],15:[function(require,module,exports){
+},{"../models/multimedia":36,"backbone":107}],16:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/nonFunctionalRequirement')
 });
-},{"../models/nonFunctionalRequirement":35,"backbone":102}],16:[function(require,module,exports){
+},{"../models/nonFunctionalRequirement":37,"backbone":107}],17:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/objective')
 });
-},{"../models/objective":36,"backbone":102}],17:[function(require,module,exports){
+},{"../models/objective":38,"backbone":107}],18:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/participant')
 });
-},{"../models/participant":37,"backbone":102}],18:[function(require,module,exports){
+},{"../models/participant":39,"backbone":107}],19:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/storageRequirement')
 });
-},{"../models/storageRequirement":39,"backbone":102}],19:[function(require,module,exports){
+},{"../models/storageRequirement":41,"backbone":107}],20:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/useCaseAssociation')
 });
-},{"../models/useCaseAssociation":40,"backbone":102}],20:[function(require,module,exports){
+},{"../models/useCaseAssociation":42,"backbone":107}],21:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Collection.extend({
 	model : require('../models/user')
 });
-},{"../models/user":41,"backbone":102}],21:[function(require,module,exports){
+},{"../models/user":43,"backbone":107}],22:[function(require,module,exports){
 /*
  * jQuery File Upload Plugin 5.42.3
  * https://github.com/blueimp/jQuery-File-Upload
@@ -2256,7 +2279,7 @@ module.exports=Backbone.Collection.extend({
 
 }));
 
-},{"./vendor/jquery.ui.widget":22,"jquery":114}],22:[function(require,module,exports){
+},{"./vendor/jquery.ui.widget":23,"jquery":119}],23:[function(require,module,exports){
 /*! jQuery UI - v1.11.1+CommonJS - 2014-09-17
 * http://jqueryui.com
 * Includes: widget.js
@@ -2821,7 +2844,7 @@ var widget = $.widget;
 
 }));
 
-},{"jquery":114}],23:[function(require,module,exports){
+},{"jquery":119}],24:[function(require,module,exports){
 /* jquery.nicescroll
 -- version 3.5.6
 -- copyright 2014-10-09 InuYaksa*2014
@@ -6084,7 +6107,7 @@ var widget = $.widget;
 }));
   
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /** Notify.js - v0.3.1 - 2014/06/29
  * http://notifyjs.com/
  * Copyright (c) 2014 Jaime Pillora - MIT
@@ -6636,7 +6659,7 @@ $(function() {
 });
 
 }(window,document,jQuery));
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 
 $.notify.addStyle("bootstrap", {
   html: "<div>\n<span data-notify-text></span>\n</div>",
@@ -6680,7 +6703,7 @@ $.notify.addStyle("bootstrap", {
   }
 });
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /*
 Copyright 2012 Igor Vaynberg
 
@@ -10223,7 +10246,7 @@ the specific language governing permissions and limitations under the Apache Lic
 
 }(jQuery));
 
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 // Snap.svg 0.4.1
 //
 // Copyright (c) 2013 – 2015 Adobe Systems Incorporated. All rights reserved.
@@ -18395,105 +18418,112 @@ Snap.plugin(function (Snap, Element, Paper, glob, Fragment) {
 return Snap;
 }));
 
-},{"eve":104}],28:[function(require,module,exports){
+},{"eve":109}],29:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Activity',
 	idAttribute : '_id'
 });
-},{"backbone":102}],29:[function(require,module,exports){
+},{"backbone":107}],30:[function(require,module,exports){
 var Backbone = require('backbone');
 
 module.exports = Backbone.Model.extend({
 	model 		: 'Actor',
 	idAttribute : '_id'
 });
-},{"backbone":102}],30:[function(require,module,exports){
+},{"backbone":107}],31:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Attribute',
 	idAttribute : '_id'
 });
-},{"backbone":102}],31:[function(require,module,exports){
+},{"backbone":107}],32:[function(require,module,exports){
+var Backbone	=	require('backbone');
+
+module.exports=Backbone.Model.extend({
+	model 		: 'ClassAssociation',
+	idAttribute : '_id'
+});
+},{"backbone":107}],33:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'DiagramActivity',
 	idAttribute : '_id'
 });
-},{"backbone":102}],32:[function(require,module,exports){
+},{"backbone":107}],34:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Enumeration',
 	idAttribute : '_id'
 });
-},{"backbone":102}],33:[function(require,module,exports){
+},{"backbone":107}],35:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'FunctionalRequirement',
 	idAttribute : '_id'
 });
-},{"backbone":102}],34:[function(require,module,exports){
+},{"backbone":107}],36:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Multimedia',
 	idAttribute : '_id'
 });
-},{"backbone":102}],35:[function(require,module,exports){
+},{"backbone":107}],37:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'NonFunctionalRequirement',
 	idAttribute : '_id'
 });
-},{"backbone":102}],36:[function(require,module,exports){
+},{"backbone":107}],38:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Objective',
 	idAttribute : '_id'
 });
-},{"backbone":102}],37:[function(require,module,exports){
+},{"backbone":107}],39:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Participant',
 	idAttribute : '_id'
 });
-},{"backbone":102}],38:[function(require,module,exports){
+},{"backbone":107}],40:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'Project',
 	idAttribute : '_id'
 });
-},{"backbone":102}],39:[function(require,module,exports){
+},{"backbone":107}],41:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'StorageRequirement',
 	idAttribute : '_id'
 });
-},{"backbone":102}],40:[function(require,module,exports){
+},{"backbone":107}],42:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'UseCaseAssociation',
 	idAttribute : '_id'
 });
-},{"backbone":102}],41:[function(require,module,exports){
+},{"backbone":107}],43:[function(require,module,exports){
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
 	model 		: 'User',
 	idAttribute : '_id'
 });
-},{"backbone":102}],42:[function(require,module,exports){
+},{"backbone":107}],44:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18537,7 +18567,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],43:[function(require,module,exports){
+},{"hbsfy/runtime":117}],45:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18594,7 +18624,66 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],44:[function(require,module,exports){
+},{"hbsfy/runtime":117}],46:[function(require,module,exports){
+// hbsfy compiled Handlebars template
+var HandlebarsCompiler = require('hbsfy/runtime');
+module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = "", stack1, helper, options;
+  buffer += "\n<div class=\"field\">\n	<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Name", options) : helperMissing.call(depth0, "t", "Name", options)))
+    + "</label>\n	<input class=\"attribute-name\"/>\n</div>\n<div class=\"field\">\n	<label>"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Name", options) : helperMissing.call(depth0, "t", "Name", options)))
+    + "</label>\n	<select class=\"attribute-type\">\n		<option value=\"INT\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Number", options) : helperMissing.call(depth0, "t", "Number", options)))
+    + "</option>\n		<option value=\"STRING\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Text", options) : helperMissing.call(depth0, "t", "Text", options)))
+    + "</option>\n		<option value=\"DECIMAL\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Decimal number", options) : helperMissing.call(depth0, "t", "Decimal number", options)))
+    + "</option>\n		<option value=\"HTML\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "HTML", options) : helperMissing.call(depth0, "t", "HTML", options)))
+    + "</option>\n		<option value=\"TIMESTAMP\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Date and time", options) : helperMissing.call(depth0, "t", "Date and time", options)))
+    + "</option>\n		<option value=\"POSITION\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Geospatial position", options) : helperMissing.call(depth0, "t", "Geospatial position", options)))
+    + "</option>\n		<option value=\"IMAGE\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Image", options) : helperMissing.call(depth0, "t", "Image", options)))
+    + "</option>\n		<option value=\"FILE\">"
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "File", options) : helperMissing.call(depth0, "t", "File", options)))
+    + "</option>\n		";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.enumerations), {hash:{},inverse:self.noop,fn:self.program(2, program2, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	</select>\n</div>\n<div class=\"field\">\n	<label></label>\n	<button class=\"btn btn-success add-attribute\">\n		<i class=\"fa fa-plus\"></i> "
+    + escapeExpression((helper = helpers.t || (depth0 && depth0.t),options={hash:{},data:data},helper ? helper.call(depth0, "Add", options) : helperMissing.call(depth0, "t", "Add", options)))
+    + "\n	</button>\n</div>\n";
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = "", stack1, helper;
+  buffer += "\n			<option value=\"ENUM\" data-id=\"";
+  if (helper = helpers._id) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0._id); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\">";
+  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</option>\n		";
+  return buffer;
+  }
+
+  stack1 = (helper = helpers.allow || (depth0 && depth0.allow),options={hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data},helper ? helper.call(depth0, "ADMIN", "EDITOR", options) : helperMissing.call(depth0, "allow", "ADMIN", "EDITOR", options));
+  if(stack1 || stack1 === 0) { return stack1; }
+  else { return ''; }
+  });
+
+},{"hbsfy/runtime":117}],47:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18603,10 +18692,10 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<div class=\"svg-menu svg-menu-use-case\">\n   <a href=\"#create/actor\" class=\"add-class\"></a>\n   <a href=\"#create/functionalRequirement\" class=\"add-enumeration\"></a>\n</div>\n<svg id=\"classDiagram\"></svg>";
+  return "<div class=\"svg-menu svg-menu-use-case\">\n   <a href=\"#create/storageRequirement\" class=\"add-class\"></a>\n   <a class=\"add-enumeration\" id=\"view-enumerations\"></a>\n</div>\n<svg id=\"classDiagram\"></svg>";
   });
 
-},{"hbsfy/runtime":112}],45:[function(require,module,exports){
+},{"hbsfy/runtime":117}],48:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18645,7 +18734,7 @@ function program3(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],46:[function(require,module,exports){
+},{"hbsfy/runtime":117}],49:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18668,7 +18757,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],47:[function(require,module,exports){
+},{"hbsfy/runtime":117}],50:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18712,7 +18801,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],48:[function(require,module,exports){
+},{"hbsfy/runtime":117}],51:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18769,7 +18858,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],49:[function(require,module,exports){
+},{"hbsfy/runtime":117}],52:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18820,7 +18909,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],50:[function(require,module,exports){
+},{"hbsfy/runtime":117}],53:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18852,7 +18941,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],51:[function(require,module,exports){
+},{"hbsfy/runtime":117}],54:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18908,7 +18997,7 @@ function program4(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],52:[function(require,module,exports){
+},{"hbsfy/runtime":117}],55:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -18980,7 +19069,7 @@ function program9(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],53:[function(require,module,exports){
+},{"hbsfy/runtime":117}],56:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19009,7 +19098,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],54:[function(require,module,exports){
+},{"hbsfy/runtime":117}],57:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19064,7 +19153,7 @@ function program7(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],55:[function(require,module,exports){
+},{"hbsfy/runtime":117}],58:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19108,7 +19197,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],56:[function(require,module,exports){
+},{"hbsfy/runtime":117}],59:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19165,7 +19254,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],57:[function(require,module,exports){
+},{"hbsfy/runtime":117}],60:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19211,7 +19300,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],58:[function(require,module,exports){
+},{"hbsfy/runtime":117}],61:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19277,7 +19366,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],59:[function(require,module,exports){
+},{"hbsfy/runtime":117}],62:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19391,7 +19480,7 @@ function program15(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],60:[function(require,module,exports){
+},{"hbsfy/runtime":117}],63:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19428,7 +19517,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],61:[function(require,module,exports){
+},{"hbsfy/runtime":117}],64:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19580,7 +19669,7 @@ function program15(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],62:[function(require,module,exports){
+},{"hbsfy/runtime":117}],65:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19624,7 +19713,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],63:[function(require,module,exports){
+},{"hbsfy/runtime":117}],66:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19681,7 +19770,7 @@ function program1(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],64:[function(require,module,exports){
+},{"hbsfy/runtime":117}],67:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19693,7 +19782,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return "<div class=\"svg-menu svg-menu-use-case\">\n   <a href=\"#create/actor\" class=\"add-actor\"></a>\n   <a href=\"#create/functionalRequirement\" class=\"add-use-case\"></a>\n</div>\n<svg id=\"useCase\"></svg>";
   });
 
-},{"hbsfy/runtime":112}],65:[function(require,module,exports){
+},{"hbsfy/runtime":117}],68:[function(require,module,exports){
 // hbsfy compiled Handlebars template
 var HandlebarsCompiler = require('hbsfy/runtime');
 module.exports = HandlebarsCompiler.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -19736,7 +19825,7 @@ function program3(depth0,data) {
   return buffer;
   });
 
-},{"hbsfy/runtime":112}],66:[function(require,module,exports){
+},{"hbsfy/runtime":117}],69:[function(require,module,exports){
 var Backbone			= require('backbone'),
 	$					= require('jquery'),
 	app					= require('../app/namespace'),
@@ -19818,7 +19907,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/actor.hbs":42,"./actorEdit":67,"./customCollection":70,"./participants":90,"backbone":102,"jquery":114}],67:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/actor.hbs":44,"./actorEdit":70,"./customCollection":74,"./participants":94,"backbone":107,"jquery":119}],70:[function(require,module,exports){
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),
@@ -19847,7 +19936,7 @@ module.exports=  Backbone.View.extend({
 		$('.modal .content').html(this.render().el);
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/actor":29,"../templates/actorForm.hbs":43,"backbone":102,"jquery":114}],68:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/actor":30,"../templates/actorForm.hbs":45,"backbone":107,"jquery":119}],71:[function(require,module,exports){
 var Backbone	= require('backbone'),
 	$			= require('jquery'),
 	app			= require('../app/namespace'),
@@ -19895,9 +19984,8 @@ module.exports=  Backbone.View.extend({
 			multimedias		: multimedias || [],
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
-		},
-		{
-			success : function(){
+		},{
+			successfully : function(){
 				app.collections.actors.add(actor);	
 			}
 		});
@@ -19905,19 +19993,82 @@ module.exports=  Backbone.View.extend({
 		this.remove();
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/actor":29,"../templates/actorForm.hbs":43,"backbone":102,"jquery":114}],69:[function(require,module,exports){
-var Backbone		= require('backbone'),
-	$				= require('jquery'),
-	app				= require('../app/namespace'),
-	plugins			= require('../app/plugins'),
-	classSVG		= require('./svg/class'),
-	enumerationSVG 	= require('./svg/enumeration');
+},{"../app/modal":3,"../app/namespace":4,"../models/actor":30,"../templates/actorForm.hbs":45,"backbone":107,"jquery":119}],72:[function(require,module,exports){
+var Backbone		=	require('backbone'),
+	$				=	require('jquery'),
+	app				= 	require('../app/namespace'),
+	modal			=	require('../app/modal'),
+	AttributeModel 	=	require('../models/attribute') ;
+
+module.exports=  Backbone.View.extend({
+	events : {
+		'click button.add-attribute' : 'clickButton'	
+	},
+	template : require('../templates/attributeForm.hbs'),
+	render : function(){
+		var html=this.template({
+			enumerations : app.collections.enumerations.toJSON()
+		});
+		this.$el.html(html);
+		return this;
+	},
+	initialize : function() {
+		var view = this;
+		modal.show({
+			title : app.utils.t('New attribute'),
+		},400,300,function(){
+			view.remove();
+			modal.close();
+		});
+		$('.modal .content').html(this.render().$el);
+	},
+	clickButton : function(){
+		var that = this;
+		var name = this.$el.find('input.attribute-name').val().trim();
+		if(name){
+			this.$el.find('button.add-attribute').remove();
+			var type = this.$el.find('select.attribute-type').val();
+			var enumeration = this.$el.find('.attribute-type :selected').attr('data-id');
+			var attribute = new AttributeModel();
+			attribute.save({
+				name 		: name,
+				type 		: type,
+				enumeration : enumeration
+			},{
+				successfully : function(attribute){
+					app.collections.attributes.add(attribute);
+					var attributes = that.model.get('attributes').slice(0);
+					attributes.push(attribute.id);
+					that.model.set('attributes',attributes);
+					that.model.save();
+					that.remove();
+					modal.close();
+				}
+			});
+		}
+		else{
+			alert(app.utils.t('You must write a name'));
+		}
+	}
+});
+},{"../app/modal":3,"../app/namespace":4,"../models/attribute":31,"../templates/attributeForm.hbs":46,"backbone":107,"jquery":119}],73:[function(require,module,exports){
+var Backbone			= require('backbone'),
+	$					= require('jquery'),
+	app					= require('../app/namespace'),
+	plugins				= require('../app/plugins'),
+	classSVG			= require('./svg/class'),
+	EnumerationsView 	= require('./enumerations')
+	enumerationSVG 		= require('./svg/enumeration'),
+	associationSVG 		= require('./svg/classAssociation');
 
 module.exports = Backbone.View.extend({
 	tagName 	: 'div',
 	className 	: 'classDiagram-view',
 	template:require('../templates/classDiagram.hbs'),
 	attachedViews : [],
+	events : { 
+		'click #view-enumerations' : 'viewEnumerations'
+	},
 	initialize : function(){
 		
 	},
@@ -19931,12 +20082,23 @@ module.exports = Backbone.View.extend({
 	svg : function() {
 		this.svg = plugins.Snap("svg");
 		var that = this;
+		app.collections.classAssociations.forEach(function(classAssociation){
+			that.addAssociation.apply(that, [classAssociation]);
+		});
 		app.collections.storageRequirements.forEach(function(storageRequirement){
 			that.addClass.apply(that, [storageRequirement]);
 		});
 		app.collections.enumerations.forEach(function(enumeration){
 			that.addEnumeration.apply(that, [enumeration]);
 		});
+		this.addEvents();
+	},
+	addAssociation : function(classAssociation){
+		var associationView = new associationSVG({
+			svg 	: this.svg,
+			model 	: classAssociation
+		}).render();
+		this.attachedViews.push(associationView);
 	},
 	addClass : function(storageRequirement){
 		var classView = new classSVG({
@@ -19957,9 +20119,84 @@ module.exports = Backbone.View.extend({
 			view.remove();
 		});
 		this.remove();
+	},
+	viewEnumerations : function(){
+		new EnumerationsView({
+			collection : app.collections.enumerations
+		});
+	},
+	addEvents : function(){
+		var that = this;
+		this.svg.mousemove(function(event){
+			if(app.selectingClass){
+				var x = app.selectedClass.get('x');
+				var y = app.selectedClass.get('y');
+				var w = app.selectedSize.w;
+				var h = app.selectedSize.h;
+				var x2 = event.layerX;
+				var y2 = event.layerY;
+				if(x < x2 && x2 < x + w){
+					app.classAssociation.attr({
+						x1 : x2,
+						x2 : x2, 
+						y1 : y,
+						y2 : y2
+					});
+				}
+				else if(y < y2 && y2 < y + h){
+					app.classAssociation.attr({
+						x1 : x,
+						x2 : x2, 
+						y1 : y2,
+						y2 : y2
+					});
+				}
+				else{
+					if(!app.classAssociation2){
+						app.classAssociation2 = that.svg.line().attr({
+							stroke : 'green',
+							strokeWidth : 2
+						}).prependTo(that.svg)
+					}
+					if(y2 < y){
+						app.classAssociation.attr({
+							x1 : x + w/2,
+							x2 : x + w/2, 
+							y1 : y,
+							y2 : y2
+						});						
+						app.classAssociation2.attr({
+							x1 : x + w/2,
+							x2 : x2, 
+							y1 : y2,
+							y2 : y2				
+						});
+					}
+					else{
+						app.classAssociation.attr({
+							x1 : x,
+							x2 : x2, 
+							y1 : y + h/2,
+							y2 : y + h/2
+						});						
+						app.classAssociation2.attr({
+							x1 : x2,
+							x2 : x2, 
+							y1 : y + h/2,
+							y2 : y2				
+						});
+					}
+					return;
+				}
+				if(app.classAssociation2){
+					app.classAssociation2.remove();
+					delete app.classAssociation2;
+				}
+			}
+		});
 	}
 });
-},{"../app/namespace":4,"../app/plugins":5,"../templates/classDiagram.hbs":44,"./svg/class":96,"./svg/enumeration":97,"backbone":102,"jquery":114}],70:[function(require,module,exports){
+},{"../app/namespace":4,"../app/plugins":5,"../templates/classDiagram.hbs":47,"./enumerations":79,"./svg/class":100,"./svg/classAssociation":101,"./svg/enumeration":102,"backbone":107,"jquery":119}],74:[function(require,module,exports){
 var Backbone				= require("backbone"),
 	$						= require("jquery"),
 	app						= require("../app/namespace"),
@@ -19976,7 +20213,7 @@ module.exports = Backbone.View.extend({
 		this.$el.append(subview.render().el);
 	}
 });
-},{"../app/namespace":4,"./customCollectionItem":71,"backbone":102,"jquery":114}],71:[function(require,module,exports){
+},{"../app/namespace":4,"./customCollectionItem":75,"backbone":107,"jquery":119}],75:[function(require,module,exports){
 var Backbone	 =	require('backbone'),
 	$			 =	require('jquery'),
 	app			 = 	require('../app/namespace');
@@ -19999,7 +20236,7 @@ module.exports=Backbone.View.extend({
 		return this;
 	}
 });
-},{"../app/namespace":4,"../templates/multimediaItem.hbs":54,"../templates/userItem.hbs":65,"backbone":102,"jquery":114}],72:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/multimediaItem.hbs":57,"../templates/userItem.hbs":68,"backbone":107,"jquery":119}],76:[function(require,module,exports){
 var Backbone		= require("backbone"),
 	$				= require("jquery"),
 	app				= require("../app/namespace"),
@@ -20026,7 +20263,7 @@ module.exports=  Backbone.View.extend({
 		));
 	}
 });
-},{"../app/namespace":4,"./dropDownItem":73,"backbone":102,"jquery":114}],73:[function(require,module,exports){
+},{"../app/namespace":4,"./dropDownItem":77,"backbone":107,"jquery":119}],77:[function(require,module,exports){
 var Backbone	 =	require('backbone'),
 	$			 =	require('jquery'),
 	app			 = 	require('../app/namespace');
@@ -20050,7 +20287,7 @@ module.exports=Backbone.View.extend({
 		return this;
 	}
 });
-},{"../app/namespace":4,"backbone":102,"jquery":114}],74:[function(require,module,exports){
+},{"../app/namespace":4,"backbone":107,"jquery":119}],78:[function(require,module,exports){
 var Backbone	 =	require('backbone'),
 	$			 =	require('jquery'),
 	app			 = 	require('../app/namespace');
@@ -20084,7 +20321,7 @@ module.exports=Backbone.View.extend({
 		this.model.destroy();
 	}
 });
-},{"../app/namespace":4,"../templates/enumeration.hbs":45,"backbone":102,"jquery":114}],75:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/enumeration.hbs":48,"backbone":107,"jquery":119}],79:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
@@ -20130,7 +20367,7 @@ module.exports=  Backbone.View.extend({
 		}
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/enumeration":32,"../templates/enumerationForm.hbs":46,"./enumeration":74,"backbone":102,"jquery":114}],76:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/enumeration":34,"../templates/enumerationForm.hbs":49,"./enumeration":78,"backbone":107,"jquery":119}],80:[function(require,module,exports){
 var Backbone						= require('backbone'),
 	$								= require('jquery'),
 	app								= require('../app/namespace'),
@@ -20212,7 +20449,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/functionalRequirement.hbs":47,"./customCollection":70,"./functionalRequirementEdit":77,"./participants":90,"backbone":102,"jquery":114}],77:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/functionalRequirement.hbs":50,"./customCollection":74,"./functionalRequirementEdit":81,"./participants":94,"backbone":107,"jquery":119}],81:[function(require,module,exports){
 var Backbone					= require('backbone'),
 	$							= require('jquery'),
 	app							= require('../app/namespace'),
@@ -20241,7 +20478,7 @@ module.exports=  Backbone.View.extend({
 		$('.modal .content').html(this.render().el);
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/functionalRequirement":33,"../templates/functionalRequirementForm.hbs":48,"backbone":102,"jquery":114}],78:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/functionalRequirement":35,"../templates/functionalRequirementForm.hbs":51,"backbone":107,"jquery":119}],82:[function(require,module,exports){
 var Backbone					= require('backbone'),
 	$							= require('jquery'),
 	app							= require('../app/namespace'),
@@ -20295,7 +20532,7 @@ module.exports = Backbone.View.extend({
 		this.remove();
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/functionalRequirement":33,"../templates/functionalRequirementForm.hbs":48,"backbone":102,"jquery":114}],79:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/functionalRequirement":35,"../templates/functionalRequirementForm.hbs":51,"backbone":107,"jquery":119}],83:[function(require,module,exports){
 var Backbone	= require('backbone'),
 	$			= require('jquery'),
 	app			= require('../app/namespace'),
@@ -20381,7 +20618,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/namespace":4,"../templates/index.hbs":49,"./dropDown":72,"backbone":102,"jquery":114}],80:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/index.hbs":52,"./dropDown":76,"backbone":107,"jquery":119}],84:[function(require,module,exports){
 var Backbone			=	require('backbone'),
 	$					=	require('jquery'),
 	app					=	require('../app/namespace'),
@@ -20415,7 +20652,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/meetings.hbs":50,"./multimedia":81,"backbone":102,"jquery":114}],81:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/meetings.hbs":53,"./multimedia":85,"backbone":107,"jquery":119}],85:[function(require,module,exports){
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),
@@ -20440,7 +20677,7 @@ module.exports=Backbone.View.extend({
 		});
 	}
 });
-},{"../app/namespace":4,"../templates/multimedia.hbs":52,"./multimediaForm":82,"backbone":102,"jquery":114}],82:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/multimedia.hbs":55,"./multimediaForm":86,"backbone":107,"jquery":119}],86:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
@@ -20462,7 +20699,7 @@ module.exports=  Backbone.View.extend({
 		app.utils.dataBinding(this);
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/multimediaForm.hbs":53,"backbone":102,"jquery":114}],83:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/multimediaForm.hbs":56,"backbone":107,"jquery":119}],87:[function(require,module,exports){
 var Backbone							= require('backbone'),
 	$									= require('jquery'),
 	app									= require('../app/namespace'),
@@ -20544,7 +20781,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/nonFunctionalRequirement.hbs":55,"./customCollection":70,"./nonFunctionalRequirementEdit":84,"./participants":90,"backbone":102,"jquery":114}],84:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/nonFunctionalRequirement.hbs":58,"./customCollection":74,"./nonFunctionalRequirementEdit":88,"./participants":94,"backbone":107,"jquery":119}],88:[function(require,module,exports){
 var Backbone					= require('backbone'),
 	$							= require('jquery'),
 	app							= require('../app/namespace'),
@@ -20573,7 +20810,7 @@ module.exports = Backbone.View.extend({
 		$('.modal .content').html(this.render().el);
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/nonFunctionalRequirement":35,"../templates/nonFunctionalRequirementForm.hbs":56,"backbone":102,"jquery":114}],85:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/nonFunctionalRequirement":37,"../templates/nonFunctionalRequirementForm.hbs":59,"backbone":107,"jquery":119}],89:[function(require,module,exports){
 var Backbone						= require('backbone'),
 	$								= require('jquery'),
 	app								= require('../app/namespace'),
@@ -20627,7 +20864,7 @@ module.exports=  Backbone.View.extend({
 		this.remove();
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/nonFunctionalRequirement":35,"../templates/nonFunctionalRequirementForm.hbs":56,"backbone":102,"jquery":114}],86:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/nonFunctionalRequirement":37,"../templates/nonFunctionalRequirementForm.hbs":59,"backbone":107,"jquery":119}],90:[function(require,module,exports){
 var Backbone			= require('backbone'),
 	$					= require('jquery'),
 	app					= require('../app/namespace'),
@@ -20719,7 +20956,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/objective.hbs":57,"./customCollection":70,"./objectiveEdit":87,"./participants":90,"backbone":102,"jquery":114}],87:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/objective.hbs":60,"./customCollection":74,"./objectiveEdit":91,"./participants":94,"backbone":107,"jquery":119}],91:[function(require,module,exports){
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),
@@ -20750,7 +20987,7 @@ module.exports=  Backbone.View.extend({
 		$('.modal .content').html(this.render().el);
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/objective":36,"../templates/objectiveForm.hbs":58,"backbone":102,"jquery":114}],88:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/objective":38,"../templates/objectiveForm.hbs":61,"backbone":107,"jquery":119}],92:[function(require,module,exports){
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),
@@ -20810,7 +21047,7 @@ module.exports=  Backbone.View.extend({
 		this.remove();
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/objective":36,"../templates/objectiveForm.hbs":58,"backbone":102,"jquery":114}],89:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/objective":38,"../templates/objectiveForm.hbs":61,"backbone":107,"jquery":119}],93:[function(require,module,exports){
 var Backbone	 =	require("backbone"),
 	$			 =	require("jquery"),
 	app			 = 	require("../app/namespace");
@@ -20840,7 +21077,7 @@ module.exports=Backbone.View.extend({
 		this.model.save();
 	}
 });
-},{"../app/namespace":4,"../templates/participant.hbs":59,"backbone":102,"jquery":114}],90:[function(require,module,exports){
+},{"../app/namespace":4,"../templates/participant.hbs":62,"backbone":107,"jquery":119}],94:[function(require,module,exports){
 var Backbone			=	require("backbone"),
 	$					=	require("jquery"),
 	app					= 	require("../app/namespace"),
@@ -20905,7 +21142,7 @@ module.exports=  Backbone.View.extend({
 		}
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/participant":37,"../templates/participantForm.hbs":60,"./participant":89,"backbone":102,"jquery":114}],91:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/participant":39,"../templates/participantForm.hbs":63,"./participant":93,"backbone":107,"jquery":119}],95:[function(require,module,exports){
 var Backbone			=	require('backbone'),
 	$					=	require('jquery'),
 	app					=	require('../app/namespace'),
@@ -20948,7 +21185,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/project.hbs":61,"./enumerations":75,"./participants":90,"backbone":102,"jquery":114}],92:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/project.hbs":64,"./enumerations":79,"./participants":94,"backbone":107,"jquery":119}],96:[function(require,module,exports){
 var Backbone					= require('backbone'),
 	$							= require('jquery'),
 	app							= require('../app/namespace'),
@@ -21030,7 +21267,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../templates/storageRequirement.hbs":62,"./customCollection":70,"./participants":90,"./storageRequirementEdit":93,"backbone":102,"jquery":114}],93:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../templates/storageRequirement.hbs":65,"./customCollection":74,"./participants":94,"./storageRequirementEdit":97,"backbone":107,"jquery":119}],97:[function(require,module,exports){
 var Backbone				= require('backbone'),
 	$						= require('jquery'),
 	app						= require('../app/namespace'),
@@ -21059,7 +21296,7 @@ module.exports=  Backbone.View.extend({
 		$('.modal .content').html(this.render().el);
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/storageRequirement":39,"../templates/storageRequirementForm.hbs":63,"backbone":102,"jquery":114}],94:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/storageRequirement":41,"../templates/storageRequirementForm.hbs":66,"backbone":107,"jquery":119}],98:[function(require,module,exports){
 var Backbone				= require('backbone'),
 	$						= require('jquery'),
 	app						= require('../app/namespace'),
@@ -21113,12 +21350,13 @@ module.exports = Backbone.View.extend({
 		this.remove();
 	}
 });
-},{"../app/modal":3,"../app/namespace":4,"../models/storageRequirement":39,"../templates/storageRequirementForm.hbs":63,"backbone":102,"jquery":114}],95:[function(require,module,exports){
+},{"../app/modal":3,"../app/namespace":4,"../models/storageRequirement":41,"../templates/storageRequirementForm.hbs":66,"backbone":107,"jquery":119}],99:[function(require,module,exports){
 var Backbone 			= require('backbone'),
 	$ 					= require('jquery'),
 	plugins 			= require('../../app/plugins'),
 	app 				= require('../../app/namespace'),
-	UseCaseAssociation 	= require('../../models/useCaseAssociation');
+	UseCaseAssociation 	= require('../../models/useCaseAssociation'),
+	ActorEditView		= require('../actorEdit');
 
 module.exports = Backbone.View.extend({
 	initialize : function(options){
@@ -21146,11 +21384,14 @@ module.exports = Backbone.View.extend({
 			svg.line(10,40,20,50)
 		);
 		this.label = svg.text(10, 65, this.model.get('name'));
-		this.linkUseCase = svg.image('/img/diagrams/add_link_use_case.png',0,-25,20,20);
+		this.linkUseCase = svg.image('/img/diagrams/add_link_use_case.png',-10,-25,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png',10,-25,20,20);
 
 		this.actor = svg.group(
+			svg.rect(-10,-5,40,5),
 			svg.rect(-5,-5,30,65), //for drag event
 			this.linkUseCase,
+			this.edit,
 			this.group, 
 			this.label
 		).addClass('actor-svg');		
@@ -21194,6 +21435,12 @@ module.exports = Backbone.View.extend({
 				$('.useCase-view').removeClass('select-actor');
 			}
 		});
+
+		this.edit.click(function(){
+			new ActorEditView({
+				model : that.model
+			});
+		});
 		
 		this.linkUseCase.click(function(){
 			$('.useCase-view').addClass("select-use-case");
@@ -21236,21 +21483,27 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../../app/namespace":4,"../../app/plugins":5,"../../models/useCaseAssociation":40,"backbone":102,"jquery":114}],96:[function(require,module,exports){
-var Backbone 	= require('backbone'),
-	$			= require('jquery'),
-	plugins		= require('../../app/plugins');
+},{"../../app/namespace":4,"../../app/plugins":5,"../../models/useCaseAssociation":42,"../actorEdit":70,"backbone":107,"jquery":119}],100:[function(require,module,exports){
+var Backbone 					= require('backbone'),
+	$							= require('jquery'),
+	app 						= require('../../app/namespace'),
+	plugins						= require('../../app/plugins'),
+	StorageRequirementEditView 	= require('../storageRequirementEdit'),
+	AddAtributeView 			= require('../addAttribute'),
+	ClassAssociationModel		= require('../../models/classAssociation');
 
 module.exports = Backbone.View.extend({
 	initialize : function(options){
 		this.svg = options.svg;
-		this.listenTo(this.model, 'change:name', this.updateName, this);
+		this.listenTo(this.model, 'change:name', this.setTexts, this);
+		this.listenTo(this.model, 'change:attributes', this.setTexts, this);
 		this.listenTo(this.model, 'change:x', this.updatePosition, this);
 		this.listenTo(this.model, 'change:y', this.updatePosition, this);
 	},
 	updateName : function(){
-		this.label.attr({text : this.model.get('name')});
-		this.label.transform(['T',(this.group.getBBox().w / 2) - (this.label.getBBox().w / 2),',',this.group.getBBox().h + 15].join(''));
+		this.label.attr({
+			text : app.utils.fixName(this.model.get('name'))
+		});
 	},
 	updatePosition : function(){
 		this.class.transform(['T',this.model.get('x'),',',this.model.get('y')].join(''));
@@ -21258,22 +21511,34 @@ module.exports = Backbone.View.extend({
 	render : function(){
 		var svg = this.svg;
 		
-		this.label = svg.text(5, 15, this.model.get('name'));
-		this.label.attr({
-			'font-size' : '12px'
-		});
+		this.label = svg.text(5, 15,'');
+		this.label.addClass('label');
 
 		this.rect1 = svg.rect(0,0,this.label.getBBox().w + 30,this.label.getBBox().h + 20);
 		this.rect2 = svg.rect(0,20,this.label.getBBox().w + 30,40);
 		this.rects = svg.group(this.rect1,this.rect2);
-		this.rects.attr({
-			stroke 		: 'black',
-			strokeWidth : 2,
-			fill 		: '#AEC6CF'
-		});
-		this.addAttribute = svg.image('/img/diagrams/add_attribute.png',0,-20,20,20);
-		this.addAttribute.attr({display : 'none'});
-		this.class = svg.group(this.addAttribute,this.rects,this.label);
+		this.rects.addClass('boxes');
+		
+		this.addAttribute = svg.image('/img/diagrams/add_attribute.png',0,-25,20,20);
+		this.r11 = svg.image('/img/diagrams/r11.png',20,-25,20,20);
+		this.r1n = svg.image('/img/diagrams/r1n.png',40,-25,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png',60,-25,20,20);
+
+		this.attributes = svg.text(0, 35, '');
+
+		this.class = svg.group(
+			svg.rect(0,-5,80,5).addClass('transparent'),
+			this.addAttribute,
+			this.r11,
+			this.r1n,
+			this.edit,
+			this.rects,
+			this.label,
+			this.attributes
+		);
+		this.class.addClass('class-svg');
+
+		var size = this.setTexts();
 
 		var svgWidth = $("#container").width() - 30;
 		var svgHeight = $("#container").height() - 65;
@@ -21281,40 +21546,350 @@ module.exports = Backbone.View.extend({
 		var y = this.model.get('y') || Math.random() * svgHeight;
 		this.class.transform(['T',x,',',y].join(''));
 
-		this.model.set({x : x, y : y}).save();
+		this.model.set({
+			x 		: x, 
+			y 		: y,
+			width 	: size.w,
+			height 	: size.h
+		}).save();
 
 		this.addEvents();
 		return this;
 	},
+	setTexts : function(){
+		var that = this;
+
+		this.label.attr({
+			text : app.utils.fixName(this.model.get('name'))
+		});
+
+		this.attributes.attr({
+			text : this.model.get('attributes').map(function(id){
+				var attribute = app.collections.attributes.get(id);
+				var type = attribute.get('type');
+				if(type === 'ENUM'){
+					var enumeration = app.collections.enumerations.get(attribute.get('enumeration'));
+					if(enumeration){
+						type = app.utils.fixName(enumeration.get('name'));
+					}
+				}
+				return app.utils.fixName(attribute.get('name')) +' : '+ type;
+			})
+		});
+
+		this.attributes.selectAll("tspan").forEach(function(element, index){
+			(function(){
+				var attribute = that.model.get('attributes')[index];
+				element.attr({
+					x : 5, 
+					dy : index === 0 ? 0 : 12
+				});
+				if(attribute){
+					attribute = app.collections.attributes.get(attribute);
+					element.click(function(){
+						if(app.selectingClass){
+							return;
+						}
+						attribute.destroy();
+						var attributes = that.model.get('attributes').slice(0);
+						var pos = attributes.indexOf(attribute.id);
+						if(pos !== -1){
+							attributes.splice(pos,1);
+							that.model.set('attributes',attributes);
+							that.model.save();
+						}
+					});
+				}
+			})();
+		});
+
+		var width = Math.max(this.label.getBBox().w,this.attributes.getBBox().w) + 10;
+		var height = Math.max(this.model.get('attributes').length * 12 + 10,40);
+		this.rect1.attr({width : width});
+		this.rect2.attr({width : width, height : height});
+		return {w : width,h : height + 20};
+	},
 	addEvents : function(){
 		var that = this;
 		this.class.drag(this.moveDrag, this.startDrag, this.endDrag, this, this, this);
-		this.class.hover(this.hoverIn,this.hoverOut,this,this);
-		this.$class = $(this.class.node);
+
+		this.edit.click(function(){
+			new StorageRequirementEditView({
+				model : that.model
+			});
+		});
+
+		this.addAttribute.click(function(){
+			new AddAtributeView({
+				model : that.model
+			});
+		});
+
+		this.r11.click(function(){
+			$('.classDiagram-view').addClass("select-class");
+			var x = that.model.get('x');
+			var y = that.model.get('y');
+			app.classAssociation = that.svg.line(x,y,x,y).attr({
+				stroke 		: 'green',
+				strokeWidth : 2
+			}).prependTo(that.svg);
+			app.typeSelection = 'ONE_TO_ONE';
+			app.selectingClass = true;
+			app.selectedClass = that.model;
+			app.selectedSize = that.rects.getBBox();
+			that.class.addClass('no-select');
+		});
+
+		this.class.click(function(){
+			if(app.selectingClass){
+				if(that.model.id !== app.selectedClass.id){
+					var classAssociation = new ClassAssociationModel();
+					classAssociation.save({
+						classA : app.selectedClass.id,
+						classB : that.model.id,
+						type   : app.typeSelection
+					},{
+						successfully : function(model){
+							app.collections.classAssociations.add(model);
+						}
+					});
+					app.classAssociation.remove();
+					if(app.classAssociation2){
+						app.classAssociation2.remove();
+						delete app.classAssociation2;
+					}
+					delete app.classAssociation;
+					delete app.typeSelection;
+					delete app.selectingClass;
+					delete app.selectedClass;
+					delete app.selectedSize;
+					$('.no-select').removeClass('no-select');
+					$('.classDiagram-view').removeClass("select-class");
+				}
+			}
+		});
 	},
 	moveDrag : function(dx, dy, x, y, event){
 		this.nx = this.ox + dx;
 		this.ny = this.oy + dy;
 		this.class.transform(['T',this.nx,',',this.ny].join(''));
+		this.moved = true;
+		this.notifyAssociations();
 	},
 	startDrag : function(x, y, event){
 		this.ox = this.model.get('x');
 		this.oy = this.model.get('y');
+		this.moved = false;
 	},
 	endDrag : function(event){
-		this.model.set({
-			x : this.nx,
-			y : this.ny
-		}).save();
+		if(this.moved){
+			this.model.set({
+				x : this.nx,
+				y : this.ny
+			}).save();
+		}
 	},
-	hoverIn : function(){
-		this.addAttribute.attr({display : 'block'});
-	},
-	hoverOut : function(){
-		this.addAttribute.attr({display : 'none'});
+	notifyAssociations : function(){
+		var that = this;
+		app.collections.classAssociations.where({
+			classA : this.model.id
+		}).forEach(function(association){
+			association.set({
+				x1 : that.nx,
+				y1 : that.ny
+			});
+		});
+		app.collections.classAssociations.where({
+			classB : this.model.id
+		}).forEach(function(association){
+			association.set({
+				x2 : that.nx,
+				y2 : that.ny
+			});
+		});
 	}
 });
-},{"../../app/plugins":5,"backbone":102,"jquery":114}],97:[function(require,module,exports){
+},{"../../app/namespace":4,"../../app/plugins":5,"../../models/classAssociation":32,"../addAttribute":72,"../storageRequirementEdit":97,"backbone":107,"jquery":119}],101:[function(require,module,exports){
+var Backbone 	= require('backbone'),
+	$ 			= require('jquery'),
+	plugins 	= require('../../app/plugins'),
+	app 		= require('../../app/namespace');
+
+module.exports = Backbone.View.extend({
+	initialize : function(options){
+		var that = this;
+		this.svg = options.svg;
+		this.classAModel = app.collections.storageRequirements.findWhere({
+			_id : that.model.get('classA')
+		});
+		
+		this.classBModel = app.collections.storageRequirements.findWhere({
+			_id : that.model.get('classB')
+		});
+		
+		this.m1 = '1';
+		this.m2 = '0..1';
+		if(this.model.get('type') === 'ONE_TO_MANY'){
+			this.m2 = '0..*';
+		}
+
+		this.model.set({
+			x1 : this.classAModel.get('x'),
+			y1 : this.classAModel.get('y'),
+			x2 : this.classBModel.get('x'),
+			y2 : this.classBModel.get('y')
+		});
+		this.listenTo(this.model, 'change:x1', this.updateCoordinates, this);
+		this.listenTo(this.model, 'change:y1', this.updateCoordinates, this);
+		this.listenTo(this.model, 'change:x2', this.updateCoordinates, this);
+		this.listenTo(this.model, 'change:y2', this.updateCoordinates, this);
+		this.listenTo(this.model, 'destroy' , this.destroyModel, this);
+	},
+	updateCoordinates : function(){
+		var that = this;
+		var x1 = this.model.get('x1');
+		var y1 = this.model.get('y1');
+		var w1 = this.classAModel.get('width');
+		var h1 = this.classAModel.get('height');
+		var x2 = this.model.get('x2');
+		var y2 = this.model.get('y2');
+		var w2 = this.classBModel.get('width');
+		var h2 = this.classBModel.get('height');
+		var mx1 = x1 + w1/2;
+		var my1 = y1 + h1/2;
+		var mx2 = x2 + w2/2;
+		var my2 = y2 + h2/2;
+		if(x1 < mx2 && mx2 < x1 + w1){
+			this.association1.attr({
+				x1 : mx2,
+				x2 : mx2,
+				y1 : my1,
+				y2 : my2
+			});
+			this.association2.attr({
+				x1 : mx2,
+				x2 : mx2,
+				y1 : my1,
+				y2 : my2
+			});
+			this.text.attr({
+				x : mx2,
+				y : (my1 + my2)/2
+			});
+			if(my1 < my2){
+				this.t1.attr({
+					x : mx2 + 5,
+					y : y1 + h1 + 10
+				});
+				this.t2.attr({
+					x : mx2 + 13,
+					y : y2 - 3
+				});
+			}
+			else{
+				this.t1.attr({
+					x : mx2 + 5,
+					y : y1 - 3
+				});
+				this.t2.attr({
+					x : mx2 + 13,
+					y : y2 + h2 + 10
+				});
+			}
+		}
+		else if(y1 < my2 && my2 < y1 + h1){
+			this.association1.attr({
+				x1 : mx1,
+				x2 : mx2,
+				y1 : my2,
+				y2 : my2
+			});
+			this.association2.attr({
+				x1 : mx1,
+				x2 : mx2,
+				y1 : my2,
+				y2 : my2
+			});
+			this.text.attr({
+				x : (mx1 + mx2)/2,
+				y : my2 - 10 
+			});
+		}
+		else if(my1 < my2){
+			this.association1.attr({
+				x1 : mx1,
+				x2 : mx2,
+				y1 : my1,
+				y2 : my1
+			});
+			this.association2.attr({
+				x1 : mx2,
+				x2 : mx2,
+				y1 : my1,
+				y2 : my2
+			});
+			this.text.attr({
+				x : mx2,
+				y : my1 - 10
+			});
+		}
+		else{
+			this.association1.attr({
+				x1 : mx1,
+				x2 : mx1,
+				y1 : my1,
+				y2 : my2
+			});
+			this.association2.attr({
+				x1 : mx1,
+				x2 : mx2,
+				y1 : my2,
+				y2 : my2
+			});
+			this.text.attr({
+				x : mx1,
+				y : my2 - 10
+			});
+		}
+	},
+	render : function(){
+		var svg = this.svg;
+		this.association1 = svg.line(0,0,0,0);
+		this.association2 = svg.line(0,0,0,0);
+		this.text = svg.text(0,0,app.utils.t('Click to delete'));
+		this.t1 = svg.text(0,0,this.m1).addClass('multiplicity');
+		this.t2 = svg.text(0,0,this.m2).addClass('multiplicity');
+		this.group = this.svg
+			.group(
+				this.association1,
+				this.association2,
+				this.text,
+				this.t1,
+				this.t2
+			)
+			.addClass("class-association")
+			.prependTo(svg);
+		this.updateCoordinates();
+		this.addEvents();
+		return this;
+	},
+	addEvents : function(){
+		var that = this;
+		this.association1.click(function(){
+			that.model.destroy();
+			app.collections.classAssociations.remove(that.model);
+		});
+		this.association2.click(function(){
+			that.model.destroy();
+			app.collections.classAssociations.remove(that.model);
+		});
+	},
+	destroyModel : function(){
+		this.group.remove();
+		this.remove();
+	}
+});
+},{"../../app/namespace":4,"../../app/plugins":5,"backbone":107,"jquery":119}],102:[function(require,module,exports){
 var Backbone 	= require('backbone'),
 	$			= require('jquery'),
 	plugins		= require('../../app/plugins');
@@ -21402,12 +21977,13 @@ module.exports = Backbone.View.extend({
 		}).save();
 	}
 });
-},{"../../app/plugins":5,"backbone":102,"jquery":114}],98:[function(require,module,exports){
-var Backbone 			= require('backbone'),
-	$					= require('jquery'),
-	app 				= require('../../app/namespace'),
-	plugins				= require('../../app/plugins'),
-	UseCaseAssociation 	= require('../../models/useCaseAssociation');
+},{"../../app/plugins":5,"backbone":107,"jquery":119}],103:[function(require,module,exports){
+var Backbone 						= require('backbone'),
+	$								= require('jquery'),
+	app 							= require('../../app/namespace'),
+	plugins							= require('../../app/plugins'),
+	UseCaseAssociation 				= require('../../models/useCaseAssociation'),
+	FunctionalRequirementEditView 	= require('../functionalRequirementEdit');
 
 module.exports = Backbone.View.extend({
 	initialize : function(options){
@@ -21437,10 +22013,12 @@ module.exports = Backbone.View.extend({
 		this.ellipse = svg.ellipse(0, 0, 100, 40);
 		this.label = this.svg.text(0, 0, '');
 		this.updateName();
-		this.linkActor = svg.image('/img/diagrams/add_link_actor.png',-10,-65,20,20);
+		this.linkActor = svg.image('/img/diagrams/add_link_actor.png',-20,-65,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png', 0,-65,20,20);
 		this.useCase = svg.group(
-			svg.rect(-15,-45,30,10), //for hold hover event
+			svg.rect(-25,-45,50,10), //for hold hover event
 			this.linkActor,
+			this.edit,
 			this.ellipse, 
 			this.label
 		);
@@ -21497,6 +22075,12 @@ module.exports = Backbone.View.extend({
 			app.selectingActor = true;
 			app.selectedUseCase = that.model;
 		});
+
+		this.edit.click(function(){
+			new FunctionalRequirementEditView({
+				model : that.model
+			});
+		});
 	},
 	moveDrag : function(dx, dy, x, y, event){		
 		this.nx = this.ox + dx;
@@ -21527,7 +22111,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../../app/namespace":4,"../../app/plugins":5,"../../models/useCaseAssociation":40,"backbone":102,"jquery":114}],99:[function(require,module,exports){
+},{"../../app/namespace":4,"../../app/plugins":5,"../../models/useCaseAssociation":42,"../functionalRequirementEdit":81,"backbone":107,"jquery":119}],104:[function(require,module,exports){
 var Backbone 	= require('backbone'),
 	$ 			= require('jquery'),
 	plugins 	= require('../../app/plugins'),
@@ -21571,7 +22155,7 @@ module.exports = Backbone.View.extend({
 	render : function(){
 		var svg = this.svg;
 		this.association = svg.line(0,0,0,0);
-		this.text = svg.text(0,0,app.utils.t('Click for deleting'));
+		this.text = svg.text(0,0,app.utils.t('Click to delete'));
 		this.group = this.svg
 			.group(this.association,this.text)
 			.addClass("use-case-association")
@@ -21592,7 +22176,7 @@ module.exports = Backbone.View.extend({
 		this.remove();
 	}
 });
-},{"../../app/namespace":4,"../../app/plugins":5,"backbone":102,"jquery":114}],100:[function(require,module,exports){
+},{"../../app/namespace":4,"../../app/plugins":5,"backbone":107,"jquery":119}],105:[function(require,module,exports){
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),
@@ -21678,7 +22262,7 @@ module.exports = Backbone.View.extend({
 		});
 	}
 });
-},{"../app/namespace":4,"../app/plugins":5,"../templates/useCase.hbs":64,"./svg/actor":95,"./svg/useCase":98,"./svg/useCaseAssociation":99,"backbone":102,"jquery":114}],101:[function(require,module,exports){
+},{"../app/namespace":4,"../app/plugins":5,"../templates/useCase.hbs":67,"./svg/actor":99,"./svg/useCase":103,"./svg/useCaseAssociation":104,"backbone":107,"jquery":119}],106:[function(require,module,exports){
 (function (process){
 /*!
  * async
@@ -22805,7 +23389,7 @@ module.exports = Backbone.View.extend({
 }());
 
 }).call(this,require('_process'))
-},{"_process":103}],102:[function(require,module,exports){
+},{"_process":108}],107:[function(require,module,exports){
 //     Backbone.js 1.1.2
 
 //     (c) 2010-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -24415,7 +24999,7 @@ module.exports = Backbone.View.extend({
 
 }));
 
-},{"underscore":163}],103:[function(require,module,exports){
+},{"underscore":168}],108:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -24503,7 +25087,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],104:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 // Copyright (c) 2013 Adobe Systems Incorporated. All rights reserved.
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -24931,7 +25515,7 @@ process.chdir = function (dir) {
     (typeof module != "undefined" && module.exports) ? (module.exports = eve) : (typeof define === "function" && define.amd ? (define("eve", [], function() { return eve; })) : (glob.eve = eve));
 })(this);
 
-},{}],105:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 "use strict";
 /*globals Handlebars: true */
 var base = require("./handlebars/base");
@@ -24964,7 +25548,7 @@ var Handlebars = create();
 Handlebars.create = create;
 
 exports["default"] = Handlebars;
-},{"./handlebars/base":106,"./handlebars/exception":107,"./handlebars/runtime":108,"./handlebars/safe-string":109,"./handlebars/utils":110}],106:[function(require,module,exports){
+},{"./handlebars/base":111,"./handlebars/exception":112,"./handlebars/runtime":113,"./handlebars/safe-string":114,"./handlebars/utils":115}],111:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -25145,7 +25729,7 @@ exports.log = log;var createFrame = function(object) {
   return obj;
 };
 exports.createFrame = createFrame;
-},{"./exception":107,"./utils":110}],107:[function(require,module,exports){
+},{"./exception":112,"./utils":115}],112:[function(require,module,exports){
 "use strict";
 
 var errorProps = ['description', 'fileName', 'lineNumber', 'message', 'name', 'number', 'stack'];
@@ -25174,7 +25758,7 @@ function Exception(message, node) {
 Exception.prototype = new Error();
 
 exports["default"] = Exception;
-},{}],108:[function(require,module,exports){
+},{}],113:[function(require,module,exports){
 "use strict";
 var Utils = require("./utils");
 var Exception = require("./exception")["default"];
@@ -25312,7 +25896,7 @@ exports.program = program;function invokePartial(partial, name, context, helpers
 exports.invokePartial = invokePartial;function noop() { return ""; }
 
 exports.noop = noop;
-},{"./base":106,"./exception":107,"./utils":110}],109:[function(require,module,exports){
+},{"./base":111,"./exception":112,"./utils":115}],114:[function(require,module,exports){
 "use strict";
 // Build out our basic SafeString type
 function SafeString(string) {
@@ -25324,7 +25908,7 @@ SafeString.prototype.toString = function() {
 };
 
 exports["default"] = SafeString;
-},{}],110:[function(require,module,exports){
+},{}],115:[function(require,module,exports){
 "use strict";
 /*jshint -W004 */
 var SafeString = require("./safe-string")["default"];
@@ -25401,15 +25985,15 @@ exports.escapeExpression = escapeExpression;function isEmpty(value) {
 }
 
 exports.isEmpty = isEmpty;
-},{"./safe-string":109}],111:[function(require,module,exports){
+},{"./safe-string":114}],116:[function(require,module,exports){
 // Create a simple path alias to allow browserify to resolve
 // the runtime on a supported path.
 module.exports = require('./dist/cjs/handlebars.runtime');
 
-},{"./dist/cjs/handlebars.runtime":105}],112:[function(require,module,exports){
+},{"./dist/cjs/handlebars.runtime":110}],117:[function(require,module,exports){
 module.exports = require("handlebars/runtime")["default"];
 
-},{"handlebars/runtime":111}],113:[function(require,module,exports){
+},{"handlebars/runtime":116}],118:[function(require,module,exports){
 // i18next, v1.7.7
 // Copyright (c)2014 Jan Mühlemann (jamuhl).
 // Distributed under MIT license
@@ -27532,7 +28116,7 @@ module.exports = require("handlebars/runtime")["default"];
     i18n.options = o;
 
 })();
-},{"jquery":114}],114:[function(require,module,exports){
+},{"jquery":119}],119:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v1.11.3
  * http://jquery.com/
@@ -37885,7 +38469,7 @@ return jQuery;
 
 }));
 
-},{}],115:[function(require,module,exports){
+},{}],120:[function(require,module,exports){
 // Laconic simplifies the generation of DOM content.
 (function(context) {
 
@@ -38082,11 +38666,11 @@ return jQuery;
   }
 }(this));
 
-},{}],116:[function(require,module,exports){
+},{}],121:[function(require,module,exports){
 
 module.exports = require('./lib/');
 
-},{"./lib/":117}],117:[function(require,module,exports){
+},{"./lib/":122}],122:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -38175,7 +38759,7 @@ exports.connect = lookup;
 exports.Manager = require('./manager');
 exports.Socket = require('./socket');
 
-},{"./manager":118,"./socket":120,"./url":121,"debug":124,"socket.io-parser":158}],118:[function(require,module,exports){
+},{"./manager":123,"./socket":125,"./url":126,"debug":129,"socket.io-parser":163}],123:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -38650,7 +39234,7 @@ Manager.prototype.onreconnect = function(){
   this.emitAll('reconnect', attempt);
 };
 
-},{"./on":119,"./socket":120,"./url":121,"component-bind":122,"component-emitter":123,"debug":124,"engine.io-client":125,"indexof":154,"object-component":155,"socket.io-parser":158}],119:[function(require,module,exports){
+},{"./on":124,"./socket":125,"./url":126,"component-bind":127,"component-emitter":128,"debug":129,"engine.io-client":130,"indexof":159,"object-component":160,"socket.io-parser":163}],124:[function(require,module,exports){
 
 /**
  * Module exports.
@@ -38676,7 +39260,7 @@ function on(obj, ev, fn) {
   };
 }
 
-},{}],120:[function(require,module,exports){
+},{}],125:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -39062,7 +39646,7 @@ Socket.prototype.disconnect = function(){
   return this;
 };
 
-},{"./on":119,"component-bind":122,"component-emitter":123,"debug":124,"has-binary":152,"socket.io-parser":158,"to-array":162}],121:[function(require,module,exports){
+},{"./on":124,"component-bind":127,"component-emitter":128,"debug":129,"has-binary":157,"socket.io-parser":163,"to-array":167}],126:[function(require,module,exports){
 (function (global){
 
 /**
@@ -39139,7 +39723,7 @@ function url(uri, loc){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"debug":124,"parseuri":156}],122:[function(require,module,exports){
+},{"debug":129,"parseuri":161}],127:[function(require,module,exports){
 /**
  * Slice reference.
  */
@@ -39164,7 +39748,7 @@ module.exports = function(obj, fn){
   }
 };
 
-},{}],123:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -39330,7 +39914,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],124:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 
 /**
  * Expose `debug()` as the module.
@@ -39469,11 +40053,11 @@ try {
   if (window.localStorage) debug.enable(localStorage.debug);
 } catch(e){}
 
-},{}],125:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 
 module.exports =  require('./lib/');
 
-},{"./lib/":126}],126:[function(require,module,exports){
+},{"./lib/":131}],131:[function(require,module,exports){
 
 module.exports = require('./socket');
 
@@ -39485,7 +40069,7 @@ module.exports = require('./socket');
  */
 module.exports.parser = require('engine.io-parser');
 
-},{"./socket":127,"engine.io-parser":139}],127:[function(require,module,exports){
+},{"./socket":132,"engine.io-parser":144}],132:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -40172,7 +40756,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./transport":128,"./transports":129,"component-emitter":123,"debug":136,"engine.io-parser":139,"indexof":154,"parsejson":148,"parseqs":149,"parseuri":150}],128:[function(require,module,exports){
+},{"./transport":133,"./transports":134,"component-emitter":128,"debug":141,"engine.io-parser":144,"indexof":159,"parsejson":153,"parseqs":154,"parseuri":155}],133:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -40324,7 +40908,7 @@ Transport.prototype.onClose = function () {
   this.emit('close');
 };
 
-},{"component-emitter":123,"engine.io-parser":139}],129:[function(require,module,exports){
+},{"component-emitter":128,"engine.io-parser":144}],134:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies
@@ -40381,7 +40965,7 @@ function polling(opts){
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling-jsonp":130,"./polling-xhr":131,"./websocket":133,"xmlhttprequest":134}],130:[function(require,module,exports){
+},{"./polling-jsonp":135,"./polling-xhr":136,"./websocket":138,"xmlhttprequest":139}],135:[function(require,module,exports){
 (function (global){
 
 /**
@@ -40618,7 +41202,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":132,"component-inherit":135}],131:[function(require,module,exports){
+},{"./polling":137,"component-inherit":140}],136:[function(require,module,exports){
 (function (global){
 /**
  * Module requirements.
@@ -40973,7 +41557,7 @@ function unloadHandler() {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./polling":132,"component-emitter":123,"component-inherit":135,"debug":136,"xmlhttprequest":134}],132:[function(require,module,exports){
+},{"./polling":137,"component-emitter":128,"component-inherit":140,"debug":141,"xmlhttprequest":139}],137:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -41220,7 +41804,7 @@ Polling.prototype.uri = function(){
   return schema + '://' + this.hostname + port + this.path + query;
 };
 
-},{"../transport":128,"component-inherit":135,"debug":136,"engine.io-parser":139,"parseqs":149,"xmlhttprequest":134}],133:[function(require,module,exports){
+},{"../transport":133,"component-inherit":140,"debug":141,"engine.io-parser":144,"parseqs":154,"xmlhttprequest":139}],138:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -41451,7 +42035,7 @@ WS.prototype.check = function(){
   return !!WebSocket && !('__initialize' in WebSocket && this.name === WS.prototype.name);
 };
 
-},{"../transport":128,"component-inherit":135,"debug":136,"engine.io-parser":139,"parseqs":149,"ws":151}],134:[function(require,module,exports){
+},{"../transport":133,"component-inherit":140,"debug":141,"engine.io-parser":144,"parseqs":154,"ws":156}],139:[function(require,module,exports){
 // browser shim for xmlhttprequest module
 var hasCORS = require('has-cors');
 
@@ -41489,7 +42073,7 @@ module.exports = function(opts) {
   }
 }
 
-},{"has-cors":146}],135:[function(require,module,exports){
+},{"has-cors":151}],140:[function(require,module,exports){
 
 module.exports = function(a, b){
   var fn = function(){};
@@ -41497,7 +42081,7 @@ module.exports = function(a, b){
   a.prototype = new fn;
   a.prototype.constructor = a;
 };
-},{}],136:[function(require,module,exports){
+},{}],141:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -41646,7 +42230,7 @@ function load() {
 
 exports.enable(load());
 
-},{"./debug":137}],137:[function(require,module,exports){
+},{"./debug":142}],142:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -41845,7 +42429,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":138}],138:[function(require,module,exports){
+},{"ms":143}],143:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -41958,7 +42542,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],139:[function(require,module,exports){
+},{}],144:[function(require,module,exports){
 (function (global){
 /**
  * Module dependencies.
@@ -42528,7 +43112,7 @@ exports.decodePayloadAsBinary = function (data, binaryType, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./keys":140,"after":141,"arraybuffer.slice":142,"base64-arraybuffer":143,"blob":144,"utf8":145}],140:[function(require,module,exports){
+},{"./keys":145,"after":146,"arraybuffer.slice":147,"base64-arraybuffer":148,"blob":149,"utf8":150}],145:[function(require,module,exports){
 
 /**
  * Gets the keys for an object.
@@ -42549,7 +43133,7 @@ module.exports = Object.keys || function keys (obj){
   return arr;
 };
 
-},{}],141:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 module.exports = after
 
 function after(count, callback, err_cb) {
@@ -42579,7 +43163,7 @@ function after(count, callback, err_cb) {
 
 function noop() {}
 
-},{}],142:[function(require,module,exports){
+},{}],147:[function(require,module,exports){
 /**
  * An abstraction for slicing an arraybuffer even when
  * ArrayBuffer.prototype.slice is not supported
@@ -42610,7 +43194,7 @@ module.exports = function(arraybuffer, start, end) {
   return result.buffer;
 };
 
-},{}],143:[function(require,module,exports){
+},{}],148:[function(require,module,exports){
 /*
  * base64-arraybuffer
  * https://github.com/niklasvh/base64-arraybuffer
@@ -42671,7 +43255,7 @@ module.exports = function(arraybuffer, start, end) {
   };
 })("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
 
-},{}],144:[function(require,module,exports){
+},{}],149:[function(require,module,exports){
 (function (global){
 /**
  * Create a blob builder even when vendor prefixes exist
@@ -42724,7 +43308,7 @@ module.exports = (function() {
 })();
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],145:[function(require,module,exports){
+},{}],150:[function(require,module,exports){
 (function (global){
 /*! http://mths.be/utf8js v2.0.0 by @mathias */
 ;(function(root) {
@@ -42967,7 +43551,7 @@ module.exports = (function() {
 }(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],146:[function(require,module,exports){
+},{}],151:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -42992,7 +43576,7 @@ try {
   module.exports = false;
 }
 
-},{"global":147}],147:[function(require,module,exports){
+},{"global":152}],152:[function(require,module,exports){
 
 /**
  * Returns `this`. Execute this without a "context" (i.e. without it being
@@ -43002,7 +43586,7 @@ try {
 
 module.exports = (function () { return this; })();
 
-},{}],148:[function(require,module,exports){
+},{}],153:[function(require,module,exports){
 (function (global){
 /**
  * JSON parse.
@@ -43037,7 +43621,7 @@ module.exports = function parsejson(data) {
   }
 };
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],149:[function(require,module,exports){
+},{}],154:[function(require,module,exports){
 /**
  * Compiles a querystring
  * Returns string representation of the object
@@ -43076,7 +43660,7 @@ exports.decode = function(qs){
   return qry;
 };
 
-},{}],150:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -43117,7 +43701,7 @@ module.exports = function parseuri(str) {
     return uri;
 };
 
-},{}],151:[function(require,module,exports){
+},{}],156:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -43162,7 +43746,7 @@ function ws(uri, protocols, opts) {
 
 if (WebSocket) ws.prototype = WebSocket.prototype;
 
-},{}],152:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 (function (global){
 
 /*
@@ -43224,12 +43808,12 @@ function hasBinary(data) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"isarray":153}],153:[function(require,module,exports){
+},{"isarray":158}],158:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],154:[function(require,module,exports){
+},{}],159:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -43240,7 +43824,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],155:[function(require,module,exports){
+},{}],160:[function(require,module,exports){
 
 /**
  * HOP ref.
@@ -43325,7 +43909,7 @@ exports.length = function(obj){
 exports.isEmpty = function(obj){
   return 0 == exports.length(obj);
 };
-},{}],156:[function(require,module,exports){
+},{}],161:[function(require,module,exports){
 /**
  * Parses an URI
  *
@@ -43352,7 +43936,7 @@ module.exports = function parseuri(str) {
   return uri;
 };
 
-},{}],157:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 (function (global){
 /*global Blob,File*/
 
@@ -43497,7 +44081,7 @@ exports.removeBlobs = function(data, callback) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./is-buffer":159,"isarray":160}],158:[function(require,module,exports){
+},{"./is-buffer":164,"isarray":165}],163:[function(require,module,exports){
 
 /**
  * Module dependencies.
@@ -43895,7 +44479,7 @@ function error(data){
   };
 }
 
-},{"./binary":157,"./is-buffer":159,"component-emitter":123,"debug":124,"isarray":160,"json3":161}],159:[function(require,module,exports){
+},{"./binary":162,"./is-buffer":164,"component-emitter":128,"debug":129,"isarray":165,"json3":166}],164:[function(require,module,exports){
 (function (global){
 
 module.exports = isBuf;
@@ -43912,9 +44496,9 @@ function isBuf(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],160:[function(require,module,exports){
-arguments[4][153][0].apply(exports,arguments)
-},{"dup":153}],161:[function(require,module,exports){
+},{}],165:[function(require,module,exports){
+arguments[4][158][0].apply(exports,arguments)
+},{"dup":158}],166:[function(require,module,exports){
 /*! JSON v3.2.6 | http://bestiejs.github.io/json3 | Copyright 2012-2013, Kit Cambridge | http://kit.mit-license.org */
 ;(function (window) {
   // Convenience aliases.
@@ -44777,7 +45361,7 @@ arguments[4][153][0].apply(exports,arguments)
   }
 }(this));
 
-},{}],162:[function(require,module,exports){
+},{}],167:[function(require,module,exports){
 module.exports = toArray
 
 function toArray(list, index) {
@@ -44792,7 +45376,7 @@ function toArray(list, index) {
     return array
 }
 
-},{}],163:[function(require,module,exports){
+},{}],168:[function(require,module,exports){
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors

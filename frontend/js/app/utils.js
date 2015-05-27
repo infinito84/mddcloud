@@ -201,6 +201,9 @@ module.exports=(function(){
 				result.push(temp);
 			}
 			return result;
+		},
+		fixName : function(text){
+			return text.replace(/ /g, '_');
 		}
 	}
 

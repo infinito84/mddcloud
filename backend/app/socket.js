@@ -14,7 +14,8 @@ module.exports=(function(){
 		'storageRequirements.attributes',
 		'functionalRequirements.diagramActivities.activities',
 		'nonFunctionalRequirements',
-		'useCaseAssociations'
+		'useCaseAssociations',
+		'classAssociations'
 	];
 
 	return function(server,store){

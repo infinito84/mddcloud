@@ -1,0 +1,28 @@
+{{#allow 'ADMIN' 'EDITOR'}}
+<div class="field">
+	<label>{{t 'Name'}}</label>
+	<input class="attribute-name"/>
+</div>
+<div class="field">
+	<label>{{t 'Name'}}</label>
+	<select class="attribute-type">
+		<option value="INT">{{t 'Number'}}</option>
+		<option value="STRING">{{t 'Text'}}</option>
+		<option value="DECIMAL">{{t 'Decimal number'}}</option>
+		<option value="HTML">{{t 'HTML'}}</option>
+		<option value="TIMESTAMP">{{t 'Date and time'}}</option>
+		<option value="POSITION">{{t 'Geospatial position'}}</option>
+		<option value="IMAGE">{{t 'Image'}}</option>
+		<option value="FILE">{{t 'File'}}</option>
+		{{#each enumerations}}
+			<option value="ENUM" data-id="{{_id}}">{{name}}</option>
+		{{/each}}
+	</select>
+</div>
+<div class="field">
+	<label></label>
+	<button class="btn btn-success add-attribute">
+		<i class="fa fa-plus"></i> {{t 'Add'}}
+	</button>
+</div>
+{{/allow}}

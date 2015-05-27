@@ -1,8 +1,9 @@
-var Backbone 			= require('backbone'),
-	$					= require('jquery'),
-	app 				= require('../../app/namespace'),
-	plugins				= require('../../app/plugins'),
-	UseCaseAssociation 	= require('../../models/useCaseAssociation');
+var Backbone 						= require('backbone'),
+	$								= require('jquery'),
+	app 							= require('../../app/namespace'),
+	plugins							= require('../../app/plugins'),
+	UseCaseAssociation 				= require('../../models/useCaseAssociation'),
+	FunctionalRequirementEditView 	= require('../functionalRequirementEdit');
 
 module.exports = Backbone.View.extend({
 	initialize : function(options){
@@ -32,10 +33,12 @@ module.exports = Backbone.View.extend({
 		this.ellipse = svg.ellipse(0, 0, 100, 40);
 		this.label = this.svg.text(0, 0, '');
 		this.updateName();
-		this.linkActor = svg.image('/img/diagrams/add_link_actor.png',-10,-65,20,20);
+		this.linkActor = svg.image('/img/diagrams/add_link_actor.png',-20,-65,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png', 0,-65,20,20);
 		this.useCase = svg.group(
-			svg.rect(-15,-45,30,10), //for hold hover event
+			svg.rect(-25,-45,50,10), //for hold hover event
 			this.linkActor,
+			this.edit,
 			this.ellipse, 
 			this.label
 		);
@@ -91,6 +94,12 @@ module.exports = Backbone.View.extend({
 			}).prependTo(that.svg);
 			app.selectingActor = true;
 			app.selectedUseCase = that.model;
+		});
+
+		this.edit.click(function(){
+			new FunctionalRequirementEditView({
+				model : that.model
+			});
 		});
 	},
 	moveDrag : function(dx, dy, x, y, event){		

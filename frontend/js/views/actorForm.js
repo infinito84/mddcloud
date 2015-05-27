@@ -45,9 +45,8 @@ module.exports=  Backbone.View.extend({
 			multimedias		: multimedias || [],
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
-		},
-		{
-			success : function(){
+		},{
+			successfully : function(){
 				app.collections.actors.add(actor);	
 			}
 		});

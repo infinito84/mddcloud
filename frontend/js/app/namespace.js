@@ -10,6 +10,7 @@ var Model = {
 	Enumeration					: require('../models/enumeration'),
 	Participant 				: require('../models/participant'),
 	DiagramActivity 			: require('../models/diagramActivity'),
+	ClassAssociation 			: require('../models/classAssociation'),
 	StorageRequirement 			: require('../models/storageRequirement'),
 	UseCaseAssociation 			: require('../models/useCaseAssociation'),
 	FunctionalRequirement		: require('../models/functionalRequirement'),
@@ -27,6 +28,7 @@ var	Collection = {
 	Enumeration	 				: require('../collections/enumerations'),
 	Participant 				: require('../collections/participants'),
 	DiagramActivity 			: require('../collections/diagramActivities'),
+	ClassAssociation 			: require('../collections/classAssociations'),
 	StorageRequirement 			: require('../collections/storageRequirements'),
 	UseCaseAssociation			: require('../collections/useCaseAssociations'),
 	FunctionalRequirement		: require('../collections/functionalRequirements'),
@@ -84,15 +86,27 @@ var app = module.exports = {
 		data.nonFunctionalRequirements.forEach(function(elem,i){
 			app.collections.nonFunctionalRequirements.add(new Model.NonFunctionalRequirement(elem));
 		});
-		//Load storage requirements
+		//Load storage requirements and attributes
 		app.collections.storageRequirements = new Collection.StorageRequirement();
+		app.collections.attributes = new Collection.Attribute();
 		data.storageRequirements.forEach(function(elem,i){
+			var attributes = elem.attributes || [];
+			elem.attributes = attributes.map(function(attribute){
+				app.collections.attributes.add(new Model.Attribute(attribute));	
+				return attribute._id;
+			});
 			app.collections.storageRequirements.add(new Model.StorageRequirement(elem));
+			
 		});
 		//Load use case associations
 		app.collections.useCaseAssociations = new Collection.UseCaseAssociation();
 		data.useCaseAssociations.forEach(function(elem,i){
 			app.collections.useCaseAssociations.add(new Model.UseCaseAssociation(elem));
+		});
+		//Load class associations
+		app.collections.classAssociations = new Collection.ClassAssociation();
+		data.classAssociations.forEach(function(elem,i){
+			app.collections.classAssociations.add(new Model.ClassAssociation(elem));
 		});
 		next();
 	},

@@ -2,7 +2,8 @@ var Backbone 			= require('backbone'),
 	$ 					= require('jquery'),
 	plugins 			= require('../../app/plugins'),
 	app 				= require('../../app/namespace'),
-	UseCaseAssociation 	= require('../../models/useCaseAssociation');
+	UseCaseAssociation 	= require('../../models/useCaseAssociation'),
+	ActorEditView		= require('../actorEdit');
 
 module.exports = Backbone.View.extend({
 	initialize : function(options){
@@ -30,11 +31,14 @@ module.exports = Backbone.View.extend({
 			svg.line(10,40,20,50)
 		);
 		this.label = svg.text(10, 65, this.model.get('name'));
-		this.linkUseCase = svg.image('/img/diagrams/add_link_use_case.png',0,-25,20,20);
+		this.linkUseCase = svg.image('/img/diagrams/add_link_use_case.png',-10,-25,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png',10,-25,20,20);
 
 		this.actor = svg.group(
+			svg.rect(-10,-5,40,5),
 			svg.rect(-5,-5,30,65), //for drag event
 			this.linkUseCase,
+			this.edit,
 			this.group, 
 			this.label
 		).addClass('actor-svg');		
@@ -77,6 +81,12 @@ module.exports = Backbone.View.extend({
 				delete app.useCaseAssociation;
 				$('.useCase-view').removeClass('select-actor');
 			}
+		});
+
+		this.edit.click(function(){
+			new ActorEditView({
+				model : that.model
+			});
 		});
 		
 		this.linkUseCase.click(function(){

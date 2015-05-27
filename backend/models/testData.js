@@ -7,7 +7,7 @@ var Participant = require('./participant'),
 var user1;
 var project1;
 var participant1;
-var test = false;
+var test = true;
 
 if(test){
 	async.series({

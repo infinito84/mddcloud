@@ -41,7 +41,7 @@ module.exports = Backbone.View.extend({
 	render : function(){
 		var svg = this.svg;
 		this.association = svg.line(0,0,0,0);
-		this.text = svg.text(0,0,app.utils.t('Click for deleting'));
+		this.text = svg.text(0,0,app.utils.t('Click to delete'));
 		this.group = this.svg
 			.group(this.association,this.text)
 			.addClass("use-case-association")
