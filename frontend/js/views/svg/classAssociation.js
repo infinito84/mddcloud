@@ -70,7 +70,7 @@ module.exports = Backbone.View.extend({
 					y : y1 + h1 + 10
 				});
 				this.t2.attr({
-					x : mx2 + 13,
+					x : mx2 + 11,
 					y : y2 - 3
 				});
 			}
@@ -80,7 +80,7 @@ module.exports = Backbone.View.extend({
 					y : y1 - 3
 				});
 				this.t2.attr({
-					x : mx2 + 13,
+					x : mx2 + 11,
 					y : y2 + h2 + 10
 				});
 			}
@@ -102,6 +102,26 @@ module.exports = Backbone.View.extend({
 				x : (mx1 + mx2)/2,
 				y : my2 - 10 
 			});
+			if(mx1 < mx2){
+				this.t1.attr({
+					x : x1 + w1 + 5,
+					y : my2 + 11
+				});
+				this.t2.attr({
+					x : x2 -11,
+					y : my2 + 11
+				});
+			}
+			else{
+				this.t1.attr({
+					x : x1 - 7,
+					y : my2 + 11
+				});
+				this.t2.attr({
+					x : x2 + w2 + 11,
+					y : my2 + 11
+				});
+			}
 		}
 		else if(my1 < my2){
 			this.association1.attr({
@@ -120,6 +140,22 @@ module.exports = Backbone.View.extend({
 				x : mx2,
 				y : my1 - 10
 			});
+			this.t2.attr({
+				x : mx2 + 11,
+				y : y2 - 3
+			});
+			if(mx1 < mx2){
+				this.t1.attr({
+					x : x1 + w1 + 5,
+					y : my1 - 5
+				});
+			}
+			else{
+				this.t1.attr({
+					x : x1 - 7,
+					y : my1 - 5
+				});
+			}
 		}
 		else{
 			this.association1.attr({
@@ -138,6 +174,22 @@ module.exports = Backbone.View.extend({
 				x : mx1,
 				y : my2 - 10
 			});
+			this.t1.attr({
+				x : mx1 + 5,
+				y : y1 - 5
+			});
+			if(mx1 < mx2){
+				this.t2.attr({
+					x : x2 -11,
+					y : my2 + 11
+				});
+			}
+			else{
+				this.t2.attr({
+					x : x2 + w2 + 11,
+					y : my2 + 11
+				});
+			}
 		}
 	},
 	render : function(){

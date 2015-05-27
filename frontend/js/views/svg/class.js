@@ -78,7 +78,7 @@ module.exports = Backbone.View.extend({
 		});
 
 		this.attributes.attr({
-			text : this.model.get('attributes').map(function(id){
+			text : (this.model.get('attributes') || []).map(function(id){
 				var attribute = app.collections.attributes.get(id);
 				var type = attribute.get('type');
 				if(type === 'ENUM'){
@@ -118,7 +118,7 @@ module.exports = Backbone.View.extend({
 		});
 
 		var width = Math.max(this.label.getBBox().w,this.attributes.getBBox().w) + 10;
-		var height = Math.max(this.model.get('attributes').length * 12 + 10,40);
+		var height = Math.max((this.model.get('attributes') || []).length * 12 + 10,40);
 		this.rect1.attr({width : width});
 		this.rect2.attr({width : width, height : height});
 		return {w : width,h : height + 20};
@@ -148,6 +148,21 @@ module.exports = Backbone.View.extend({
 				strokeWidth : 2
 			}).prependTo(that.svg);
 			app.typeSelection = 'ONE_TO_ONE';
+			app.selectingClass = true;
+			app.selectedClass = that.model;
+			app.selectedSize = that.rects.getBBox();
+			that.class.addClass('no-select');
+		});
+
+		this.r1n.click(function(){
+			$('.classDiagram-view').addClass("select-class");
+			var x = that.model.get('x');
+			var y = that.model.get('y');
+			app.classAssociation = that.svg.line(x,y,x,y).attr({
+				stroke 		: 'green',
+				strokeWidth : 2
+			}).prependTo(that.svg);
+			app.typeSelection = 'ONE_TO_MANY';
 			app.selectingClass = true;
 			app.selectedClass = that.model;
 			app.selectedSize = that.rects.getBBox();

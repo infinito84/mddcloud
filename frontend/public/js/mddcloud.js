@@ -20070,7 +20070,11 @@ module.exports = Backbone.View.extend({
 		'click #view-enumerations' : 'viewEnumerations'
 	},
 	initialize : function(){
-		
+		this.listenTo(app.collections.classAssociations, 'add', this.addAssociation, this);
+		this.listenTo(app.collections.classAssociations, 'remove', this.removeView, this);
+		this.listenTo(app.collections.storageRequirements, 'add', this.addClass, this);
+		this.listenTo(app.collections.enumerations, 'add', this.addEnumeration, this);
+		this.listenTo(app.collections.enumerations, 'remove', this.removeView, this);
 	},
 	render : function(){
 		$('.menu li').removeClass('active');
@@ -20099,6 +20103,13 @@ module.exports = Backbone.View.extend({
 			model 	: classAssociation
 		}).render();
 		this.attachedViews.push(associationView);
+	},
+	removeView : function(model){
+		this.attachedViews.forEach(function(view){
+			if(view.model.id === model.id){
+				view.destroyModel(model);
+			}
+		});
 	},
 	addClass : function(storageRequirement){
 		var classView = new classSVG({
@@ -20352,15 +20363,19 @@ module.exports=  Backbone.View.extend({
 		app.utils.listeningCollection(this);
 	},
 	clickButton : function(){
+		var that = this;
 		var name = this.$el.find("input.add-enumeration").val();
 		if(name){
 			this.$el.find("input.add-enumeration").val("");
-			var enumeration = new EnumerationModel({
+			var enumeration = new EnumerationModel();
+			enumeration.save({
 				name   : name,
 				values : []
+			},{
+				successfully : function(enumeration){
+					that.collection.add(enumeration);
+				}
 			});
-			enumeration.save();
-			this.collection.add(enumeration);
 		}
 		else{
 			alert(app.utils.t("You must write a name"));
@@ -21337,15 +21352,18 @@ module.exports = Backbone.View.extend({
 			$.notify(app.utils.t('You must write a name')+'!','error');
 			return;
 		}
-		var storageRequirement = new StorageRequirementModel({
+		var storageRequirement = new StorageRequirementModel();
+		storageRequirement.save({
 			name 			: name,
 			description 	: description,
 			multimedias		: multimedias || [],
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
+		},{
+			successfully : function(storageRequirement){
+				app.collections.storageRequirements.add(storageRequirement);
+			}
 		});
-		storageRequirement.save();
-		app.collections.storageRequirements.add(storageRequirement);
 		modal.close();
 		this.remove();
 	}
@@ -21564,7 +21582,7 @@ module.exports = Backbone.View.extend({
 		});
 
 		this.attributes.attr({
-			text : this.model.get('attributes').map(function(id){
+			text : (this.model.get('attributes') || []).map(function(id){
 				var attribute = app.collections.attributes.get(id);
 				var type = attribute.get('type');
 				if(type === 'ENUM'){
@@ -21604,7 +21622,7 @@ module.exports = Backbone.View.extend({
 		});
 
 		var width = Math.max(this.label.getBBox().w,this.attributes.getBBox().w) + 10;
-		var height = Math.max(this.model.get('attributes').length * 12 + 10,40);
+		var height = Math.max((this.model.get('attributes') || []).length * 12 + 10,40);
 		this.rect1.attr({width : width});
 		this.rect2.attr({width : width, height : height});
 		return {w : width,h : height + 20};
@@ -21634,6 +21652,21 @@ module.exports = Backbone.View.extend({
 				strokeWidth : 2
 			}).prependTo(that.svg);
 			app.typeSelection = 'ONE_TO_ONE';
+			app.selectingClass = true;
+			app.selectedClass = that.model;
+			app.selectedSize = that.rects.getBBox();
+			that.class.addClass('no-select');
+		});
+
+		this.r1n.click(function(){
+			$('.classDiagram-view').addClass("select-class");
+			var x = that.model.get('x');
+			var y = that.model.get('y');
+			app.classAssociation = that.svg.line(x,y,x,y).attr({
+				stroke 		: 'green',
+				strokeWidth : 2
+			}).prependTo(that.svg);
+			app.typeSelection = 'ONE_TO_MANY';
 			app.selectingClass = true;
 			app.selectedClass = that.model;
 			app.selectedSize = that.rects.getBBox();
@@ -21782,7 +21815,7 @@ module.exports = Backbone.View.extend({
 					y : y1 + h1 + 10
 				});
 				this.t2.attr({
-					x : mx2 + 13,
+					x : mx2 + 11,
 					y : y2 - 3
 				});
 			}
@@ -21792,7 +21825,7 @@ module.exports = Backbone.View.extend({
 					y : y1 - 3
 				});
 				this.t2.attr({
-					x : mx2 + 13,
+					x : mx2 + 11,
 					y : y2 + h2 + 10
 				});
 			}
@@ -21814,6 +21847,26 @@ module.exports = Backbone.View.extend({
 				x : (mx1 + mx2)/2,
 				y : my2 - 10 
 			});
+			if(mx1 < mx2){
+				this.t1.attr({
+					x : x1 + w1 + 5,
+					y : my2 + 11
+				});
+				this.t2.attr({
+					x : x2 -11,
+					y : my2 + 11
+				});
+			}
+			else{
+				this.t1.attr({
+					x : x1 - 7,
+					y : my2 + 11
+				});
+				this.t2.attr({
+					x : x2 + w2 + 11,
+					y : my2 + 11
+				});
+			}
 		}
 		else if(my1 < my2){
 			this.association1.attr({
@@ -21832,6 +21885,22 @@ module.exports = Backbone.View.extend({
 				x : mx2,
 				y : my1 - 10
 			});
+			this.t2.attr({
+				x : mx2 + 11,
+				y : y2 - 3
+			});
+			if(mx1 < mx2){
+				this.t1.attr({
+					x : x1 + w1 + 5,
+					y : my1 - 5
+				});
+			}
+			else{
+				this.t1.attr({
+					x : x1 - 7,
+					y : my1 - 5
+				});
+			}
 		}
 		else{
 			this.association1.attr({
@@ -21850,6 +21919,22 @@ module.exports = Backbone.View.extend({
 				x : mx1,
 				y : my2 - 10
 			});
+			this.t1.attr({
+				x : mx1 + 5,
+				y : y1 - 5
+			});
+			if(mx1 < mx2){
+				this.t2.attr({
+					x : x2 -11,
+					y : my2 + 11
+				});
+			}
+			else{
+				this.t2.attr({
+					x : x2 + w2 + 11,
+					y : my2 + 11
+				});
+			}
 		}
 	},
 	render : function(){
@@ -21892,7 +21977,8 @@ module.exports = Backbone.View.extend({
 },{"../../app/namespace":4,"../../app/plugins":5,"backbone":107,"jquery":119}],102:[function(require,module,exports){
 var Backbone 	= require('backbone'),
 	$			= require('jquery'),
-	plugins		= require('../../app/plugins');
+	plugins		= require('../../app/plugins'),
+	app			= require('../../app/namespace');
 
 module.exports = Backbone.View.extend({
 	initialize : function(options){
@@ -21914,13 +22000,15 @@ module.exports = Backbone.View.extend({
 		this.enumeration = svg.group();
 		this.enumeration.addClass('enumeration-svg');
 
-		var label = svg.text(5, 21, this.model.get('name'));
+		var label = svg.text(5, 17, app.utils.fixName(this.model.get('name')))
+					.addClass('main');
+					
 		this.enumeration.add(label);
 
 		var ytemp = label.getBBox().w;
 		var ltemp = label;
 		
-		var y = 30;
+		var y = 20;
 
 		values.forEach(function(value){
 			label = svg.text(5, y + 17, value);
@@ -21930,9 +22018,9 @@ module.exports = Backbone.View.extend({
 		max = this.enumeration.getBBox().w;
 		ltemp.attr({x : (max-ytemp)/2 + 5});
 
-		this.enumeration.prepend(svg.rect(0,0, max + 10, 32));
+		this.enumeration.prepend(svg.rect(0,0, max + 10, 22));
 		
-		y = 30;
+		y = 20;
 		if(values.length){
 			values.forEach(function(){
 				that.enumeration.prepend(svg.rect(0,y, max + 10, 22));
@@ -21975,9 +22063,13 @@ module.exports = Backbone.View.extend({
 			x : this.nx,
 			y : this.ny
 		}).save();
+	},
+	destroyModel : function(){
+		this.enumeration.remove();
+		this.remove();
 	}
 });
-},{"../../app/plugins":5,"backbone":107,"jquery":119}],103:[function(require,module,exports){
+},{"../../app/namespace":4,"../../app/plugins":5,"backbone":107,"jquery":119}],103:[function(require,module,exports){
 var Backbone 						= require('backbone'),
 	$								= require('jquery'),
 	app 							= require('../../app/namespace'),

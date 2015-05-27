@@ -38,15 +38,18 @@ module.exports = Backbone.View.extend({
 			$.notify(app.utils.t('You must write a name')+'!','error');
 			return;
 		}
-		var storageRequirement = new StorageRequirementModel({
+		var storageRequirement = new StorageRequirementModel();
+		storageRequirement.save({
 			name 			: name,
 			description 	: description,
 			multimedias		: multimedias || [],
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
+		},{
+			successfully : function(storageRequirement){
+				app.collections.storageRequirements.add(storageRequirement);
+			}
 		});
-		storageRequirement.save();
-		app.collections.storageRequirements.add(storageRequirement);
 		modal.close();
 		this.remove();
 	}

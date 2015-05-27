@@ -16,7 +16,11 @@ module.exports = Backbone.View.extend({
 		'click #view-enumerations' : 'viewEnumerations'
 	},
 	initialize : function(){
-		
+		this.listenTo(app.collections.classAssociations, 'add', this.addAssociation, this);
+		this.listenTo(app.collections.classAssociations, 'remove', this.removeView, this);
+		this.listenTo(app.collections.storageRequirements, 'add', this.addClass, this);
+		this.listenTo(app.collections.enumerations, 'add', this.addEnumeration, this);
+		this.listenTo(app.collections.enumerations, 'remove', this.removeView, this);
 	},
 	render : function(){
 		$('.menu li').removeClass('active');
@@ -45,6 +49,13 @@ module.exports = Backbone.View.extend({
 			model 	: classAssociation
 		}).render();
 		this.attachedViews.push(associationView);
+	},
+	removeView : function(model){
+		this.attachedViews.forEach(function(view){
+			if(view.model.id === model.id){
+				view.destroyModel(model);
+			}
+		});
 	},
 	addClass : function(storageRequirement){
 		var classView = new classSVG({

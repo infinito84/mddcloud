@@ -1,6 +1,7 @@
 var Backbone 	= require('backbone'),
 	$			= require('jquery'),
-	plugins		= require('../../app/plugins');
+	plugins		= require('../../app/plugins'),
+	app			= require('../../app/namespace');
 
 module.exports = Backbone.View.extend({
 	initialize : function(options){
@@ -22,13 +23,15 @@ module.exports = Backbone.View.extend({
 		this.enumeration = svg.group();
 		this.enumeration.addClass('enumeration-svg');
 
-		var label = svg.text(5, 21, this.model.get('name'));
+		var label = svg.text(5, 17, app.utils.fixName(this.model.get('name')))
+					.addClass('main');
+					
 		this.enumeration.add(label);
 
 		var ytemp = label.getBBox().w;
 		var ltemp = label;
 		
-		var y = 30;
+		var y = 20;
 
 		values.forEach(function(value){
 			label = svg.text(5, y + 17, value);
@@ -38,9 +41,9 @@ module.exports = Backbone.View.extend({
 		max = this.enumeration.getBBox().w;
 		ltemp.attr({x : (max-ytemp)/2 + 5});
 
-		this.enumeration.prepend(svg.rect(0,0, max + 10, 32));
+		this.enumeration.prepend(svg.rect(0,0, max + 10, 22));
 		
-		y = 30;
+		y = 20;
 		if(values.length){
 			values.forEach(function(){
 				that.enumeration.prepend(svg.rect(0,y, max + 10, 22));
@@ -83,5 +86,9 @@ module.exports = Backbone.View.extend({
 			x : this.nx,
 			y : this.ny
 		}).save();
+	},
+	destroyModel : function(){
+		this.enumeration.remove();
+		this.remove();
 	}
 });

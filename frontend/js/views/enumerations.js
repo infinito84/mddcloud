@@ -28,15 +28,19 @@ module.exports=  Backbone.View.extend({
 		app.utils.listeningCollection(this);
 	},
 	clickButton : function(){
+		var that = this;
 		var name = this.$el.find("input.add-enumeration").val();
 		if(name){
 			this.$el.find("input.add-enumeration").val("");
-			var enumeration = new EnumerationModel({
+			var enumeration = new EnumerationModel();
+			enumeration.save({
 				name   : name,
 				values : []
+			},{
+				successfully : function(enumeration){
+					that.collection.add(enumeration);
+				}
 			});
-			enumeration.save();
-			this.collection.add(enumeration);
 		}
 		else{
 			alert(app.utils.t("You must write a name"));
