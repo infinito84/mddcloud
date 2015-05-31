@@ -6,7 +6,7 @@ var mongoose = require('mongoose'),
 module.exports=(function(){
 	var projectSchema=new Schema({
 		name 			: {type : String, trim : true},
-		description		: String,
+		description		: {type : String, default : ''},
 		creationDate 	: {type : Date, default : Date.now},
 		template		: {type : String, uppercase : true, default : 'UNITED'},
 

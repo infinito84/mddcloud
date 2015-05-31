@@ -81,5 +81,10 @@ module.exports = Backbone.View.extend({
 			collection 	: app.collections.nonFunctionalRequirements,
 			extra 		: {type : 'nonFunctionalRequirement'}
 		});
+		new DropDown({
+			$el 		: $("#dropdown-diagramActivities"),
+			collection 	: app.collections.functionalRequirements,
+			extra 		: {type : 'activityDiagram'}
+		});
 	}
 });

@@ -7,7 +7,7 @@ module.exports=(function(){
 		type		: {type : String, enum : [
 						'INT','HTML','FILE','ENUM',
 						'IMAGE','STRING','DECIMAL',
-						'POSITION','TIMESTAMP'
+						'POSITION','TIMESTAMP', 'PASSWORD'
 					]},
 		enumeration	: {type : Schema.ObjectId, ref : 'Attribute', default:null}
 	});

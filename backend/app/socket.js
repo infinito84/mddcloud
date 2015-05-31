@@ -12,7 +12,7 @@ module.exports=(function(){
 		'multimedias',
 		'objectives',
 		'storageRequirements.attributes',
-		'functionalRequirements.diagramActivities.activities',
+		'functionalRequirements.actions',
 		'nonFunctionalRequirements',
 		'useCaseAssociations',
 		'classAssociations'

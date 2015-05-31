@@ -31,12 +31,12 @@ module.exports = Backbone.View.extend({
 			svg.line(10,40,20,50)
 		);
 		this.label = svg.text(10, 65, this.model.get('name'));
-		this.linkUseCase = svg.image('/img/diagrams/add_link_use_case.png',-10,-25,20,20);
-		this.edit = svg.image('/img/diagrams/edit.png',10,-25,20,20);
+		this.linkUseCase = svg.image('/img/diagrams/add_link_use_case.png',-12,-25,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png',12,-25,20,20);
 
 		this.actor = svg.group(
-			svg.rect(-10,-5,40,5),
-			svg.rect(-5,-5,30,65), //for drag event
+			svg.rect(-12,-30,44,30).addClass('transparent'),
+			svg.rect(-5,-5,30,65).addClass('transparent'),
 			this.linkUseCase,
 			this.edit,
 			this.group, 
@@ -44,9 +44,9 @@ module.exports = Backbone.View.extend({
 		).addClass('actor-svg');		
 		
 		var svgWidth = $("#container").width() - 30;
-		var svgHeight = $("#container").height() - 65;
+		var svgHeight = $("#container").height() - 100;
 		var x = this.model.get('x') || Math.random() * svgWidth + 20;
-		var y = this.model.get('y') || Math.random() * svgHeight;
+		var y = this.model.get('y') || (Math.random() * svgHeight + 50);
 		this.actor.transform(['T',x,',',y].join(''));
 
 		this.addEvents();
@@ -124,8 +124,8 @@ module.exports = Backbone.View.extend({
 			actor : this.model.id
 		}).forEach(function(association){
 			association.set({
-				x1 : that.nx,
-				y1 : that.ny
+				x1 : that.nx + 10,
+				y1 : that.ny + 10
 			});
 		});
 	}

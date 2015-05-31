@@ -1,6 +1,6 @@
 var Backbone	=	require('backbone');
 
 module.exports=Backbone.Model.extend({
-	model 		: 'DiagramActivity',
+	model 		: 'Action',
 	idAttribute : '_id'
 });

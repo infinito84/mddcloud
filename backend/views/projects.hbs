@@ -1,0 +1,64 @@
+<div class="bs-example projects-table" data-example-id="simple-table">
+	{{#if participants}}
+	<table class="table">
+		<caption>{{t 'Projects where you are participating'}}</caption>
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>{{t 'Project'}}</th>
+				<th>{{t 'Role'}}</th>
+				<th>{{t 'Status'}}</th>
+				<th>{{t 'Since'}}</th>
+				<th>{{t 'Actions'}}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each participants}}
+			<tr>
+				<th scope="row">{{@index}}</th>
+				<td>{{project.name}}</td>
+				<td>{{role}}</td>
+				<td>{{status}}</td>
+				<td>{{date creationDate}}</td>
+				<td>
+					<a href="/mddcloud/{{project._id}}#project" target="_blank">{{t 'View'}}</a>
+				</td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+	{{else}}
+	<div class="alert alert-warning" role="alert">
+		<strong>{{t 'You haven\'t created projects yet'}}</strong>
+	</div>
+	{{/if}}
+</div>
+
+<div class="well login-form">
+	<form class="bs-example form-horizontal" action="/project/create" method="post">
+		<fieldset>
+			{{#if participants}}
+			<legend>{{t 'Create a project'}}</legend>
+			{{else}}
+			<legend>{{t 'Create your first project'}}</legend>
+			{{/if}}
+			<div class="form-group">
+				<label for="cedula" class="col-lg-5 control-label">
+					{{t 'E-mail'}}
+				</label>
+				<div class="col-lg-4">
+					<input type="text" class="form-control" name="name" placeholder="{{t 'My project'}}" required="required">
+				</div>
+			</div>
+		</fieldset>
+		<fieldset>
+			<br> <br> 
+			<label class="col-lg-4 control-label"></label>
+			<div>
+			 	<button type="submit" class="btn btn-primary">
+			 		{{t 'Create'}}
+			 	</button>
+			</div>
+		</fieldset>
+	</form>
+</div>

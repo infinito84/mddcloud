@@ -6,6 +6,7 @@ module.exports=(function(){
 		name 			: {type : String, trim : true},
 		description 	: String,
 		creationDate 	: {type : Date, default : Date.now},
+		special			: {type : String, default : null, enum : [null, 'USER', 'ROLE']},
 		x				: Number,
 		y				: Number,
 		width			: Number,
@@ -16,7 +17,7 @@ module.exports=(function(){
 		attributes 		: [{  //Class Attributes
 			type : Schema.ObjectId, 
 			ref  : 'Attribute'
-		}]
+		}],
 	});
 
 	var StorageRequirement = mongoose.model('StorageRequirement',storageRequirementSchema);

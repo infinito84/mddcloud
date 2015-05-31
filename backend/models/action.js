@@ -9,8 +9,13 @@ module.exports=(function(){
 								type : String, 
 								enum : ['GENERAL','SPECIFIC','SESSION','NO APPLY'], 
 								default: 'NO APPLY'
-							  }
+							  },
+		x 					: Number,
+		y 					: Number,
+		width 				: Number,
+		height 				: Number,
+		parentAction 		: {type : Schema.ObjectId, ref : 'Action'},
 	});
 
-	return mongoose.model('Activity',activitySchema);
+	return mongoose.model('Action',activitySchema);
 })();

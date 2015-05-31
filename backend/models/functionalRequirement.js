@@ -13,9 +13,9 @@ module.exports=(function(){
 		multimedias		: [{type : Schema.ObjectId, ref : 'Multimedia'}],
 		authors 		: [{type : Schema.ObjectId, ref : 'User'}],
 		sources			: [{type : Schema.ObjectId, ref : 'User'}],
-		diagramActivities : [{
+		actions 		: [{
 			type : Schema.ObjectId,
-			ref  : 'DiagramActivity'
+			ref  : 'Action'
 		}]
 	});
 

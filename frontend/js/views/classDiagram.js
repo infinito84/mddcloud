@@ -30,8 +30,10 @@ module.exports = Backbone.View.extend({
 		return this;
 	},	
 	svg : function() {
-		this.svg = plugins.Snap("svg");
 		var that = this;
+
+		this.svg = plugins.Snap("svg");
+		
 		app.collections.classAssociations.forEach(function(classAssociation){
 			that.addAssociation.apply(that, [classAssociation]);
 		});
@@ -41,6 +43,7 @@ module.exports = Backbone.View.extend({
 		app.collections.enumerations.forEach(function(enumeration){
 			that.addEnumeration.apply(that, [enumeration]);
 		});
+
 		this.addEvents();
 	},
 	addAssociation : function(classAssociation){
@@ -151,5 +154,22 @@ module.exports = Backbone.View.extend({
 				}
 			}
 		});
+
+		document.onkeydown = function (e) {
+			switch(e.keyCode) {
+				case 37: // left
+					that.svg0.panTo('-10');
+					break;
+				case 38: // up
+					that.svg0.panTo('+0', '-10');
+					break;
+				case 39: // right
+					that.svg0.panTo('+10');
+					break;
+				case 40: // down
+					that.svg0.panTo('+0', '+10');
+					break;
+			}
+		}
 	}
 });

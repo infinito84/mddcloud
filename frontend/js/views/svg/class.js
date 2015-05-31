@@ -16,11 +16,15 @@ module.exports = Backbone.View.extend({
 	},
 	updateName : function(){
 		this.label.attr({
-			text : app.utils.fixName(this.model.get('name'))
+			text : app.utils.fixName(this.model.get('name'), true)
 		});
 	},
 	updatePosition : function(){
-		this.class.transform(['T',this.model.get('x'),',',this.model.get('y')].join(''));
+		this.nx = this.model.get('x');
+		this.ny = this.model.get('y');
+		this.class.transform(['T',this.nx,',',this.ny].join(''));
+		//this.class.animate({transform : ['T',this.nx,',',this.ny].join('')},300);
+		this.notifyAssociations();
 	},
 	render : function(){
 		var svg = this.svg;
@@ -34,14 +38,14 @@ module.exports = Backbone.View.extend({
 		this.rects.addClass('boxes');
 		
 		this.addAttribute = svg.image('/img/diagrams/add_attribute.png',0,-25,20,20);
-		this.r11 = svg.image('/img/diagrams/r11.png',20,-25,20,20);
-		this.r1n = svg.image('/img/diagrams/r1n.png',40,-25,20,20);
-		this.edit = svg.image('/img/diagrams/edit.png',60,-25,20,20);
+		this.r11 = svg.image('/img/diagrams/r11.png',24,-25,20,20);
+		this.r1n = svg.image('/img/diagrams/r1n.png',48,-25,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png',72,-25,20,20);
 
 		this.attributes = svg.text(0, 35, '');
 
 		this.class = svg.group(
-			svg.rect(0,-5,80,5).addClass('transparent'),
+			svg.rect(0,-30,92,30).addClass('transparent'),
 			this.addAttribute,
 			this.r11,
 			this.r1n,
@@ -55,9 +59,9 @@ module.exports = Backbone.View.extend({
 		var size = this.setTexts();
 
 		var svgWidth = $("#container").width() - 30;
-		var svgHeight = $("#container").height() - 65;
+		var svgHeight = $("#container").height() - 100;
 		var x = this.model.get('x') || Math.random() * svgWidth + 20;
-		var y = this.model.get('y') || Math.random() * svgHeight;
+		var y = this.model.get('y') || (Math.random() * svgHeight + 50);
 		this.class.transform(['T',x,',',y].join(''));
 
 		this.model.set({
@@ -74,17 +78,17 @@ module.exports = Backbone.View.extend({
 		var that = this;
 
 		this.label.attr({
-			text : app.utils.fixName(this.model.get('name'))
+			text : app.utils.fixName(this.model.get('name'),true)
 		});
 
 		this.attributes.attr({
 			text : (this.model.get('attributes') || []).map(function(id){
 				var attribute = app.collections.attributes.get(id);
-				var type = attribute.get('type');
-				if(type === 'ENUM'){
+				var type = app.utils.fixName(attribute.get('type'), true);
+				if(type === 'Enum'){
 					var enumeration = app.collections.enumerations.get(attribute.get('enumeration'));
 					if(enumeration){
-						type = app.utils.fixName(enumeration.get('name'));
+						type = app.utils.fixName(enumeration.get('name'), true);
 					}
 				}
 				return app.utils.fixName(attribute.get('name')) +' : '+ type;
@@ -99,11 +103,23 @@ module.exports = Backbone.View.extend({
 					dy : index === 0 ? 0 : 12
 				});
 				if(attribute){
-					attribute = app.collections.attributes.get(attribute);
+					attribute = app.collections.attributes.get(attribute);								
 					element.click(function(){
 						if(app.selectingClass){
 							return;
 						}
+						if(that.model.get('special') === 'USER'){
+							if(attribute.get('name') === 'username' || attribute.get('name') === 'password'){
+								$.notify(app.utils.t('This attribute is obligatory'),'error');
+								return;
+							}
+						}
+						if(that.model.get('special') === 'ROLE'){
+							if(attribute.get('name') === 'name'){
+								$.notify(app.utils.t('This attribute is obligatory'),'error');
+								return;
+							}
+						}		
 						attribute.destroy();
 						var attributes = that.model.get('attributes').slice(0);
 						var pos = attributes.indexOf(attribute.id);
@@ -172,16 +188,28 @@ module.exports = Backbone.View.extend({
 		this.class.click(function(){
 			if(app.selectingClass){
 				if(that.model.id !== app.selectedClass.id){
-					var classAssociation = new ClassAssociationModel();
-					classAssociation.save({
+					var control = app.collections.classAssociations.findWhere({
+						classA : that.model.id,
+						classB : app.selectedClass.id
+					}) || app.collections.classAssociations.findWhere({
 						classA : app.selectedClass.id,
-						classB : that.model.id,
-						type   : app.typeSelection
-					},{
-						successfully : function(model){
-							app.collections.classAssociations.add(model);
-						}
+						classB : that.model.id
 					});
+					if(control){
+						$.notify(app.utils.t('This classes already are connected. Multiple associations are not supported for now.'),'error');
+					}
+					else{
+						var classAssociation = new ClassAssociationModel();
+						classAssociation.save({
+							classA : app.selectedClass.id,
+							classB : that.model.id,
+							type   : app.typeSelection
+						},{
+							successfully : function(model){
+								app.collections.classAssociations.add(model);
+							}
+						});						
+					}
 					app.classAssociation.remove();
 					if(app.classAssociation2){
 						app.classAssociation2.remove();

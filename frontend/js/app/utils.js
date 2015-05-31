@@ -202,8 +202,36 @@ module.exports=(function(){
 			}
 			return result;
 		},
-		fixName : function(text){
-			return text.replace(/ /g, '_');
+		fixName : function(text, first){
+			var from = "ÃÀÁÄÂÈÉËÊÌÍÏÎÒÓÖÔÙÚÜÛãàáäâèéëêìíïîòóöôùúüûÑñÇç";
+			var to   = "AAAAAEEEEIIIIOOOOUUUUaaaaaeeeeiiiioooouuuunncc";
+			var mapping = {};
+
+			for(var i = 0, j = from.length; i < j; i++ ){
+				mapping[ from.charAt( i ) ] = to.charAt( i );
+			}
+
+			app.utils.fixName = function(str, first) {
+				var ret = [];
+				for( var i = 0, j = str.length; i < j; i++ ) {
+					var c = str.charAt(i);
+					if(mapping.hasOwnProperty(str.charAt(i))){
+						ret.push(mapping[c]);
+					}
+					else{
+						ret.push(c);
+					}
+				}      
+				str = ret.join('').replace(/[^-A-Za-z0-9]+/g,'-').toLowerCase();
+				if(first){
+					str = str[0].toUpperCase() + str.substr(1,str.length);
+				}
+				return str.replace(/-(.)/g, function(match, group1){
+					return group1.toUpperCase();
+				});
+			}
+
+			return app.utils.fixName(text, first);
 		}
 	}
 

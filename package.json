@@ -40,7 +40,9 @@
     "express-handlebars": "~1.2.2",
     "fluent-ffmpeg": "~2.0.0-rc3",
     "laconic": "~0.2.2",
-    "eve": "~0.5.0"
+    "eve": "~0.5.0",
+    "passport-local": "~1.0.0",
+    "passport": "~0.2.2"
   },
   "devDependencies": {
     "node-static": "^0.7.6",

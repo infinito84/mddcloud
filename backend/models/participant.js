@@ -12,6 +12,9 @@ module.exports=(function(){
 		project			: {type : Schema.ObjectId, ref : "Project"},
 	});
 
+	//For Deep Population
+	participantSchema.plugin(require('mongoose-deep-populate'));
+
 	var Participant = mongoose.model('Participant',participantSchema);
 
 	Participant.update = function(id,data,next){

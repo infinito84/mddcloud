@@ -2,14 +2,13 @@
 var Model = {
 	User 						: require('../models/user'),
 	Actor 						: require('../models/actor'),
+	Action 						: require('../models/action'),
 	Project 					: require('../models/project'),
-	Activity 					: require('../models/activity'),
 	Attribute 					: require('../models/attribute'),
 	Objective 					: require('../models/objective'),
 	Multimedia 					: require('../models/multimedia'),
 	Enumeration					: require('../models/enumeration'),
 	Participant 				: require('../models/participant'),
-	DiagramActivity 			: require('../models/diagramActivity'),
 	ClassAssociation 			: require('../models/classAssociation'),
 	StorageRequirement 			: require('../models/storageRequirement'),
 	UseCaseAssociation 			: require('../models/useCaseAssociation'),
@@ -21,13 +20,12 @@ var Model = {
 var	Collection = {
 	User						: require('../collections/users'),
 	Actor 						: require('../collections/actors'),
-	Activity 					: require('../collections/activities'),
+	Action 						: require('../collections/actions'),
 	Attribute					: require('../collections/attributes'),
 	Objective					: require('../collections/objectives'),
 	Multimedia 					: require('../collections/multimedias'),
 	Enumeration	 				: require('../collections/enumerations'),
 	Participant 				: require('../collections/participants'),
-	DiagramActivity 			: require('../collections/diagramActivities'),
 	ClassAssociation 			: require('../collections/classAssociations'),
 	StorageRequirement 			: require('../collections/storageRequirements'),
 	UseCaseAssociation			: require('../collections/useCaseAssociations'),
@@ -76,12 +74,18 @@ var app = module.exports = {
 		data.actors.forEach(function(elem,i){
 			app.collections.actors.add(new Model.Actor(elem));
 		});
-		//Load functional requirements
+		//Load functional requirements and their actions
 		app.collections.functionalRequirements = new Collection.FunctionalRequirement();
+		app.collections.actions = new Collection.Action();
 		data.functionalRequirements.forEach(function(elem,i){
+			var actions = elem.actions || [];
+			elem.actions = actions.map(function(action){
+				app.collections.actions.add(new Model.Action(action));	
+				return action._id;
+			});
 			app.collections.functionalRequirements.add(new Model.FunctionalRequirement(elem));
 		});
-		//Load non functional requirements
+		//Load non functional requirements 
 		app.collections.nonFunctionalRequirements = new Collection.NonFunctionalRequirement();
 		data.nonFunctionalRequirements.forEach(function(elem,i){
 			app.collections.nonFunctionalRequirements.add(new Model.NonFunctionalRequirement(elem));

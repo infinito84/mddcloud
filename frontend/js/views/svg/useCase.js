@@ -33,10 +33,10 @@ module.exports = Backbone.View.extend({
 		this.ellipse = svg.ellipse(0, 0, 100, 40);
 		this.label = this.svg.text(0, 0, '');
 		this.updateName();
-		this.linkActor = svg.image('/img/diagrams/add_link_actor.png',-20,-65,20,20);
-		this.edit = svg.image('/img/diagrams/edit.png', 0,-65,20,20);
+		this.linkActor = svg.image('/img/diagrams/add_link_actor.png',-22,-65,20,20);
+		this.edit = svg.image('/img/diagrams/edit.png', 2,-65,20,20);
 		this.useCase = svg.group(
-			svg.rect(-25,-45,50,10), //for hold hover event
+			svg.rect(-25,-70,50,70).addClass('transparent'), 
 			this.linkActor,
 			this.edit,
 			this.ellipse, 
@@ -45,9 +45,9 @@ module.exports = Backbone.View.extend({
 		this.useCase.addClass('use-case-svg');
 		
 		var svgWidth = $("#container").width() - 30;
-		var svgHeight = $("#container").height() - 65;
+		var svgHeight = $("#container").height() - 100;
 		var x = this.model.get('x') || Math.random() * svgWidth + 20;
-		var y = this.model.get('y') || Math.random() * svgHeight;
+		var y = this.model.get('y') || (Math.random() * svgHeight + 50);
 		this.useCase.transform(['T',x,',',y].join(''));
 
 		this.addEvents();

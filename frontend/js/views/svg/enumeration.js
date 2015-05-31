@@ -23,7 +23,7 @@ module.exports = Backbone.View.extend({
 		this.enumeration = svg.group();
 		this.enumeration.addClass('enumeration-svg');
 
-		var label = svg.text(5, 17, app.utils.fixName(this.model.get('name')))
+		var label = svg.text(5, 17, app.utils.fixName(this.model.get('name'), true))
 					.addClass('main');
 					
 		this.enumeration.add(label);

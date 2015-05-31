@@ -1,0 +1,58 @@
+{{#if success}}
+<div class="alert alert-success alert-form" role="alert">
+	<strong>{{success}}</strong>
+</div>
+{{/if}}
+{{#if error}}
+<div class="alert alert-danger alert-form" role="alert">
+	<strong>{{error}}</strong>
+</div>
+{{/if}}
+<div class="well login-form">
+	<form class="bs-example form-horizontal" method="post" action="/register">
+		<fieldset>
+			<legend>{{t 'Please, fill the register information'}}</legend>
+			<div class="form-group">
+				<label for="name" class="col-lg-5 control-label">
+					{{t 'Full name'}}
+				</label>
+				<div class="col-lg-4">
+					<input type="text" class="form-control" name="name" placeholder="{{t 'Jhon Doe'}}" required="required">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="username" class="col-lg-5 control-label">
+					{{t 'E-mail'}}
+				</label>
+				<div class="col-lg-4">
+					<input type="email" class="form-control" name="username" placeholder="{{t 'example@example.com'}}" required="required">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="password" class="col-lg-5 control-label">
+					{{t 'Password'}}
+				</label>
+				<div class="col-lg-4">
+					<input type="password" name="password" class="form-control" required="required">
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="password" class="col-lg-5 control-label">
+					{{t 'Confirm password'}}
+				</label>
+				<div class="col-lg-4">
+					<input type="password" name="password2" class="form-control" required="required">
+				</div>
+			</div>
+		</fieldset>
+		<fieldset>
+			<br> <br> 
+			<label class="col-lg-4 control-label"></label>
+			<div>
+			 	<button type="submit" class="btn btn-primary">
+			 		{{t 'Sign up'}}
+			 	</button>
+			</div>
+		</fieldset>
+	</form>
+</div>

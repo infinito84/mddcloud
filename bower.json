@@ -21,7 +21,8 @@
     "jquery-file-upload": "~9.9.2",
     "select2": "git://github.com/select2/select2.git#~3.5.2",
     "notifyjs": "https://github.com/jpillora/notifyjs.git#~0.3.2",
-    "snap.svg": "~0.4.0"
+    "snap.svg.zpd": "https://github.com/huei90/snap.svg.zpd.git#~0.0.10",
+    "snap.svg": "~0.4.1"
   },
   "devDependencies": {}
 }

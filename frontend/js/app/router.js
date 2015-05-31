@@ -4,7 +4,8 @@ var Backbone		= require('backbone'),
 	ProjectView 	= require('../views/project'),
 	MettingsView 	= require('../views/meetings'),
 	UseCaseView  	= require('../views/useCase'),
-	ClassView		= require('../views/classDiagram');
+	ClassView		= require('../views/classDiagram'),
+	ActivityView	= require('../views/activityDiagram');
 
 var removeCurrentView = function(){
 	if(app.currentView){
@@ -14,12 +15,12 @@ var removeCurrentView = function(){
 
 module.exports=Backbone.Router.extend({
 	routes:{
-		'project' 			: 'project',
-		'meetings'			: 'meetings',
-		'create/:model'		: 'create',
-		'view/:model/:id'	: 'view',
-		'useCase'			: 'useCase',
-		'classDiagram'		: 'classDiagram'
+		'project' 					: 'project',
+		'meetings'					: 'meetings',
+		'create/:model'				: 'create',
+		'view/:model/:id'			: 'view',
+		'useCase'					: 'useCase',
+		'classDiagram'				: 'classDiagram',
 	},
 	project:function(){		
 		var projectView = new ProjectView({
@@ -46,7 +47,7 @@ module.exports=Backbone.Router.extend({
 		else if (model === 'actor'){
 			View = require('../views/actorForm');
 		}
-		else if (model === 'functionalRequirement'){
+		else if (model === 'functionalRequirement' || model === 'diagramActivity'){
 			View = require('../views/functionalRequirementForm');
 		}
 		else if (model === 'nonFunctionalRequirement'){
@@ -54,7 +55,7 @@ module.exports=Backbone.Router.extend({
 		}
 		else if (model === 'storageRequirement'){
 			View = require('../views/storageRequirementForm');
-		}
+		}		
 		//Add others
 		if(View !== null){
 			new View();
@@ -83,6 +84,13 @@ module.exports=Backbone.Router.extend({
 			View = require('../views/storageRequirement');
 			collection = app.collections.storageRequirements;
 		}
+		else if (model === 'activityDiagram'){
+			var activityView = new ActivityView({
+				model : app.collections.functionalRequirements.get(id)
+			});
+			app.setCurrentView(activityView);
+			activityView.svg();
+		}
 		//Add others
 		if(View !== null){
 			var view = new View({
@@ -100,5 +108,8 @@ module.exports=Backbone.Router.extend({
 		var classView = new ClassView();
 		app.setCurrentView(classView);
 		classView.svg();
+	},
+	activityDiagram : function(id){
+		
 	}
 });

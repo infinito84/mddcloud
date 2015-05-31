@@ -19,8 +19,9 @@ module.exports=(function(){
 	app.use(bodyParser.json()); 
 	app.use(bodyParser.urlencoded({ extended: true }));
 
-	//For to serve the frontend app
+	//For to serve the static files
 	app.use(express.static("frontend/public"));
+	app.use('/assets',express.static("backend/assets"));
 
 	//Defining the views and Handlebars engine for backend
 	var handlebars = exphbs.create({
@@ -31,8 +32,17 @@ module.exports=(function(){
 				var result = i18next.t(i18n_key);
 				if(result===''||result===null||result===undefined)return i18n_key;
 				return result;
+			},
+			date : function(date) {
+				var d=new Date(date);
+				return [d.getDate(),d.getMonth()+1,d.getFullYear()].map(function(num){
+					if(num<10)return '0'+num;
+					return num;
+				}).join('/');
 			}
-		}
+		},
+		defaultLayout 	: 'home',
+		layoutsDir 		: config.folder + 'backend/views/layouts'
 	});
 	app.engine('.hbs', handlebars.engine);
 	app.set('view engine', '.hbs');
@@ -65,6 +75,9 @@ module.exports=(function(){
 	app.use(i18next.handle);
 	i18next.registerAppHelper(app);
 	app.i18next = i18next;
+
+	//Passport configuration
+	require('./passport-setting')(app);
 
 	//Creating the server at 8084 port :)
 	var server=http.Server(app).listen(8084);

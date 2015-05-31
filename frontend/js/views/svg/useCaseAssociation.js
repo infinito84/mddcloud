@@ -14,8 +14,8 @@ module.exports = Backbone.View.extend({
 			_id : that.model.get('useCase')
 		});
 		this.model.set({
-			x1 : actorModel.get('x'),
-			y1 : actorModel.get('y'),
+			x1 : actorModel.get('x') + 10,
+			y1 : actorModel.get('y') + 10,
 			x2 : useCaseModel.get('x'),
 			y2 : useCaseModel.get('y')
 		});
