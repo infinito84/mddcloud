@@ -1,7 +1,9 @@
 var Backbone		= require('backbone'),
 	$				= require('jquery'),
 	app				= require('../app/namespace'),
-	plugins			= require('../app/plugins');
+	plugins			= require('../app/plugins'),
+	Action 			= require('../models/action'),
+	actionSVG 		= require('./svg/action');
 
 module.exports = Backbone.View.extend({
 	tagName 	: 'div',
@@ -15,6 +17,8 @@ module.exports = Backbone.View.extend({
 		this.y = 400;
 		this.width = 200;
 		this.height = 40;
+		this.interval = setInterval(this.checkSelection.bind(this),100);
+		this.listenTo(this.model, 'change:actions', this.checkActions, this);
 	},
 	render : function(){
 		$('.menu li').removeClass('active');
@@ -26,121 +30,250 @@ module.exports = Backbone.View.extend({
 	svg : function() {
 		this.svg = plugins.Snap("svg");
 		var that = this;
+
+		(this.model.get('actions') || []).forEach(function(id){
+			var action = app.collections.actions.get(id);
+			that.addAction.apply(that, [action]);
+		});
 	
-		window.line = this.line = this.svg.group(
-			this.svg.line(this.x1,this.y1,400,400).attr({
-				stroke 		: 'red',
-				strokeWidth : 2
-			}),
-			this.svg.line(400,400,390,380).attr({
-				stroke 		: 'red',
-				strokeWidth : 2
-			}),
-			this.svg.line(400,400,410,380).attr({
-				stroke 		: 'red',
-				strokeWidth : 2
-			})
-		)
-
-		this.svg.circle(this.x1,this.y1,10).attr({
-			fill : 'black'
-		});
-
-		this.rect = this.svg.rect(0,0,this.width,this.height).attr({
-			rx 			: 20,
-			stroke 		: 'black',
-			strokeWidth : 1,
-			fill 		: '#8EA8FF'
-		});
-		this.rect.transform(['T',this.x,',',this.y].join(''));
-		this.rect.drag(this.moveDrag, this.startDrag, this.endDrag, this, this, this);
-
-		
-
 		this.addEvents();
 	},
-	addEvents : function(){
-
+	checkActions : function(){
+		var that = this;
+		(this.model.get('actions') || []).forEach(function(id){
+			if($('.action'+id).length === 0){
+				var action = app.collections.actions.get(id);
+				that.addAction(action);
+			}
+		})
 	},
-	moveDrag : function(dx, dy, x, y, event){
-		this.nx = this.ox + dx;
-		this.ny = this.oy + dy;
-		this.rect.transform(['T',this.nx,',',this.ny].join(''));
-		this.moved = true;
-		if(this.nx < this.x1 && this.x1 < this.nx + this.width){
-			if(this.ny < this.y1){
-				this.rx = this.nx + this.width/2;
-				this.ry = this.ny + this.height;
-			}
-			else{
-				this.rx = this.nx + this.width/2;
-				this.ry = this.ny;
-			}
-		}
-		else if(this.ny < this.y1 && this.y1 < this.ny + this.height){
-			if(this.nx < this.x1){
-				this.rx = this.nx + this.width;
-				this.ry = this.ny + this.height/2;
-			}
-			else{
-				this.rx = this.nx;
-				this.ry = this.ny + this.height/2;
-			}
-		}
-		else if(this.ny < this.y1 && this.nx < this.x1){
-			this.rx = this.nx + this.width - 5;
-			this.ry = this.ny + this.height - 5;
-		}
-		else if(this.ny < this.y1 && this.nx > this.x1){
-			this.rx = this.nx  + 5;
-			this.ry = this.ny + this.height - 5;
-		}
-		else if(this.ny > this.y1 && this.nx < this.x1){
-			this.rx = this.nx + this.width - 5;
-			this.ry = this.ny + 5;
-		}
-		else if(this.ny > this.y1 && this.nx > this.x1){
-			this.rx = this.nx + 5;
-			this.ry = this.ny + 5; 
-		}
-		var distance = Math.sqrt(Math.pow(this.x1 - this.rx,2) + Math.pow(this.y1 - this.ry,2));
-		var lines = this.line.selectAll('line');
-		lines[0].attr({
-			y2 : this.y1 + distance
+	addAction : function(action){
+		action.set({
+			nx : action.get('x'),
+			ny : action.get('y')
 		});
-		lines[1].attr({
-			y1 : this.y1 + distance,
-			y2 : this.y1 + distance - 20,
+		var actionView = new actionSVG({
+			svg 	: this.svg,
+			model 	: action
+		}).render();
+		this.attachedViews.push(actionView);
+	},
+	addEvents : function(){
+		var that = this;
+		$('svg').click(function(){
+			that.svg.selectAll('.selected').forEach(function(svgElement){
+				svgElement.removeClass('selected');
+			});
+			delete app.selectedAction;
+		});		
+	},
+	removeViews : function(){
+		this.attachedViews.forEach(function(view, i){
+			view.remove();
 		});
-		lines[2].attr({
-			y1 : this.y1 + distance,
-			y2 : this.y1 + distance - 20,
-		});
-		var angle = Math.atan((this.ry - this.y1)/(this.rx - this.x1)) || 0;
-		angle = angle * (180/Math.PI);
-		if(this.x1 === this.rx){
-			angle = 0;
-			if(this.y1 > this.ry){
-				angle = 180;
+		clearInterval(this.interval);
+		this.remove();
+	},
+	checkSelection : function(){
+		var that = this;
+		var $menu = $('.svg-menu-right');
+		var actions = this.model.get('actions') || [];
+		if(app.selectedAction){
+			if(app.selectedAction.id === this.menu){
+				return;
 			}
-		}
-		else if(this.x1 < this.rx){
-			angle += -90;
+
+			var child = app.collections.actions.findWhere({
+				parentAction : app.selectedAction.id
+			});			
+			var action = app.selectedAction.toJSON();
+
+			$menu.html($.el.p(app.utils.t('Please select a action below')));
+
+			if(action.operation === 'START'){
+				if(child){
+					$menu.html($.el.p(app.utils.t('No more actions available, please select another element')));
+					return;
+				}
+				var user = app.collections.storageRequirements.findWhere({special : 'USER'});
+
+				var $el = $($.el.div({class : 'item read'}));
+				$el.html(app.utils.t('Read specific data in session from:') +' <b>'+ user.get('name') +'</b>');
+				$el.click(function(){
+					that.newAction({
+						operation			: 'READ',
+						readMethod 			: 'SESSION',
+						storageRequirement 	: user.id,
+						x 					: action.x - 100,
+						y 					: action.y + 100,
+						width 				: 200,
+						height				: 40,
+						parentAction		: action._id
+					});
+				});
+				$menu.append($el);
+
+				app.collections.storageRequirements.forEach(function(storage){
+					$el = $($.el.div({class : 'item read'}));
+					$el.html(app.utils.t('Read all data from:') +' <b>'+ storage.get('name')+ '</b>');
+					$el.click(function(){
+						that.newAction({
+							operation			: 'READ',
+							readMethod 			: 'GENERAL',
+							storageRequirement 	: storage.id,
+							x 					: action.x - 100,
+							y 					: action.y + 100,
+							width 				: 200,
+							height				: 40,
+							parentAction		: action._id
+						});
+					});
+					$menu.append($el);
+				});
+			}
+			if(action.operation === 'READ'){
+				var storage = app.collections.storageRequirements.get(action.storageRequirement);
+				var create = app.collections.actions.findWhere({
+					parentAction : action._id, 
+					operation : 'CREATE'
+				});
+				var $el; 
+
+				if(!create){
+					$el = $($.el.div({class : 'item create'}));
+					$el.html(app.utils.t('Create new data from:') +' <b>'+ storage.get('name') +'</b>');
+					$el.click(function(){
+						that.newAction({
+							operation			: 'CREATE',
+							storageRequirement 	: storage.id,
+							x 					: action.x,
+							y 					: action.y + 100,
+							width 				: 200,
+							height				: 40,
+							parentAction		: action._id
+						});
+					});
+					$menu.append($el);
+				}
+				
+				app.collections.classAssociations.where({
+					classA : storage.id
+				}).forEach(function(classAssociation){
+					var storageId = classAssociation.get('classB');
+					var storage = app.collections.storageRequirements.get(storageId);
+					var read = app.collections.actions.findWhere({
+						parentAction : action._id, 
+						operation : 'READ'
+					});
+					if(!read){
+						$el = $($.el.div({class : 'item read'}));
+						$el.html(app.utils.t('Read specific data from:') +' <b>'+ storage.get('name')+ '</b>');
+						$el.click(function(){
+							that.newAction({
+								operation			: 'READ',
+								readMethod 			: 'SPECIFIC',
+								storageRequirement 	: storage.id,
+								x 					: action.x,
+								y 					: action.y + 100,
+								width 				: 200,
+								height				: 40,
+								parentAction		: action._id
+							});
+						});
+						$menu.append($el);
+					}
+				});
+
+				var update = app.collections.actions.findWhere({
+					parentAction : action._id, 
+					operation : 'UPDATE'
+				});
+				if(!update){
+					$el = $($.el.div({class : 'item update'}));
+					$el.html(app.utils.t('Update specific data from:') +' <b>'+ storage.get('name') +'</b>');
+					$el.click(function(){
+						that.newAction({
+							operation			: 'UPDATE',
+							storageRequirement 	: storage.id,
+							x 					: action.x,
+							y 					: action.y + 100,
+							width 				: 200,
+							height				: 40,
+							parentAction		: action._id
+						});
+					});
+					$menu.append($el);
+				}
+
+				var del = app.collections.actions.findWhere({
+					parentAction : action._id, 
+					operation : 'DELETE'
+				});
+				if(!del){
+					$el = $($.el.div({class : 'item delete'}));
+					$el.html(app.utils.t('Delete specific data from:') +' <b>'+ storage.get('name') +'</b>');
+					$el.click(function(){
+						that.newAction({
+							operation			: 'DELETE',
+							storageRequirement 	: storage.id,
+							x 					: action.x,
+							y 					: action.y + 100,
+							width 				: 200,
+							height				: 40,
+							parentAction		: action._id
+						});
+					});
+					$menu.append($el);
+				}
+				$el = $($.el.div({class : 'item start'}));
+				$el.html(app.utils.t('Remove this action'));
+				$el.click(function(){
+					alert("removiendo");
+				});
+				$menu.append($el);
+			}
+			this.menu = app.selectedAction.id;
 		}
 		else{
-			angle += 90;
+			if(actions.length === 0){
+				if(this.menu === 0){
+					return;
+				}
+				$menu.html($.el.div({class : 'item start'},app.utils.t('Start')))
+				.prepend($.el.p(app.utils.t('Use the controls in this panel for adding actions to this Activity Diagram')))
+				.find('.item.start').click(function(){
+					that.newAction({
+						operation	: 'START',
+						x 			: $('svg').width()/2,
+						y 			: 30,
+						width 		: 20,
+						height		: 20
+					});
+				});
+				this.menu = 0;
+			}
+			else{
+				if(this.menu === 1){
+					return;
+				}
+				$('.svg-menu-right').html($.el.p(app.utils.t('Please select some element on the diagram for interacting')));
+				this.menu = 1;
+			}
 		}
-		this.line.transform('r'+angle+','+this.x1+','+this.y1);
 	},
-	startDrag : function(x, y, event){
-		this.ox = this.x;
-		this.oy = this.y;
-		this.moved = false;
-	},
-	endDrag : function(event){
-		if(this.moved){
-			this.x = this.nx;
-			this.y = this.ny;
-		}
-	},
+	newAction : function(data){
+		var that = this;
+		$('svg').click();
+
+		var action = new Action();
+		action.save(data, {
+			successfully : function(action){
+				app.collections.actions.add(action);
+				var actions = (that.model.get('actions') || []).slice(0);
+				actions.push(action.id);
+				that.model.set('actions',actions);
+				that.model.save();
+			}
+		});
+	}
 });

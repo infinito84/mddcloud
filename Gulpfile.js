@@ -38,7 +38,7 @@ gulp.task('stylus', function () {
     .pipe(stylus({
       'include css': true,
       use: nib(),
-      compress : true
+      //compress : true
     }))
     .pipe(gulp.dest('frontend/public/css'));
 });
