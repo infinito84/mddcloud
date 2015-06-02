@@ -2858,7 +2858,14 @@ img.author_source {
   height: 100%;
   display: block;
 }
-.activityDiagram-view svg START {
+.activityDiagram-view svg .START {
+  fill: #000;
+}
+.activityDiagram-view svg .END circle:first-child {
+  fill: transparent;
+  stroke: #000;
+}
+.activityDiagram-view svg .END circle:last-child {
   fill: #000;
 }
 .activityDiagram-view .selector {

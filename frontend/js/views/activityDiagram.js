@@ -19,6 +19,15 @@ module.exports = Backbone.View.extend({
 		this.height = 40;
 		this.interval = setInterval(this.checkSelection.bind(this),100);
 		this.listenTo(this.model, 'change:actions', this.checkActions, this);
+		this.listenTo(app.collections.actions, 'remove', this.removeView, this);
+	},
+	removeView : function(model){
+		$('svg').click();
+		this.attachedViews.forEach(function(view){
+			if(view.model.id === model.id){
+				view.destroyModel(model);
+			}
+		});
 	},
 	render : function(){
 		$('.menu li').removeClass('active');
@@ -48,6 +57,7 @@ module.exports = Backbone.View.extend({
 		})
 	},
 	addAction : function(action){
+		delete this.menu;
 		action.set({
 			nx : action.get('x'),
 			ny : action.get('y')
@@ -79,14 +89,15 @@ module.exports = Backbone.View.extend({
 		var $menu = $('.svg-menu-right');
 		var actions = this.model.get('actions') || [];
 		if(app.selectedAction){
+			var action = app.selectedAction.toJSON();
 			if(app.selectedAction.id === this.menu){
 				return;
 			}
+			this.menu = app.selectedAction.id;
 
 			var child = app.collections.actions.findWhere({
 				parentAction : app.selectedAction.id
-			});			
-			var action = app.selectedAction.toJSON();
+			});						
 
 			$menu.html($.el.p(app.utils.t('Please select a action below')));
 
@@ -130,16 +141,23 @@ module.exports = Backbone.View.extend({
 					});
 					$menu.append($el);
 				});
+				return;
 			}
+
+			var storage = app.collections.storageRequirements.get(action.storageRequirement);
+			var $el; 
+			var endPoint = app.collections.actions.findWhere({
+				parentAction : action._id, 
+				operation : 'END'
+			});	
+
 			if(action.operation === 'READ'){
-				var storage = app.collections.storageRequirements.get(action.storageRequirement);
 				var create = app.collections.actions.findWhere({
 					parentAction : action._id, 
 					operation : 'CREATE'
-				});
-				var $el; 
+				});	
 
-				if(!create){
+				if(!create && !endPoint){
 					$el = $($.el.div({class : 'item create'}));
 					$el.html(app.utils.t('Create new data from:') +' <b>'+ storage.get('name') +'</b>');
 					$el.click(function(){
@@ -165,7 +183,7 @@ module.exports = Backbone.View.extend({
 						parentAction : action._id, 
 						operation : 'READ'
 					});
-					if(!read){
+					if(!read && !endPoint){
 						$el = $($.el.div({class : 'item read'}));
 						$el.html(app.utils.t('Read specific data from:') +' <b>'+ storage.get('name')+ '</b>');
 						$el.click(function(){
@@ -188,7 +206,7 @@ module.exports = Backbone.View.extend({
 					parentAction : action._id, 
 					operation : 'UPDATE'
 				});
-				if(!update){
+				if(!update && !endPoint){
 					$el = $($.el.div({class : 'item update'}));
 					$el.html(app.utils.t('Update specific data from:') +' <b>'+ storage.get('name') +'</b>');
 					$el.click(function(){
@@ -209,7 +227,7 @@ module.exports = Backbone.View.extend({
 					parentAction : action._id, 
 					operation : 'DELETE'
 				});
-				if(!del){
+				if(!del && !endPoint){
 					$el = $($.el.div({class : 'item delete'}));
 					$el.html(app.utils.t('Delete specific data from:') +' <b>'+ storage.get('name') +'</b>');
 					$el.click(function(){
@@ -224,15 +242,33 @@ module.exports = Backbone.View.extend({
 						});
 					});
 					$menu.append($el);
-				}
-				$el = $($.el.div({class : 'item start'}));
-				$el.html(app.utils.t('Remove this action'));
-				$el.click(function(){
-					alert("removiendo");
-				});
-				$menu.append($el);
+				}				
 			}
-			this.menu = app.selectedAction.id;
+
+			$el = $($.el.div({class : 'item start'}));
+			$el.html(app.utils.t('Remove this action'));
+			$el.click(function(){
+				app.selectedAction.remove();
+				$('svg').click();
+			});
+			$menu.append($el);
+			
+			if(action.operation === 'END' || child){
+				return;
+			}
+			$el = $($.el.div({class : 'item start'}));
+			$el.html(app.utils.t('Add endpoint'));
+			$el.click(function(){
+				that.newAction({
+					operation			: 'END',
+					x 					: action.x,
+					y 					: action.y + 100,
+					width 				: 26,
+					height				: 26,
+					parentAction		: action._id
+				});
+			});
+			$menu.append($el);
 		}
 		else{
 			if(actions.length === 0){
@@ -263,11 +299,11 @@ module.exports = Backbone.View.extend({
 	},
 	newAction : function(data){
 		var that = this;
-		$('svg').click();
 
 		var action = new Action();
 		action.save(data, {
 			successfully : function(action){
+				delete that.menu;
 				app.collections.actions.add(action);
 				var actions = (that.model.get('actions') || []).slice(0);
 				actions.push(action.id);

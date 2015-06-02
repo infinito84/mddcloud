@@ -18457,13 +18457,36 @@ return Snap;
 }));
 
 },{"eve":110}],28:[function(require,module,exports){
-var Backbone	=	require('backbone');
+var Backbone	= require('backbone');
 
-module.exports=Backbone.Model.extend({
+module.exports = Backbone.Model.extend({
 	model 		: 'Action',
-	idAttribute : '_id'
+	idAttribute : '_id',
+	remove : function(){
+		var that = this;
+		var app	= require('../app/namespace');
+		
+		app.collections.actions.where({
+			parentAction : this.id
+		}).forEach(function(action){
+			action.remove();
+		});
+		
+		app.collections.actions.remove(this);
+		
+		app.collections.functionalRequirements.forEach(function(functionalRequirement){
+			var actions = (functionalRequirement.get('actions') || []).slice(0);
+			var index = actions.indexOf(that.id);
+			if(index > -1){
+				actions.splice(index, 1);
+				functionalRequirement.set('actions', actions);
+				functionalRequirement.save();
+			}
+		});
+		this.destroy();
+	}
 });
-},{"backbone":108}],29:[function(require,module,exports){
+},{"../app/namespace":4,"backbone":108}],29:[function(require,module,exports){
 var Backbone = require('backbone');
 
 module.exports = Backbone.Model.extend({
@@ -19888,6 +19911,15 @@ module.exports = Backbone.View.extend({
 		this.height = 40;
 		this.interval = setInterval(this.checkSelection.bind(this),100);
 		this.listenTo(this.model, 'change:actions', this.checkActions, this);
+		this.listenTo(app.collections.actions, 'remove', this.removeView, this);
+	},
+	removeView : function(model){
+		$('svg').click();
+		this.attachedViews.forEach(function(view){
+			if(view.model.id === model.id){
+				view.destroyModel(model);
+			}
+		});
 	},
 	render : function(){
 		$('.menu li').removeClass('active');
@@ -19917,6 +19949,7 @@ module.exports = Backbone.View.extend({
 		})
 	},
 	addAction : function(action){
+		delete this.menu;
 		action.set({
 			nx : action.get('x'),
 			ny : action.get('y')
@@ -19948,14 +19981,15 @@ module.exports = Backbone.View.extend({
 		var $menu = $('.svg-menu-right');
 		var actions = this.model.get('actions') || [];
 		if(app.selectedAction){
+			var action = app.selectedAction.toJSON();
 			if(app.selectedAction.id === this.menu){
 				return;
 			}
+			this.menu = app.selectedAction.id;
 
 			var child = app.collections.actions.findWhere({
 				parentAction : app.selectedAction.id
-			});			
-			var action = app.selectedAction.toJSON();
+			});						
 
 			$menu.html($.el.p(app.utils.t('Please select a action below')));
 
@@ -19999,16 +20033,23 @@ module.exports = Backbone.View.extend({
 					});
 					$menu.append($el);
 				});
+				return;
 			}
+
+			var storage = app.collections.storageRequirements.get(action.storageRequirement);
+			var $el; 
+			var endPoint = app.collections.actions.findWhere({
+				parentAction : action._id, 
+				operation : 'END'
+			});	
+
 			if(action.operation === 'READ'){
-				var storage = app.collections.storageRequirements.get(action.storageRequirement);
 				var create = app.collections.actions.findWhere({
 					parentAction : action._id, 
 					operation : 'CREATE'
-				});
-				var $el; 
+				});	
 
-				if(!create){
+				if(!create && !endPoint){
 					$el = $($.el.div({class : 'item create'}));
 					$el.html(app.utils.t('Create new data from:') +' <b>'+ storage.get('name') +'</b>');
 					$el.click(function(){
@@ -20034,7 +20075,7 @@ module.exports = Backbone.View.extend({
 						parentAction : action._id, 
 						operation : 'READ'
 					});
-					if(!read){
+					if(!read && !endPoint){
 						$el = $($.el.div({class : 'item read'}));
 						$el.html(app.utils.t('Read specific data from:') +' <b>'+ storage.get('name')+ '</b>');
 						$el.click(function(){
@@ -20057,7 +20098,7 @@ module.exports = Backbone.View.extend({
 					parentAction : action._id, 
 					operation : 'UPDATE'
 				});
-				if(!update){
+				if(!update && !endPoint){
 					$el = $($.el.div({class : 'item update'}));
 					$el.html(app.utils.t('Update specific data from:') +' <b>'+ storage.get('name') +'</b>');
 					$el.click(function(){
@@ -20078,7 +20119,7 @@ module.exports = Backbone.View.extend({
 					parentAction : action._id, 
 					operation : 'DELETE'
 				});
-				if(!del){
+				if(!del && !endPoint){
 					$el = $($.el.div({class : 'item delete'}));
 					$el.html(app.utils.t('Delete specific data from:') +' <b>'+ storage.get('name') +'</b>');
 					$el.click(function(){
@@ -20093,15 +20134,33 @@ module.exports = Backbone.View.extend({
 						});
 					});
 					$menu.append($el);
-				}
-				$el = $($.el.div({class : 'item start'}));
-				$el.html(app.utils.t('Remove this action'));
-				$el.click(function(){
-					alert("removiendo");
-				});
-				$menu.append($el);
+				}				
 			}
-			this.menu = app.selectedAction.id;
+
+			$el = $($.el.div({class : 'item start'}));
+			$el.html(app.utils.t('Remove this action'));
+			$el.click(function(){
+				app.selectedAction.remove();
+				$('svg').click();
+			});
+			$menu.append($el);
+			
+			if(action.operation === 'END' || child){
+				return;
+			}
+			$el = $($.el.div({class : 'item start'}));
+			$el.html(app.utils.t('Add endpoint'));
+			$el.click(function(){
+				that.newAction({
+					operation			: 'END',
+					x 					: action.x,
+					y 					: action.y + 100,
+					width 				: 26,
+					height				: 26,
+					parentAction		: action._id
+				});
+			});
+			$menu.append($el);
 		}
 		else{
 			if(actions.length === 0){
@@ -20132,11 +20191,11 @@ module.exports = Backbone.View.extend({
 	},
 	newAction : function(data){
 		var that = this;
-		$('svg').click();
 
 		var action = new Action();
 		action.save(data, {
 			successfully : function(action){
+				delete that.menu;
 				app.collections.actions.add(action);
 				var actions = (that.model.get('actions') || []).slice(0);
 				actions.push(action.id);
@@ -21742,11 +21801,16 @@ module.exports = Backbone.View.extend({
 			this.listenTo(parentAction, 'change:nx', this.notifyAssociations, this);
 			this.listenTo(parentAction, 'change:ny', this.notifyAssociations, this);
 		}
+		this.listenTo(this.model, 'destroy', this.removeView, this);
 	},
 	updatePosition : function(){
 		this.nx = this.model.get('x');
 		this.ny = this.model.get('y');
 		this.action.transform(['T', this.nx, ',', this.ny].join(''));
+		this.model.set({
+			nx : this.nx,
+			ny : this.ny
+		});
 		this.notifyAssociations();
 	},
 	render : function(){
@@ -21755,10 +21819,18 @@ module.exports = Backbone.View.extend({
 		if(model.operation === 'START'){
 			this.action = svg.group(
 				svg.circle(10,10,10),
+				svg.circle(10,10,10),
 				svg.rect(-5,-5,30,30).addClass('selector')
 			);
 		}
-		if(['CREATE','READ','UPDATE','DELETE'].indexOf(model.operation) !== -1){
+		else if(model.operation === 'END'){
+			this.action = svg.group(
+				svg.circle(13,13,13),
+				svg.circle(13,13,10),
+				svg.rect(-5,-5,36,36).addClass('selector')
+			);
+		}
+		else if(['CREATE','READ','UPDATE','DELETE'].indexOf(model.operation) !== -1){
 			var storage = app.collections.storageRequirements.get(model.storageRequirement);
 			if(model.operation === 'READ'){
 				this.label = this.labels.READ[model.readMethod];
@@ -21802,7 +21874,7 @@ module.exports = Backbone.View.extend({
 		app.movedAction = true;
 		this.nx = this.ox + dx;
 		this.ny = this.oy + dy;
-		this.model.set({nx : this.nx, ny : this.ny}).save();
+		this.model.set({nx : this.nx, ny : this.ny});
 		this.action.transform(['T',this.nx,',',this.ny].join(''));
 		this.notifyAssociations();
 	},
@@ -21828,8 +21900,8 @@ module.exports = Backbone.View.extend({
 		this.height2 = parentAction.get('height')/2;
 		this.nx = this.model.get('nx') || this.model.get('x');
 		this.ny = this.model.get('ny') || this.model.get('y');
-		this.width = 200;
-		this.height = 40;
+		this.width = this.model.get('width');
+		this.height = this.model.get('height');
 		if(!this.line){
 			this.line = this.svg.group(
 				this.svg.line(0,0,0,0),
@@ -21920,6 +21992,13 @@ module.exports = Backbone.View.extend({
 			angle += 90;
 		}
 		this.line.transform('r'+angle+','+this.x1+','+this.y1);
+	},
+	destroyModel : function(){
+		this.action.remove();
+		if(this.line){
+			this.line.remove();
+		}
+		this.remove();
 	}
 });
 },{"../../app/namespace":4,"../../app/plugins":5,"backbone":108,"jquery":120}],100:[function(require,module,exports){

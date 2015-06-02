@@ -52,9 +52,16 @@
 	height 100%
 	display block
 	
-.activityDiagram-view svg START
+.activityDiagram-view svg .START
 	fill black
 	
+.activityDiagram-view svg .END circle:first-child
+	fill transparent
+	stroke black
+
+.activityDiagram-view svg .END circle:last-child
+	fill black
+
 .activityDiagram-view .selector
 	fill transparent
 	rx 3

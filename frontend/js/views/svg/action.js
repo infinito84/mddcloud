@@ -25,11 +25,16 @@ module.exports = Backbone.View.extend({
 			this.listenTo(parentAction, 'change:nx', this.notifyAssociations, this);
 			this.listenTo(parentAction, 'change:ny', this.notifyAssociations, this);
 		}
+		this.listenTo(this.model, 'destroy', this.removeView, this);
 	},
 	updatePosition : function(){
 		this.nx = this.model.get('x');
 		this.ny = this.model.get('y');
 		this.action.transform(['T', this.nx, ',', this.ny].join(''));
+		this.model.set({
+			nx : this.nx,
+			ny : this.ny
+		});
 		this.notifyAssociations();
 	},
 	render : function(){
@@ -38,10 +43,18 @@ module.exports = Backbone.View.extend({
 		if(model.operation === 'START'){
 			this.action = svg.group(
 				svg.circle(10,10,10),
+				svg.circle(10,10,10),
 				svg.rect(-5,-5,30,30).addClass('selector')
 			);
 		}
-		if(['CREATE','READ','UPDATE','DELETE'].indexOf(model.operation) !== -1){
+		else if(model.operation === 'END'){
+			this.action = svg.group(
+				svg.circle(13,13,13),
+				svg.circle(13,13,10),
+				svg.rect(-5,-5,36,36).addClass('selector')
+			);
+		}
+		else if(['CREATE','READ','UPDATE','DELETE'].indexOf(model.operation) !== -1){
 			var storage = app.collections.storageRequirements.get(model.storageRequirement);
 			if(model.operation === 'READ'){
 				this.label = this.labels.READ[model.readMethod];
@@ -85,7 +98,7 @@ module.exports = Backbone.View.extend({
 		app.movedAction = true;
 		this.nx = this.ox + dx;
 		this.ny = this.oy + dy;
-		this.model.set({nx : this.nx, ny : this.ny}).save();
+		this.model.set({nx : this.nx, ny : this.ny});
 		this.action.transform(['T',this.nx,',',this.ny].join(''));
 		this.notifyAssociations();
 	},
@@ -111,8 +124,8 @@ module.exports = Backbone.View.extend({
 		this.height2 = parentAction.get('height')/2;
 		this.nx = this.model.get('nx') || this.model.get('x');
 		this.ny = this.model.get('ny') || this.model.get('y');
-		this.width = 200;
-		this.height = 40;
+		this.width = this.model.get('width');
+		this.height = this.model.get('height');
 		if(!this.line){
 			this.line = this.svg.group(
 				this.svg.line(0,0,0,0),
@@ -203,5 +216,12 @@ module.exports = Backbone.View.extend({
 			angle += 90;
 		}
 		this.line.transform('r'+angle+','+this.x1+','+this.y1);
+	},
+	destroyModel : function(){
+		this.action.remove();
+		if(this.line){
+			this.line.remove();
+		}
+		this.remove();
 	}
 });
