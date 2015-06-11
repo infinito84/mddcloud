@@ -37,12 +37,15 @@
 					<label class="col-lg-5 control-label">
 						{{t 'Try with'}}
 					</label>
-					<div>
-					 	{{#each actors}}
-						<b>{{t 'User'}}</b> {{databaseName name}}
-						<b>{{t 'password'}}</b> {{databaseName name}}
-						<br>
-					 	{{/each}}
+					<div class="col-lg-7">
+						<ul>
+						 	{{#each actors}}
+						 	<li>
+								<b>{{t 'User'}}</b> {{databaseName name}}
+								<b>{{t 'password'}}</b> {{databaseName name}}
+							</li>
+						 	{{/each}}
+						</ul>
 					</div>
 				</fieldset>
 				<fieldset>

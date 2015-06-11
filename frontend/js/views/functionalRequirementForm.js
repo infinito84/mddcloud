@@ -38,15 +38,18 @@ module.exports = Backbone.View.extend({
 			$.notify(app.utils.t('You must write a name')+'!','error');
 			return;
 		}
-		var functionalRequirement = new FunctionalRequirementModel({
+		var functionalRequirement = new FunctionalRequirementModel();
+		functionalRequirement.save({
 			name 			: name,
 			description 	: description,
 			multimedias		: multimedias || [],
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
+		},{
+			succesfully : function(){
+				app.collections.functionalRequirements.add(functionalRequirement);
+			}
 		});
-		functionalRequirement.save();
-		app.collections.functionalRequirements.add(functionalRequirement);
 		modal.close();
 		this.remove();
 	}

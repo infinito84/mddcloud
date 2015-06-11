@@ -13,7 +13,8 @@ var deepPopulateArray = [
 	'multimedias',
 	'objectives',
 	'storageRequirements.attributes.enumeration',
-	'functionalRequirements.actions',
+	'functionalRequirements.actions.storageRequirement',
+	'functionalRequirements.actions.parentAction',
 	'nonFunctionalRequirements',
 	'useCaseAssociations',
 	'classAssociations.classA',
@@ -44,6 +45,44 @@ module.exports = function(){
 			user : config.mysql.user,
 			pass : config.mysql.password
 		};
+
+		for(var i=0; i<project.functionalRequirements.length; i++){
+			var requirement = project.functionalRequirements[i];
+			var steps = {};
+			for(var j=0; j < requirement.actions.length; j++){
+				var action = requirement.actions[j];
+				if(['START', 'END'].indexOf(action.operation) !== -1){
+					continue;
+				}
+				if(action.operation === 'READ'){
+					steps[action._id] = {
+						READ 	: [action],
+						CREATE 	: [],
+						UPDATE 	: [],
+						DELETE 	: [],
+						storage : action.storageRequirement
+					};
+				}
+				else {
+					steps[action.parentAction._id][action.operation].push(action);
+				}
+			}
+			var stepsKeys = Object.keys(steps);
+			for(var j = 0; j<stepsKeys.length - 1; j++){
+				var step = steps[stepsKeys[j]];
+				var total = step.CREATE.length + step.UPDATE.length + step.DELETE.length;
+				if(total === 0){
+					var nextStep = steps[stepsKeys[j + 1]]; //Will be replaced in future :)
+					nextStep.READ = step.READ.concat(nextStep.READ);
+					delete steps[stepsKeys[j]];
+				}
+				else{
+					step.needArray = true;
+				}
+			}
+			requirement.steps = steps;
+		}
+
 		async.series([
 			function(callback){
 				exec('rm -rf '+ folder,function(){

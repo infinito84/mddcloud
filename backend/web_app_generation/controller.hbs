@@ -8,10 +8,49 @@ class {{className name}}Controller extends Controller{
 		{{~/each}}
 	];
 
-	{{#each actions}}
-	function step{{inc @index}}(){
-		echo 'step{{inc @index}}';
+	public function __construct(){
+		{{#each steps~}}
+		{{~#if needArray~}}
+		$this->{{variableName storage.name}} = [
+			GET => function(){
+				{{#each READ~}}
+					echo '{{operation}} {{readMethod}} {{storageRequirement.name}}<br>';
+				{{/each}}
+			}
+			{{~#if CREATE~}}
+			,
+			POST => function(){
+				{{#each CREATE~}}
+					echo '{{operation}} {{storageRequirement.name}}<br>';
+				{{~/each}}
+			}
+			{{/if}}
+			{{~#if UPDATE~}}
+			,
+			PUT => function(){
+				{{#each UPDATE~}}
+					echo '{{operation}} {{storageRequirement.name}}<br>';
+				{{~/each}}
+			}
+			{{/if}}
+			{{~#if DELETE~}}
+			,
+			DELETE => function(){
+				{{#each DELETE~}}
+					echo '{{operation}} {{storageRequirement.name}}<br>';
+				{{~/each}}
+			}
+			{{/if}}
+		];
+		{{~else~}}
+		
+		$this->{{variableName storage.name}} = function(){
+		{{#each READ}}
+			echo '{{operation}} {{readMethod}} {{storageRequirement.name}}<br>';
+		{{/each~}}
+		};
+		{{~/if}}
+		{{/each}}
 	}
-	{{/each}}
 
 }
