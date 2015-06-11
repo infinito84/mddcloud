@@ -55,6 +55,9 @@ module.exports = Backbone.View.extend({
 				});
 			}
 		});
+		$('#generate-web-app').click(function(){
+			app.socket.emit('generate-web-app');
+		});
 		window.scrollTo(0,1);
 		new DropDown({
 			$el 		: $("#dropdown-objectives"),

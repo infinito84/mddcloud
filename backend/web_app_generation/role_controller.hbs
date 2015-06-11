@@ -1,0 +1,16 @@
+<?php 
+
+class {{className name}}Controller extends Controller{
+
+	public $allowRoles = [
+		{{#each roles~}}	
+		'{{~this}}'{{#unless @last}},{{/unless}}
+		{{~/each}}
+	];
+
+	function index(){
+		$this->render('index',[
+			'role' => '{{name}}'
+		]);
+	}
+}

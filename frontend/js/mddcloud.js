@@ -10,8 +10,6 @@ var Backbone	= require('backbone'),
 
 
 $(document).ready(function(){
-	var socket;
-
 	async.parallel({
 		i18n: function(callback){
 			i18n.init({
@@ -22,7 +20,7 @@ $(document).ready(function(){
 			});
 		},
 		socket: function(callback){
-			socket=io.init(function(){
+			app.socket=io.init(function(){
 				callback(null);
 			});
 		}

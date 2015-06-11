@@ -1,0 +1,46 @@
+<?php 
+
+class IndexController extends Controller{
+
+	function index(){
+		$this->render('index');
+	}
+
+	function login(){
+		{{#userContext storageRequirements name 0~}}
+		$username = $_POST['username'];
+		$password = md5($_POST['password']);
+		${{variableName name}}Model = new {{className name}}();
+		${{variableName name}} = ${{variableName name}}Model->fetchRow("username=? and password=?", $username, $password);
+		if(${{variableName name}}){
+			{{#roleContext ../storageRequirements this~}}
+			${{variableName name}}Model = new {{className name}}();
+			${{variableName name}} = ${{variableName name}}Model->fetch(${{variableName parentContext.name}}['{{databaseName name}}_id']);
+			$controller = Utils::friendlyUrl(${{variableName name}}['name']);
+			$_SESSION['id'] = ${{variableName parentContext.name}}['id'];
+			$_SESSION['user'] = ${{variableName parentContext.name}}['username'];
+			$_SESSION['role'] = Utils::roleName(${{variableName name}}['name']);
+			$this->redirect("/$controller/index/");
+			{{~/roleContext}}
+		}
+		else{
+			$this->render('index',[
+				'errorMessage' => '{{t 'User o password wrong!'}}'
+			]);
+		}
+		{{~/userContext}}
+	}
+
+	function logout(){
+		session_destroy();
+		$this->redirect("/");
+	}
+
+	function upload(){
+		$extension = strrchr($_FILES['files']['name'][0],".");
+		$path = dirname($_SERVER['SCRIPT_FILENAME']);
+		$newPath = '/public/files/'.uniqid('file_').$extension;
+		move_uploaded_file( $_FILES['files']['tmp_name'][0], $path.$newPath);
+		echo $newPath;
+	}
+}

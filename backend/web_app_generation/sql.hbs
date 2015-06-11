@@ -1,0 +1,45 @@
+-- Database
+DROP DATABASE IF EXISTS db_{{id}};
+CREATE DATABASE db_{{id}};
+USE db_{{id}};
+
+-- Tables
+{{#each storageRequirements}}
+CREATE TABLE {{databaseName name}} (
+	id INT(10) PRIMARY KEY AUTO_INCREMENT,
+	{{#each attributes~}}
+		{{~databaseName name}} {{{databaseType type enumeration}}}{{#unless @last}},{{/unless}}
+	{{/each}}
+);
+{{/each}}
+
+-- Relationships
+{{#each classAssociations}}
+ALTER TABLE {{databaseName classB.name}} ADD {{databaseName classA.name}}_id INT(10);
+ALTER TABLE {{databaseName classB.name}} ADD CONSTRAINT fk_{{databaseName classA.name}} FOREIGN KEY ({{databaseName classA.name}}_id) REFERENCES {{databaseName classA.name}}(id);
+{{/each}}
+
+-- Example data
+{{#each actors}}
+	{{~#roleContext ../storageRequirements name~}}
+		INSERT INTO {{databaseName name}} VALUES (NULL,'{{~roleName parentContext~}}'
+			{{~#each attributes~}}
+				{{~#diff name 'name'~}}
+					, {{{exampleType type}}}
+				{{~/diff~}}				
+			{{~/each~}}
+		);
+	{{/roleContext}}
+
+	{{~#userContext ../storageRequirements name @index~}}
+		INSERT INTO {{databaseName name}} VALUES (NULL, '{{~databaseName parentContext~}}', MD5('{{~databaseName parentContext~}}'),
+			{{~#each attributes~}}
+				{{~#diff name 'username' 'password'~}}
+					{{{exampleType type}}},
+				{{~/diff~}}				
+			{{~/each~}}
+			{{~index~}}
+		);
+	{{~/userContext}}
+
+{{/each}}

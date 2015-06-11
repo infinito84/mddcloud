@@ -9,7 +9,7 @@ module.exports=(function(){
 						'IMAGE','STRING','DECIMAL',
 						'POSITION','TIMESTAMP', 'PASSWORD'
 					]},
-		enumeration	: {type : Schema.ObjectId, ref : 'Attribute', default:null}
+		enumeration	: {type : Schema.ObjectId, ref : 'Enumeration', default:null}
 	});
 
 	var Attribute = mongoose.model('Attribute',attributeSchema);

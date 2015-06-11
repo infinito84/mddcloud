@@ -26,21 +26,7 @@ module.exports=(function(){
 	//Defining the views and Handlebars engine for backend
 	var handlebars = exphbs.create({
 		extname : '.hbs',
-		helpers : {
-			//Traslate helper
-			t : function(i18n_key){
-				var result = i18next.t(i18n_key);
-				if(result===''||result===null||result===undefined)return i18n_key;
-				return result;
-			},
-			date : function(date) {
-				var d=new Date(date);
-				return [d.getDate(),d.getMonth()+1,d.getFullYear()].map(function(num){
-					if(num<10)return '0'+num;
-					return num;
-				}).join('/');
-			}
-		},
+		helpers : require('./helpersHandlebars'),
 		defaultLayout 	: 'home',
 		layoutsDir 		: config.folder + 'backend/views/layouts'
 	});
@@ -77,7 +63,7 @@ module.exports=(function(){
 	app.i18next = i18next;
 
 	//Passport configuration
-	require('./passport-setting')(app);
+	require('./passportSetting')(app);
 
 	//Creating the server at 8084 port :)
 	var server=http.Server(app).listen(8084);

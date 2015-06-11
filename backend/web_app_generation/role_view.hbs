@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>{{role}}</title>
+	\{{>include_css}}
+</head>
+<body>
+	\{{>header}}
+	<div class="container">
+		<div class="row">
+			\{{> {{databaseName name}} }}
+			<div class="col-lg-9">
+				<div class="jumbotron">
+					<h1>{{t 'Welcome'}}</h1>
+					<p>{{t 'Please select some item from the left panel'}}</p>
+				</div>
+			</div>
+		</div>		
+	</div>
+	\{{>include_js}}
+</body>
+</html>

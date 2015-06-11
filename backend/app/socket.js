@@ -1,7 +1,8 @@
 var availableSockets	= require('./availableSockets'),
 	ObjectId			= require('mongoose').Types.ObjectId,
 	Project				= require('../models/project'),
-	async				= require('async');
+	async				= require('async'),
+	generateWebApp		= require('./generateWebApp');
 
 module.exports=(function(){
 
@@ -71,6 +72,11 @@ module.exports=(function(){
 					Model.delete(projectId,params.id,fn);
 				}
 			});
+
+			socket.on('generate-web-app',generateWebApp.bind({
+				projectId 	: projectId,
+				socket 		: socket
+			}));
 
 			async.series([
 				function(callback){

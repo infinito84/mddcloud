@@ -1,0 +1,17 @@
+<?php 
+
+class {{className name}}Controller extends Controller{
+
+	public $allowRoles = [
+		{{#each roles~}}	
+		'{{~this}}'{{#unless @last}},{{/unless}}
+		{{~/each}}
+	];
+
+	{{#each actions}}
+	function step{{inc @index}}(){
+		echo 'step{{inc @index}}';
+	}
+	{{/each}}
+
+}

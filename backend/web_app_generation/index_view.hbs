@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	\{{>include_css}}
+</head>
+<body>
+	<div class="container">
+		\{{#if errorMessage}}
+		<div class="alert alert-danger alert-form" role="alert">
+			<strong>\{{errorMessage}}</strong>
+		</div>
+		\{{/if}}
+		<div class="well login-form">
+			<form class="bs-example form-horizontal" action="\{{#root /index/login/}}" method="post">
+				<fieldset>
+					<legend>{{t 'Log in with your credentials'}}</legend>
+					<div class="form-group">
+						<label class="col-lg-5 control-label">
+							{{t 'Username'}}
+						</label>
+						<div class="col-lg-4">
+							<input type="text" class="form-control" name="username" required="required">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="nombres" class="col-lg-5 control-label">
+							{{t 'Password'}}
+						</label>
+						<div class="col-lg-4">
+							<input type="password" name="password" class="form-control" required="required">
+						</div>
+					</div>
+				</fieldset>
+				<fieldset>
+					<label class="col-lg-5 control-label">
+						{{t 'Try with'}}
+					</label>
+					<div>
+					 	{{#each actors}}
+						<b>{{t 'User'}}</b> {{databaseName name}}
+						<b>{{t 'password'}}</b> {{databaseName name}}
+						<br>
+					 	{{/each}}
+					</div>
+				</fieldset>
+				<fieldset>
+					<br> <br> 
+					<label class="col-lg-4 control-label"></label>
+					<div>
+					 	<button type="submit" class="btn btn-primary">
+					 		{{t 'Log in'}}
+					 	</button>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+	\{{>include_js}}
+</body>
+</html>
