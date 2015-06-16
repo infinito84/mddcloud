@@ -56,6 +56,7 @@ module.exports = Backbone.View.extend({
 			}
 		});
 		$('#generate-web-app').click(function(){
+			$("body").append("<div id='webFrame' style='background-color:rgba(0,0,0,0.75);position:fixed;width:100%;height:100%;z-index:1000;top:0px;left:0px'><h1 style='color:white;margin: 1em 1em;'></h1></div>");
 			app.socket.emit('generate-web-app');
 		});
 		window.scrollTo(0,1);

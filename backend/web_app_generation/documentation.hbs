@@ -1,0 +1,343 @@
+<meta charset="utf-8">
+<style>
+body{
+	/*max-width: 70%;*/
+	margin: 5em auto;
+}
+table{
+	width : 100%;
+}
+</style>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+<div class="container">
+<h1>{{name}}</h1>
+<p>{{description}}</p>
+<h3>{{t 'Enumerations'}}</h3>
+<table class="table table-striped">
+	<tr>
+		<th>#</th>
+		<th>{{t 'Name'}}</th>
+		<th>{{t 'Values'}}</th>
+	</tr>
+	{{#each enumerations}}
+	<tr>
+		<td>{{inc @index}}</td>
+		<td>{{name}}</td>
+		<td>{{values}}</td>
+	</tr>
+	{{/each}}
+</table>
+<h3>{{t 'Actors'}}
+{{#each actors}}
+<br><br>
+<table id="actor_{{_id}}"  class="table table-striped">
+	<tr>
+		<th>#</th>
+		<td>{{inc @index}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Name'}}</th>
+		<td>{{name}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Description'}}</th>
+		<td>{{description}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Creation date'}}</th>
+		<td>{{creationDate}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Sources'}}</th>
+		<td>
+			{{#each sources}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Authors'}}</th>
+		<td>
+			{{#each authors}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Multimedias'}}</th>
+		<td>
+			{{#each multimedias}}
+			{{{ref  'multimedias' this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+</table>
+{{/each}}
+<h3>{{t 'Non Functional Requirements'}}
+{{#each nonFunctionalRequirements}}
+<br><br>
+<table id="nonFunctionalRequirement_{{_id}}" class="table table-striped">
+	<tr>
+		<th>#</th>
+		<td>{{inc @index}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Name'}}</th>
+		<td>{{name}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Description'}}</th>
+		<td>{{description}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Creation date'}}</th>
+		<td>{{creationDate}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Sources'}}</th>
+		<td>
+			{{#each sources}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Authors'}}</th>
+		<td>
+			{{#each authors}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Multimedias'}}</th>
+		<td>
+			{{#each multimedias}}
+			{{{ref  'multimedias' this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+</table>
+{{/each}}
+<h3>{{t 'Functional Requirements'}}
+{{#each functionalRequirements}}
+<br><br>
+<table id="functionalRequirement_{{_id}}" class="table table-striped">
+	<tr>
+		<th>#</th>
+		<td>{{inc @index}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Name'}}</th>
+		<td>{{name}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Description'}}</th>
+		<td>{{description}}</td>
+	</tr>
+	<tr>
+	<tr>
+		<th>{{t 'Actions'}}</th>
+		<td>
+			{{#each actions}}
+			{{operation}} {{storageRequirement.name}}<br>
+			{{/each}}
+		</td>
+	</tr>
+		<th>{{t 'Creation date'}}</th>
+		<td>{{creationDate}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Sources'}}</th>
+		<td>
+			{{#each sources}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Authors'}}</th>
+		<td>
+			{{#each authors}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Multimedias'}}</th>
+		<td>
+			{{#each multimedias}}
+			{{{ref  'multimedias' this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+</table>
+{{/each}}
+<h3>{{t 'Storage Requirements'}}
+{{#each storageRequirements}}
+<br><br>
+<table id="storageRequirement_{{_id}}" class="table table-striped">
+	<tr>
+		<th>#</th>
+		<td>{{inc @index}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Name'}}</th>
+		<td>{{name}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Description'}}</th>
+		<td>{{description}}</td>
+	</tr>
+	<tr>
+	<tr>
+		<th>{{t 'Attributes'}}</th>
+		<td>
+			{{#each attributes}}
+			{{name}}
+			{{type}}<br>
+			{{/each}}
+		</td>
+	</tr>
+		<th>{{t 'Creation date'}}</th>
+		<td>{{creationDate}}</td>
+	</tr>
+	<tr>
+	<tr>
+		<th>{{t 'Special'}}</th>
+		<td>{{special}}</td>
+	</tr>
+		<th>{{t 'Sources'}}</th>
+		<td>
+			{{#each sources}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Authors'}}</th>
+		<td>
+			{{#each authors}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Multimedias'}}</th>
+		<td>
+			{{#each multimedias}}
+			{{{ref  'multimedias' this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+</table>
+{{/each}}
+<h3>{{t 'Objectives'}}
+{{#each functionalRequirements}}
+<br><br>
+<table id="objective_{{_id}}" class="table table-striped">
+	<tr>
+		<th>#</th>
+		<td>{{inc @index}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Name'}}</th>
+		<td>{{name}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Description'}}</th>
+		<td>{{description}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Creation date'}}</th>
+		<td>{{creationDate}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Sources'}}</th>
+		<td>
+			{{#each sources}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Authors'}}</th>
+		<td>
+			{{#each authors}}
+			{{{refUser  this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Multimedias'}}</th>
+		<td>
+			{{#each multimedias}}
+			{{{ref  'multimedias' this}}}<br>
+			{{/each}}
+		</td>
+	</tr>
+</table>
+{{/each}}
+<h3>{{t 'Multimedias'}}
+{{#each multimedias}}
+<br><br>
+<table id="multimedias_{{_id}}" class="table table-striped">
+	<tr>
+		<th>#</th>
+		<td>{{inc @index}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Name'}}</th>
+		<td>{{name}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Description'}}</th>
+		<td>{{description}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Type'}}</th>
+		<td>{{type}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'URL'}}</th>
+		<td>
+			{{url}}<br>
+		</td>
+	</tr>
+	
+</table>
+{{/each}}
+<h3>{{t 'Participants'}}
+{{#each participants}}
+<br><br>
+<table id="user_{{user._id}}" class="table table-striped">
+	<tr>
+		<th>#</th>
+		<td>{{inc @index}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'User'}}</th>
+		<td>
+			{{user.name}}
+			{{user.email}}<br>
+		
+			
+		</td>
+	</tr>
+	<tr>
+		<th>{{t 'Role'}}</th>
+		<td>{{role}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Creation date'}}</th>
+		<td>{{creationDate}}</td>
+	</tr>
+	<tr>
+		<th>{{t 'Status'}}</th>
+		<td>{{status}}</td>
+	</tr>
+</table>
+{{/each}}
+</div>

@@ -41,6 +41,15 @@ module.exports=(function(){
 			socket.on('info', function(info){
 				$.notify(info,"info");
 			});
+			socket.on('info2', function(info){
+				$("#webFrame h1").append(info+'<br>');
+			});
+			socket.on('finish2',function(info){
+				setTimeout(function(){
+					$("#webFrame").remove();
+				},1000);
+				window.open(info);
+			});
 
 			socket.on('sync',function(params){
 				if(app.development){

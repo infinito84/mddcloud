@@ -203,5 +203,26 @@ var helper = module.exports = {
 		else{
 			return options.inverse(this);
 		}
+	},
+	ref : function(model,id, options) {
+		var element = null;
+		console.log(model);
+		helper.root[model].forEach(function(elem){
+			if(elem._id.toString() === id.toString()){
+				return element = elem;
+			}
+		});
+		element = element || {};
+		return "<a href='#"+ model +"_"+ id +"'>"+ element.name + "</a>";
+	},
+	refUser : function(id, options) {
+		var element = null;
+		helper.root.participants.forEach(function(elem){
+			if(elem.user._id.toString() === id.toString()){
+				return element = elem.user;
+			}
+		});
+		element = element || {};
+		return "<a href='#user_"+ id +"'>"+ element.name + "</a>";
 	}
 }

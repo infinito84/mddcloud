@@ -8,6 +8,7 @@ var Handlebars 	= require('handlebars'),
 	fs 			= require('fs');
 
 var deepPopulateArray = [
+	'enumerations',
 	'participants.user',
 	'actors',
 	'multimedias',
@@ -32,7 +33,7 @@ var templateFile = function(name){
 module.exports = function(){	
 	var projectId = this.projectId;
 	var socket = this.socket;
-	socket.emit('info','Starting...');
+	socket.emit('info2','Starting...');
 	Project.findById(projectId)
 	.deepPopulate(deepPopulateArray)
 	.exec(function (error,project) {
@@ -40,7 +41,7 @@ module.exports = function(){
 			callback('Internal error');
 			return;
 		}
-		socket.emit('info','Making the logic...');
+		socket.emit('info2','Making the logic...');
 
 		var folders = [];
 		var files = [];
@@ -277,6 +278,15 @@ module.exports = function(){
 			data : template(project)
 		});
 
+		//Generating documentation
+		helpers.root = project;
+		text = templateFile('documentation');
+		template = Handlebars.compile(text);
+		files.push({
+			file : folder + 'documentation.html',
+			data : template(project)
+		});
+
 		//Generating view folder for IndexController
 		folders.push(folder + 'views/index/');
 
@@ -304,9 +314,12 @@ module.exports = function(){
 				});
 			},
 			function(callback){
-				socket.emit('info','Copying framework');
+				socket.emit('info2','Copying framework');
 				exec('cp -rf '+ config.framework +'* '+ folder,function(){
-					callback();
+					var template = config.folderApps +'bootswatch/'+project.template.toLowerCase()+'/bootstrap.min.css '
+					exec('cp -rf '+ template + folder + 'public/css/',function(){
+						callback();
+					});
 				});
 			},
 			function(callback){
@@ -315,7 +328,7 @@ module.exports = function(){
 				});
 			},
 			function(callback){
-				socket.emit('info','Making folders');
+				socket.emit('info2','Making folders');
 				var total = 0;
 				var limit = folders.length;
 				for (var i = 0; i < folders.length; i++) {
@@ -328,11 +341,10 @@ module.exports = function(){
 				};				
 			},
 			function(callback){
-				socket.emit('info','Writing files');
+				socket.emit('info2','Writing files');
 				var total = 0;
 				var limit = files.length;
 				for (var i = 0; i < files.length; i++) {
-					console.log(files[i].file);
 					fs.writeFile(files[i].file , files[i].data, function () {
 						total++;
 						if(total === limit){
@@ -342,28 +354,30 @@ module.exports = function(){
 				};				
 			},
 			function(callback){
-				socket.emit('info','Creating database');
-				var user = config.mysql.user;
-				var pass = config.mysql.password;
-				exec('mysql -u'+ user +' -p'+ pass +' < '+ folder +'database.sql',function(){
+				socket.emit('info2', 'Making a zip project file');
+				exec('cd '+ config.folderApps +' && zip -rp '+ config.folderApps + projectId +'/download.zip '+ projectId,function(){
 					callback();
 				});
 			},
 			function(callback){
-				socket.emit('info', 'Making a zip project file');
-				callback();
-			},
-			function(callback){
-				socket.emit('info','Creating settings');
+				socket.emit('info2','Creating settings');
 				text = templateFile('conf');
 				template = Handlebars.compile(text);
 				file = 'conf/Conf.php';
 				fs.writeFile(folder +file , template(project), function () {
 					callback();
 				});
+			},
+			function(callback){
+				socket.emit('info2','Creating database');
+				var user = config.mysql.user;
+				var pass = config.mysql.password;
+				exec('mysql -u'+ user +' -p'+ pass +' < '+ folder +'database.sql',function(){
+					callback();
+				});
 			}
 		],function(){
-			socket.emit('info','Done go to: http://localhost/preview/'+projectId);
+			socket.emit('finish2',config.host+'preview/'+projectId);
 		});		
 	});	
 }
