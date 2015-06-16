@@ -11,7 +11,7 @@ class IndexController extends Controller{
 		$username = $_POST['username'];
 		$password = md5($_POST['password']);
 		${{variableName name}}Model = new {{className name}}();
-		${{variableName name}} = ${{variableName name}}Model->fetchRow("username=? and password=?", $username, $password);
+		${{variableName name}} = ${{variableName name}}Model->fetchRow("username='$username' and password='$password'");
 		if(${{variableName name}}){
 			{{#roleContext ../storageRequirements this~}}
 			${{variableName name}}Model = new {{className name}}();

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	\{{>include_css}}
+</head>
+<body>
+	\{{>header}}
+	<div class="container">
+		<div class="row">
+			\{{#partial this}}
+			<div class="col-lg-9">
+				<table class="table table-striped table-hover">
+					<tr>
+						{{~#each storage.attributes}}
+						{{~#diff type 'PASSWORD'}}
+						<th>{{name}}</th>
+						{{~/diff}}
+						{{~/each}}
+						{{~#if nextStorage}}
+						<th>{{t 'Detail'}}</th>
+						{{~/if}}
+						{{~#if UPDATE}}
+						<th>{{t 'Edit'}}</th>
+						{{~/if}}
+						{{~#if DELETE}}
+						<th>{{t 'Delete'}}</th>
+						{{~/if}}						
+					</tr>
+					\{{#if data}}
+					\{{#each data}}
+					<tr>
+						{{~#each storage.attributes}}
+						{{~#eq type 'INT' 'STRING' 'ENUM' 'DECIMAL'}}
+						<td>\{{ {{databaseName name}} }}</td>
+						{{~/eq}}
+						{{~#eq type 'HTML'}}
+						<td>
+							<div>
+							\{{{ {{databaseName name}} }}}
+							</div>
+						</td>
+						{{~/eq}}
+						{{~#eq type 'POSITION'}}
+						<td>
+							<button class="view-map btn btn-info btn-xs" data-position="\{{ {{databaseName name}} }}">
+								{{t 'View position'}}
+							</button>
+						</td>
+						{{~/eq}}
+						{{~#eq type 'TIMESTAMP'}}
+						<td>\{{#format_date {{databaseName name}} 'Y-m-d'}}</td>
+						{{~/eq}}
+						{{~#eq type 'IMAGE'}}
+						<td>
+							<button class="view-image btn btn-info btn-xs" data-image="\{{ {{databaseName name}} }}">
+								{{t 'View image'}}
+							</button>
+						</td>
+						{{~/eq}}
+						{{~#eq type 'FILE'}}
+						<td>
+							<a class="btn btn-info btn-xs" target="_blank" href="\{{ {{databaseName name}} }}">
+								{{t 'Download file'}}
+							</a>
+						</td>
+						{{~/eq}}
+						{{~/each}}
+						{{~#if nextStorage}}
+						<td>
+							<a class="btn btn-default btn-xs" href="\{{#root /{{friendlyUrl requirementName}}/{{friendlyUrl nextStorage.name}}/ }}\{{id}}">
+								{{t 'View their'}} {{nextStorage.name}}
+							</a>
+						</td>
+						{{~/if}}
+						{{~#if UPDATE}}
+						<td>
+							<button class="edit btn btn-warning btn-xs" onclick='edit(\{{{json}}})'>
+								{{t 'Edit'}}
+							</button>
+						</td>
+						{{~/if}}
+						{{~#if DELETE}}
+						<td>
+							<button class="delete btn btn-danger btn-xs" onclick='delete2(\{{id}})'>
+								{{t 'Delete'}}
+							</button>
+						</td>
+						{{~/if}}
+					</tr>
+					\{{/each}}
+					\{{else}}
+					<tr>
+						<td>{{t 'Without information'}}</td>
+					</tr>
+					\{{/if}}
+				</table>
+				{{~#if CREATE}}
+				<button class="create btn btn-primary" onclick='create()'>{{t 'Create new'}} {{storage.name}}</button>
+				{{~/if}}
+			</div>
+		</div>		
+	</div>
+	<div id="create" class="modal fade">
+		<div class="modal-dialog modal-lg">
+			<form class="modal-content" onsubmit="return post()";>
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">{{t 'Create new'}} {{storage.name}}</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-horizontal">
+						<fieldset>
+							{{~#each storage.attributes}}
+							<div class="form-group">
+								<label class="col-lg-3 control-label">{{name}}</label>
+								<div class="col-lg-9">
+									{{~#eq type 'INT'}}
+									<input type="number" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'HTML'}}
+									<textarea class="form-control" rows="10" name="{{databaseName name}}" required></textarea>
+									{{~/eq}}
+									{{~#eq type 'FILE'}}
+									<input type="hidden" name="{{databaseName name}}">
+									<button class="btn btn-warning">
+										<input type="file" data-id="\{{#id}}">
+										{{t 'Upload file'}}
+									</button>
+									<div class="progress progress-striped hidden">
+										<div class="progress-bar progress-bar-success" style="width: 0%"></div>
+									</div>
+									<a class="hidden" target="_blank">{{t 'View file'}}</a>
+									{{~/eq}}
+									{{~#eq type 'ENUM'}}
+									<select class="form-control" name="{{databaseName name}}">
+										{{~#each enumeration.values}}
+										<option>{{this}}</option>
+										{{~/each}}
+									</select>
+									{{~/eq}}
+									{{~#eq type 'IMAGE'}}
+									<input type="hidden" name="{{databaseName name}}">
+									<button class="btn btn-info">
+										<input type="file" data-id="\{{#id}}">
+										{{t 'Upload image'}}
+									</button>
+									<div class="progress progress-striped hidden">
+										<div class="progress-bar progress-bar-success" style="width: 0%"></div>
+									</div>
+									<img class="image_file hidden"/>
+									{{~/eq}}
+									{{~#eq type 'STRING'}}
+									<input type="text" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'DECIMAL'}}
+									<input type="number" step="any" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'POSITION'}}
+									<input type="hidden" class="form-control" name="{{databaseName name}}">
+									<div class="google-maps"></div>
+									{{~/eq}}
+									{{~#eq type 'TIMESTAMP'}}
+									<input type="date" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'PASSWORD'}}
+									<input type="password" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+								</div>
+							</div>
+							{{~/each}}
+							{{~#each relationships}}
+							{{~#diff ../previousStorage.id id}}
+							<div class="form-group">
+								<label class="col-lg-3 control-label">{{name}}</label>
+								<div class="col-lg-9">
+									
+									<select class="form-control" name="{{databaseName name}}_id">
+										\{{#each data{{className name}} }}
+										<option value="\{{id}}">\{{ {{databaseName attributes.0.name}} }}</option>
+										\{{/each}}
+									</select>
+								</div>
+							</div>
+							{{else}}
+							<input type="hidden" name="{{databaseName name}}_id" value="\{{id}}"/>
+							{{~/diff}}
+							{{~/each}}
+						</fieldset>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">{{t 'Close'}}</button>
+					<button type="submit" class="btn btn-primary">{{t 'Create'}}</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div id="edit" class="modal fade">
+		<div class="modal-dialog modal-lg">
+			<form class="modal-content" onsubmit="return put()">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">{{t 'Edit'}} {{storage.name}}</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-horizontal">
+						<fieldset>
+							<input type="hidden" class="form-control" name="id">
+							{{~#each storage.attributes}}
+							<div class="form-group">
+								<label class="col-lg-3 control-label">{{name}}</label>
+								<div class="col-lg-9">
+									{{~#eq type 'INT'}}
+									<input type="number" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'HTML'}}
+									<textarea class="form-control" rows="10" name="{{databaseName name}}" required></textarea>
+									{{~/eq}}
+									{{~#eq type 'FILE'}}
+									<input type="hidden" name="{{databaseName name}}">
+									<button class="btn btn-warning">
+										<input type="file" data-id="\{{#id}}">
+										{{t 'Upload file'}}
+									</button>
+									<div class="progress progress-striped hidden">
+										<div class="progress-bar progress-bar-success" style="width: 0%"></div>
+									</div>
+									<a id="edit_{{databaseName name}}" target="_blank">{{t 'View file'}}</a>
+									{{~/eq}}
+									{{~#eq type 'ENUM'}}
+									<select class="form-control" name="{{databaseName name}}">
+										{{~#each enumeration.values}}
+										<option>{{this}}</option>
+										{{~/each}}
+									</select>
+									{{~/eq}}
+									{{~#eq type 'IMAGE'}}
+									<input type="hidden" name="{{databaseName name}}">
+									<button class="btn btn-info">
+										<input type="file" data-id="\{{#id}}">
+										{{t 'Upload image'}}
+									</button>
+									<div class="progress progress-striped hidden">
+										<div class="progress-bar progress-bar-success" style="width: 0%"></div>
+									</div>
+									<img class="image_file" id="edit_{{databaseName name}}"/>
+									{{~/eq}}
+									{{~#eq type 'STRING'}}
+									<input type="text" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'DECIMAL'}}
+									<input type="number" step="any" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'POSITION'}}
+									<input type="hidden" class="form-control" id="map_{{databaseName name}}" name="{{databaseName name}}">
+									<div class="google-maps"></div>
+									{{~/eq}}
+									{{~#eq type 'TIMESTAMP'}}
+									<input type="date" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+									{{~#eq type 'PASSWORD'}}
+									<input type="password" class="form-control" name="{{databaseName name}}" required>
+									{{~/eq}}
+								</div>
+							</div>
+							{{~/each}}
+							{{~#each relationships}}
+							<div class="form-group">
+								<label class="col-lg-3 control-label">{{name}}</label>
+								<div class="col-lg-9">
+									
+									<select class="form-control" name="{{databaseName name}}_id">
+										\{{#each data{{className name}} }}
+										<option value="\{{id}}">\{{ {{databaseName attributes.0.name}} }}</option>
+										\{{/each}}
+									</select>
+								</div>
+							</div>
+							{{~/each}}
+						</fieldset>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">{{t 'Close'}}</button>
+					<button type="submit" class="btn btn-primary">{{t 'Edit'}}</button>
+				</div>
+			</form>
+		</div>
+	</div>
+	\{{>include_js}}
+</body>
+</html>

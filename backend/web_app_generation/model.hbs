@@ -2,5 +2,17 @@
 
 class {{className name}} extends Connection{
 	public $table = '{{databaseName name}}';
-
+	{{#each functions}}
+	{{~#if where}}
+	function fetchTheir{{name}}($id){
+		{{{sql}}}
+		return DB::query($sql);
+	}
+	{{~else}}
+	function fetchTheir{{name}}(){
+		{{{sql}}}
+		return DB::query($sql);
+	}
+	{{~/if}}
+	{{~/each}}
 }

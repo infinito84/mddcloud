@@ -48,7 +48,7 @@ module.exports=(function(){
 		if(type === 'AUDIO'){
 			file.description = req.i18n.t('An audio resource');
 			if(file.extension !== 'mp3'){
-				socket.emit('info',req.i18n.t('Processing audio...'));	
+				socket.emit('info',req.i18n.t('Processing audio'));	
 				var newPath = file.path.replace('.'+file.extension,'') + '.mp3';
 				ffmpeg(file.path).on('error', function(err) {
 					socket.emit('requestError',req.i18n.t('Error converting the audio to MP3'));
@@ -68,7 +68,7 @@ module.exports=(function(){
 		}
 		else if(type === 'VIDEO'){
 			file.description = req.i18n.t('An video resource');
-			socket.emit('info',req.i18n.t('Processing video...'));	
+			socket.emit('info',req.i18n.t('Processing video'));	
 			var newPath = file.path.replace('.'+file.extension,'')+'.mp4';
 			ffmpeg(file.path).on('error', function(err) {
 				socket.emit('requestError',req.i18n.t('Error processing the video'));

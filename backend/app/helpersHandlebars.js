@@ -135,5 +135,73 @@ var helper = module.exports = {
 		else{
 			return options.inverse(this);
 		}
+	},
+	getSQL : function(steps){
+		var sql = '';
+		var where = false;
+		var previousStep = null;
+		var firstStep = null;
+		for(var i = 0; i<steps.length; i++){
+			var step = steps[i];
+			var table = helper.databaseName(step.storageRequirement.name);
+			if(i === 0){
+				firstStep = step;
+				if(step.readMethod !== 'GENERAL'){
+					where = true;
+				}
+				sql = '\t\t$sql .= " FROM ' + table + '";\n';
+			}
+			if(i > 0){
+				var table2 = helper.databaseName(previousStep.storageRequirement.name);
+				sql += '\t\t$sql .= " INNER JOIN '+ table + ' ON ('+ table +'.'+ table2 +'_id = '+ table2 +'.id)";\n'
+			}
+			previousStep = step;
+		}
+		var table2 = helper.databaseName(previousStep.storageRequirement.name);
+		sql = '$sql = "SELECT '+ table2 + '.*";	\n' + sql;
+		if(where){
+			var table3 = helper.databaseName(firstStep.storageRequirement.name);
+			sql += '\t\t$sql .= " WHERE '+ table3 +'.id = $id";\n';
+		}
+		return {sql : sql, where : where};
+	},
+	getPlugins : function (attributes, options){
+		var context = {
+			tinymce 			: 'false',
+			jqueryFileUpload 	: 'false',
+			maps 				: 'false'
+		}
+		for(var i=0; i<attributes.length; i++){
+			var attribute = attributes[i];
+			if(attribute.type === 'HTML'){
+				context.tinymce = 'true';
+			}
+			if(attribute.type === 'POSITION'){
+				context.maps = 'true';
+			}
+			if(attribute.type === 'IMAGE' || attribute.type === 'FILE'){
+				context.jqueryFileUpload = 'true';
+			}
+		}
+		return options.fn(context);
+	},
+	console : function(value){
+		console.log(value);
+		return '';
+	},
+	eq : function(){
+		var args = Array.prototype.slice.call(arguments);
+		var options = args.pop();
+		var control = false;
+		var temp = args[0];
+		for(var i=1; i< args.length; i++){
+			control = control || (temp === args[i]);
+		}
+		if(control){
+			return options.fn(this);
+		}
+		else{
+			return options.inverse(this);
+		}
 	}
 }

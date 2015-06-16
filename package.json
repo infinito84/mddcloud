@@ -5,8 +5,8 @@
   "scripts": {
     "start": "node ./backend/backend.js",
     "prestart": "node ./node_modules/gulp/bin/gulp.js",
-    "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./frontend/js -r -o frontend/js/locales -l en,fr,es,pt -f t,app.utils.t",
-    "i18n_backend": "node ./node_modules/i18next-parser/bin/cli.js ./backend -r -o backend/locales -l en,fr,es,pt -f t,req.i18n.t"
+    "i18n": "node ./node_modules/i18next-parser/bin/cli.js ./frontend/js -r -o frontend/js/locales -l en,fr,es,pt -f t,app.utils.t --directoryFilter '!libs'",
+    "i18n_backend": "node ./node_modules/i18next-parser/bin/cli.js ./backend -r -o backend/locales -l en,fr,es,pt -f t,req.i18n.t --directoryFilter '!assets'"
   },
   "author": "Sergio Andrés Ñustes <infinito84@gmail.com>",
   "license": "GPL",

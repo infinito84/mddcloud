@@ -7,50 +7,164 @@ class {{className name}}Controller extends Controller{
 		'{{~this}}'{{#unless @last}},{{/unless}}
 		{{~/each}}
 	];
+	{{~#each steps}}
+	{{~#if needArray}}
 
-	public function __construct(){
-		{{#each steps~}}
-		{{~#if needArray~}}
-		$this->{{variableName storage.name}} = [
-			GET => function(){
-				{{#each READ~}}
-					echo '{{operation}} {{readMethod}} {{storageRequirement.name}}<br>';
-				{{/each}}
-			}
-			{{~#if CREATE~}}
-			,
-			POST => function(){
-				{{#each CREATE~}}
-					echo '{{operation}} {{storageRequirement.name}}<br>';
-				{{~/each}}
-			}
-			{{/if}}
-			{{~#if UPDATE~}}
-			,
-			PUT => function(){
-				{{#each UPDATE~}}
-					echo '{{operation}} {{storageRequirement.name}}<br>';
-				{{~/each}}
-			}
-			{{/if}}
-			{{~#if DELETE~}}
-			,
-			DELETE => function(){
-				{{#each DELETE~}}
-					echo '{{operation}} {{storageRequirement.name}}<br>';
-				{{~/each}}
-			}
-			{{/if}}
-		];
-		{{~else~}}
-		
-		$this->{{variableName storage.name}} = function(){
-		{{#each READ}}
-			echo '{{operation}} {{readMethod}} {{storageRequirement.name}}<br>';
-		{{/each~}}
-		};
+	function {{variableName storage.name}}_GET({{#if previousStorage}}$id{{/if}}){
+		{{~#if storageInit}}
+		${{variableName storageInit.name}} = new {{className storageInit.name}}();
+		{{~#eq READ.0.readMethod 'SESSION'}}
+		$data = ${{variableName storageInit.name}}->fetchTheir{{className storage.name}}($_SESSION['id']);
+		{{~else}}
+		{{~#if previousStorage}}
+		$data = ${{variableName storageInit.name}}->fetchTheir{{className storage.name}}($id);
+		{{~else}}
+		$data = ${{variableName storageInit.name}}->fetchTheir{{className storage.name}}();
 		{{~/if}}
-		{{/each}}
-	}
+		{{~/eq}}
+		{{~else}}
+		${{variableName storage.name}} = new {{className storage.name}}();
+		{{~#eq READ.0.readMethod 'SESSION'}}
+		$data = ${{variableName storage.name}}->fetchWhere('id='.$_SESSION['id']);
+		{{~else}}
+		{{~#if previousStorage}}
+		$data = ${{variableName storage.name}}->fetchWhere("{{databaseName previousStorage.name}}_id=$id");
+		{{~else}}
+		$data = ${{variableName storage.name}}->fetchAll();
+		{{~/if}}
+		{{~/eq}}
+		{{~/if}}
+		{{~#each relationships}}
 
+		${{variableName name}} = new {{className name}}();
+		$data{{className name}} = ${{variableName name}}->fetchAll();
+		{{~/each}}
+
+		foreach($data as &$d){
+			$d['json'] = json_encode($d);
+		}
+
+		$this->render('{{databaseName storage.name}}',[
+			'data' => $data,
+			{{~#getPlugins storage.attributes}}
+			'plugins' => [
+				'tinymce' 				=> {{tinymce}},
+				'jquery-file-upload'	=> {{jqueryFileUpload}},
+				'maps'					=> {{maps}}
+			]
+			{{~/getPlugins}}
+			{{~#each relationships}},
+			'data{{className name}}' => $data{{className name}}
+			{{~/each}}
+			{{~#if previousStorage}},
+			'id' => $id
+			{{~/if}}
+		]);
+	}
+	{{~#if CREATE}}
+
+	function {{variableName storage.name}}_POST($id){
+		$data = array();
+		{{~#each storage.attributes}}
+		{{~#eq type 'PASSWORD'}}
+		$data['{{databaseName name}}'] = md5($_POST['{{databaseName name}}']);
+		{{~else}}
+		$data['{{databaseName name}}'] = $_POST['{{databaseName name}}'];
+		{{~/eq}}
+		{{~/each}}
+		{{~#each relationships}}
+		$data['{{databaseName name}}_id'] = $_POST['{{databaseName name}}_id'];
+		{{~/each}}
+
+		${{variableName storage.name}} = new {{className storage.name}}();
+		${{variableName storage.name}}->insert($data);
+	}
+	{{~/if}}
+	{{~#if UPDATE}}	
+	
+	function {{variableName storage.name}}_PUT(){
+		$_PUT = array();
+		parse_str(file_get_contents('php://input'), $_PUT);
+
+		$data = array();
+		{{~#each storage.attributes}}
+		{{~#eq type 'PASSWORD'}}
+		$data['{{databaseName name}}'] = md5($_PUT['{{databaseName name}}']);
+		{{~else}}
+		$data['{{databaseName name}}'] = $_PUT['{{databaseName name}}'];
+		{{~/eq}}
+		{{~/each}}
+		{{~#each relationships}}
+		$data['{{databaseName name}}_id'] = $_PUT['{{databaseName name}}_id'];
+		{{~/each}}
+
+		${{variableName storage.name}} = new {{className storage.name}}();
+		${{variableName storage.name}}->update($data, $_PUT['id']);
+	}
+	{{~/if}}
+	{{~#if DELETE}}	
+
+	function {{variableName storage.name}}_DELETE($id){
+		$_DELETE = array();
+		parse_str(file_get_contents('php://input'), $_DELETE);
+
+		${{variableName storage.name}} = new {{className storage.name}}();
+		${{variableName storage.name}}->delete($_DELETE['id']);
+	}
+	{{~/if}}
+	{{~else}}
+
+	function {{variableName storage.name}}({{#if previousStorage}}$id{{/if}}){
+		{{~#if storageInit}}
+		${{variableName storageInit.name}} = new {{className storageInit.name}}();
+		{{~#eq READ.0.readMethod 'SESSION'}}
+		$data = ${{variableName storageInit.name}}->fetchTheir{{className storage.name}}($_SESSION['id']);
+		{{~else}}
+		{{~#if previousStorage}}
+		$data = ${{variableName storageInit.name}}->fetchTheir{{className storage.name}}($id);
+		{{~else}}
+		$data = ${{variableName storageInit.name}}->fetchTheir{{className storage.name}}();
+		{{~/if}}
+		{{~/eq}}
+		{{~else}}
+		${{variableName storage.name}} = new {{className storage.name}}();
+		{{~#eq READ.0.readMethod 'SESSION'}}
+		$data = ${{variableName storage.name}}->fetchWhere('id='.$_SESSION['id']);
+		{{~else}}
+		{{~#if previousStorage}}
+		$data = ${{variableName storage.name}}->fetchWhere("{{databaseName previousStorage.name}}_id=$id");
+		{{~else}}
+		$data = ${{variableName storage.name}}->fetchAll();
+		{{~/if}}
+		{{~/eq}}
+		{{~/if}}
+		{{~#each relationships}}
+
+		${{variableName name}} = new {{className name}}();
+		$data{{className name}} = ${{variableName name}}->fetchAll();
+		{{~/each}}
+
+		foreach($data as &$d){
+			$d['json'] = json_encode($d);
+		}
+
+		$this->render('{{databaseName storage.name}}',[
+			'data' => $data,
+			{{~#getPlugins storage.attributes}}
+			'plugins' => [
+				'tinymce' 				=> {{tinymce}},
+				'jquery-file-upload'	=> {{jqueryFileUpload}},
+				'maps'					=> {{maps}}
+			]
+			{{~/getPlugins}}
+			{{~#each relationships}},
+			'data{{className name}}' => $data{{className name}}
+			{{~/each}}
+			{{~#if previousStorage}},
+			'id' => $id
+			{{~/if}}
+		]);
+	}
+	{{~/if}}
+	{{~/each}}
 }

@@ -13,7 +13,7 @@ var deepPopulateArray = [
 	'multimedias',
 	'objectives',
 	'storageRequirements.attributes.enumeration',
-	'functionalRequirements.actions.storageRequirement',
+	'functionalRequirements.actions.storageRequirement.attributes.enumeration',
 	'functionalRequirements.actions.parentAction',
 	'nonFunctionalRequirements',
 	'useCaseAssociations',
@@ -32,7 +32,6 @@ var templateFile = function(name){
 module.exports = function(){	
 	var projectId = this.projectId;
 	var socket = this.socket;
-	var folder = config.folderApps + projectId +'/';
 	socket.emit('info','Starting...');
 	Project.findById(projectId)
 	.deepPopulate(deepPopulateArray)
@@ -41,14 +40,22 @@ module.exports = function(){
 			callback('Internal error');
 			return;
 		}
+		socket.emit('info','Making the logic...');
+
+		var folders = [];
+		var files = [];
+		var folder = config.folderApps + projectId +'/';
+
 		project.mysql = {
 			user : config.mysql.user,
 			pass : config.mysql.password
 		};
 
+		//Generating steps from activiy diagrams
 		for(var i=0; i<project.functionalRequirements.length; i++){
 			var requirement = project.functionalRequirements[i];
 			var steps = {};
+			//Generating steps
 			for(var j=0; j < requirement.actions.length; j++){
 				var action = requirement.actions[j];
 				if(['START', 'END'].indexOf(action.operation) !== -1){
@@ -67,20 +74,222 @@ module.exports = function(){
 					steps[action.parentAction._id][action.operation].push(action);
 				}
 			}
+			//Reducing steps
 			var stepsKeys = Object.keys(steps);
-			for(var j = 0; j<stepsKeys.length - 1; j++){
+			for(var j = 0; j<stepsKeys.length; j++){
 				var step = steps[stepsKeys[j]];
 				var total = step.CREATE.length + step.UPDATE.length + step.DELETE.length;
 				if(total === 0){
-					var nextStep = steps[stepsKeys[j + 1]]; //Will be replaced in future :)
-					nextStep.READ = step.READ.concat(nextStep.READ);
-					delete steps[stepsKeys[j]];
+					if(j < stepsKeys.length -1){
+						var nextStep = steps[stepsKeys[j + 1]]; //Must be replaced in future :)
+						nextStep.READ = step.READ.concat(nextStep.READ);
+						nextStep.storageInit = step.storageInit || step.storage;
+						delete steps[stepsKeys[j]];
+					}
 				}
 				else{
 					step.needArray = true;
 				}
 			}
+
+			//Defining model functions for storage requirements
+			//And previous and next storage requirements for step
+			stepsKeys = Object.keys(steps);
+			for(var j = 0; j<stepsKeys.length; j++){
+				var step = steps[stepsKeys[j]];
+				step.requirementName = requirement.name;
+				if(j === 0){
+					requirement.firstStep = step;
+				}
+				if(j > 0){
+					step.previousStorage = steps[stepsKeys[j-1]].storage;
+				}
+				if(j < stepsKeys.length -1){
+					step.nextStorage = steps[stepsKeys[j+1]].storage;
+				}
+				step.relationships = project.classAssociations.filter(function(association){
+					return association.classB._id.toString() === step.storage._id.toString();
+				}).map(function(association){
+					for(var j=0; j<project.storageRequirements.length; j++){
+						var storage = project.storageRequirements[j];
+						if(storage._id.toString() === association.classA._id.toString()){
+							return storage;
+						}
+					}
+				});
+				if(step.storageInit){
+					var storage = (function(storage){
+						for(var k = 0; k<project.storageRequirements.length; k++){
+							if(storage._id.toString() === project.storageRequirements[k]._id.toString()){
+								return project.storageRequirements[k];
+							}
+						}
+					})(step.storageInit);
+					
+					storage.functions = storage.functions || {};
+					var method = helpers.className(step.storage.name);
+					storage.functions[method] = helpers.getSQL(step.READ);
+				}
+			}
 			requirement.steps = steps;
+		}
+
+		//Adding functions for the models
+		for(var k = 0; k<project.storageRequirements.length; k++){
+			var storage = project.storageRequirements[k];
+			if(storage.functions){
+				var functions = [];
+				for(var name in storage.functions){
+					functions.push({
+						name 	: name,
+						sql 	: storage.functions[name].sql,
+						where 	: storage.functions[name].where
+					});
+				}
+				storage.functions = functions;
+			}
+		}
+
+		//Generating database.sql
+		var text = templateFile('sql');
+		var template = Handlebars.compile(text);
+		files.push({
+			file : folder + 'database.sql',
+			data : template(project)
+		});
+
+		//Generating models
+		text = templateFile('model');
+		template = Handlebars.compile(text);
+		for(var i=0; i<project.storageRequirements.length; i++){
+			var storage = project.storageRequirements[i];
+			files.push({
+				file : folder + 'models/' + helpers.className(storage.name) +'.php',
+				data : template(storage)
+			});
+		}
+
+		//Generating a controller for each functional requirement
+		text = templateFile('controller');
+		template = Handlebars.compile(text);
+		for(var i=0; i<project.functionalRequirements.length; i++){
+			var requirement = project.functionalRequirements[i];
+			requirement.roles = project.useCaseAssociations.filter(function(association){
+				return association.useCase.toString() === requirement._id.toString();
+			}).map(function(association){
+				for(var j=0; j<project.actors.length; j++){
+					var actor = project.actors[j];
+					if(actor._id.toString() === association.actor.toString()	){
+						return helpers.roleName(actor.name);
+					}
+				}
+				return '';
+			});
+			files.push({
+				file : folder + 'controllers/'+ helpers.className(requirement.name) +'Controller.php',
+				data : template(requirement)
+			});
+		}
+
+		//Generating a controller for each role
+		text = templateFile('role_controller');
+		template = Handlebars.compile(text);
+		for(var i=0; i<project.actors.length; i++){
+			var actor = project.actors[i];
+			file = 'controllers/'+ helpers.className(actor.name) +'Controller.php';
+			actor.roles = [helpers.roleName(actor.name)];
+			files.push({
+				file : folder + 'controllers/'+ helpers.className(actor.name) +'Controller.php',
+				data : template(actor)
+			});
+		}
+
+		//Generating Index Controller
+		text = templateFile('index_controller');
+		template = Handlebars.compile(text);
+		files.push({
+			file : folder + 'controllers/IndexController.php',
+			data : template(project)
+		});
+
+		//Generating index view
+		text = templateFile('index_view');
+		template = Handlebars.compile(text);
+		files.push({
+			file : folder + 'views/index/index.hbs',
+			data : template(project)
+		});	
+		
+		//Generating index view for each role
+		text = templateFile('role_view');
+		template = Handlebars.compile(text);		
+		for(var i=0; i<project.actors.length; i++){
+			var actor = project.actors[i];
+			files.push({
+				file : folder + 'views/'+ helpers.friendlyUrl(actor.name) +'/index.hbs',
+				data : template(actor)
+			});
+		}
+
+		//Generating views for each step on activities diagram
+		text = templateFile('view');
+		template = Handlebars.compile(text);
+		for (var i = 0; i < project.functionalRequirements.length; i++) {
+			var requirement = project.functionalRequirements[i];
+			var stepsKeys = Object.keys(requirement.steps);
+			for (var j = 0; j < stepsKeys.length; j++) {
+				var step = requirement.steps[stepsKeys[j]];
+				var folder2 = helpers.friendlyUrl(requirement.name);
+				var fileName = helpers.friendlyUrl(step.storage.name);
+				files.push({
+					file : folder + 'views/'+ folder2 +'/'+ fileName +'.hbs',
+					data : template(step)
+				});
+			};
+		};
+
+		//Generating partial for each role
+		text = templateFile('role_partial');
+		template = Handlebars.compile(text);
+		for(var i=0; i<project.actors.length; i++){
+			var actor = project.actors[i];
+			actor.useCases = project.useCaseAssociations.filter(function(association){
+				return association.actor.toString() === actor._id.toString();
+			}).map(function(association){
+				for(var j=0; j<project.functionalRequirements.length; j++){
+					var useCase = project.functionalRequirements[j];
+					if(useCase._id.toString() === association.useCase.toString()	){
+						return useCase;
+					}
+				}
+			});
+			files.push({
+				file : folder + 'views/partials/'+ helpers.friendlyUrl(actor.name) +'.hbs',
+				data : template(actor)
+			});
+		}
+
+		//Generating header partial
+		text = templateFile('header');
+		template = Handlebars.compile(text);
+		files.push({
+			file : folder + 'views/partials/header.hbs',
+			data : template(project)
+		});
+
+		//Generating view folder for IndexController
+		folders.push(folder + 'views/index/');
+
+		//Generating view folders for each functional controller
+		for(var i=0; i<project.functionalRequirements.length; i++){
+			var requirement = project.functionalRequirements[i];
+			folders.push(folder + 'views/'+ helpers.friendlyUrl(requirement.name));
+		}
+
+		//Generating view folders for each role controller
+		for(var i=0; i<project.actors.length; i++){
+			var actor = project.actors[i];
+			folders.push(folder + 'views/'+ helpers.friendlyUrl(actor.name));
 		}
 
 		async.series([
@@ -90,7 +299,6 @@ module.exports = function(){
 				});
 			},
 			function(callback){
-				socket.emit('info','Creating folder project');
 				mkdirp(folder,function(){
 					callback();
 				});
@@ -102,12 +310,36 @@ module.exports = function(){
 				});
 			},
 			function(callback){
-				socket.emit('info','Generating SQL');
-				var text = templateFile('sql');
-				var template = Handlebars.compile(text);
-				fs.writeFile(folder + 'database.sql', template(project), function () {
+				exec('chmod -R 777 '+ folder,function(){
 					callback();
 				});
+			},
+			function(callback){
+				socket.emit('info','Making folders');
+				var total = 0;
+				var limit = folders.length;
+				for (var i = 0; i < folders.length; i++) {
+					mkdirp(folders[i],function(){
+						total++;
+						if(total === limit){
+							callback();
+						}
+					});
+				};				
+			},
+			function(callback){
+				socket.emit('info','Writing files');
+				var total = 0;
+				var limit = files.length;
+				for (var i = 0; i < files.length; i++) {
+					console.log(files[i].file);
+					fs.writeFile(files[i].file , files[i].data, function () {
+						total++;
+						if(total === limit){
+							callback();
+						}
+					});
+				};				
 			},
 			function(callback){
 				socket.emit('info','Creating database');
@@ -118,183 +350,14 @@ module.exports = function(){
 				});
 			},
 			function(callback){
-				socket.emit('info','Generating models');
-				var text = templateFile('model');
-				var template = Handlebars.compile(text);
-				var total = 0;
-				for(var i=0; i<project.storageRequirements.length; i++){
-					var storage = project.storageRequirements[i];
-					var file = 'models/' + helpers.className(storage.name) +'.php';
-					fs.writeFile(folder +file , template(storage), function () {
-						total++;
-						if(total === project.storageRequirements.length){
-							callback();
-						}
-					});
-				}
-			},
-			function(callback){
-				socket.emit('info', 'Generating controllers');
-				var text = templateFile('controller');
-				var template = Handlebars.compile(text);
-				var total = 0;
-				var file;
-				var limit = project.functionalRequirements.length + project.actors.length + 1;
-				
-				//Generating a controller for each functional requirement
-				for(var i=0; i<project.functionalRequirements.length; i++){
-					var requirement = project.functionalRequirements[i];
-					file = 'controllers/'+ helpers.className(requirement.name) +'Controller.php';
-					requirement.roles = project.useCaseAssociations.filter(function(association){
-						return association.useCase.toString() === requirement._id.toString();
-					}).map(function(association){
-						for(var j=0; j<project.actors.length; j++){
-							var actor = project.actors[j];
-							if(actor._id.toString() === association.actor.toString()	){
-								return helpers.roleName(actor.name);
-							}
-						}
-						return '';
-					});
-					fs.writeFile(folder +file , template(requirement), function () {
-						total++;
-						if(total === limit){
-							callback();
-						}
-					});
-				}
-
-				//Generating a controller for each role
-				text = templateFile('role_controller');
-				template = Handlebars.compile(text);
-				for(var i=0; i<project.actors.length; i++){
-					var actor = project.actors[i];
-					file = 'controllers/'+ helpers.className(actor.name) +'Controller.php';
-					actor.roles = [helpers.roleName(actor.name)]
-					fs.writeFile(folder +file , template(actor), function () {
-						total++;
-						if(total === limit){
-							callback();
-						}
-					});
-				}
-
-				//Generating Index Controller
-				text = templateFile('index_controller');
-				template = Handlebars.compile(text);
-				file = 'controllers/IndexController.php';
-				fs.writeFile(folder +file , template(project), function () {
-					total++;
-					if(total === limit){
-						callback();
-					}
-				});
-			},
-			function(callback){
-				socket.emit('info','Creating views\' folders');
-				var total = 0;
-				var limit = project.functionalRequirements.length + project.actors.length + 1;
-				var file = '/views/index/';
-				mkdirp(folder + file ,function(){
-					total++;
-					if(total === limit){
-						callback();
-					}
-				});
-				for(var i=0; i<project.functionalRequirements.length; i++){
-					var requirement = project.functionalRequirements[i];
-					file = '/views/'+ helpers.friendlyUrl(requirement.name);
-					mkdirp(folder + file ,function(){
-						total++;
-						if(total === limit){
-							callback();
-						}
-					});
-				}
-				for(var i=0; i<project.actors.length; i++){
-					var actor = project.actors[i];
-					file = '/views/'+ helpers.friendlyUrl(actor.name);
-					mkdirp(folder + file ,function(){
-						total++;
-						if(total === limit){
-							callback();
-						}
-					});
-				}
-			},
-			function(callback){
-				socket.emit('info','Generating views');
-				var text = templateFile('index_view');
-				var template = Handlebars.compile(text);
-				var file = 'views/index/index.hbs';
-				var total = 0;
-				var limit = project.actors.length + 1;
-				//Generating index view
-				fs.writeFile(folder +file , template(project), function () {
-					total++;
-					if(total === limit){
-						callback();
-					}
-				});
-				
-				text = templateFile('role_view');
-				template = Handlebars.compile(text);
-				//Generating index view for each role
-				for(var i=0; i<project.actors.length; i++){
-					var actor = project.actors[i];
-					file = '/views/'+ helpers.friendlyUrl(actor.name) +'/index.hbs';
-					fs.writeFile(folder +file , template(actor), function () {
-						total++;
-						if(total === limit){
-							callback();
-						}
-					});
-				}
-			},
-			function(callback){
-				socket.emit('info','Generating partials');
-				var total = 0;
-				var limit = project.actors.length + 1;
-				var text = templateFile('role_partial');
-				var template = Handlebars.compile(text);
-				var file;
-				
-				for(var i=0; i<project.actors.length; i++){
-					var actor = project.actors[i];
-					actor.useCases = project.useCaseAssociations.filter(function(association){
-						return association.actor.toString() === actor._id.toString();
-					}).map(function(association){
-						for(var j=0; j<project.functionalRequirements.length; j++){
-							var useCase = project.functionalRequirements[j];
-							if(useCase._id.toString() === association.useCase.toString()	){
-								return useCase;
-							}
-						}
-					});
-					file = '/views/partials/'+ helpers.friendlyUrl(actor.name) +'.hbs';
-					fs.writeFile(folder +file , template(actor), function () {
-						total++;
-						if(total === limit){
-							callback();
-						}
-					});
-				}
-
-				text = templateFile('header');
-				template = Handlebars.compile(text);
-				file = '/views/partials/header.hbs';
-				fs.writeFile(folder +file , template(project), function () {
-					total++;
-					if(total === limit){
-						callback();
-					}
-				});
+				socket.emit('info', 'Making a zip project file');
+				callback();
 			},
 			function(callback){
 				socket.emit('info','Creating settings');
-				var text = templateFile('conf');
-				var template = Handlebars.compile(text);
-				var file = 'conf/Conf.php';
+				text = templateFile('conf');
+				template = Handlebars.compile(text);
+				file = 'conf/Conf.php';
 				fs.writeFile(folder +file , template(project), function () {
 					callback();
 				});

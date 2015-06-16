@@ -2,7 +2,7 @@
 	<div class="bs-component">
 		<div class="list-group">
 			{{#each useCases}}
-			<a href="\{{#root /{{friendlyUrl name}}/step1/ }}" class="list-group-item">
+			<a href="\{{#root /{{friendlyUrl name}}/{{friendlyUrl firstStep.storage.name}} }}" class="list-group-item">
 				<h4 class="list-group-item-heading">{{name}}</h4>
 				<p class="list-group-item-text">{{description}}</p>
 			</a>
