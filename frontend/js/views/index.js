@@ -20,7 +20,6 @@ module.exports = Backbone.View.extend({
 	},
 
 	bindEvents:function(){
-		$('.sidebar').niceScroll();
 		$('.dropdown').click(function(e){
 			var ul=$(e.target).parent().children('ul');
 			var i=$(e.target).parent().children('i');

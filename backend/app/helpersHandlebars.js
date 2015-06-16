@@ -3,8 +3,7 @@ var i18next = require('i18next');
 var helper = module.exports = {
 	//Traslate helper
 	t : function(i18n_key){
-		var result = i18next.t(i18n_key);
-		if(result===''||result===null||result===undefined)return i18n_key;
+		var result = i18next.t(i18n_key) || i18n_key;
 		return result;
 	},
 	date : function(date) {

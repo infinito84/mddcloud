@@ -67,8 +67,8 @@ module.exports=(function(){
 			},
 			function(project, user, password, callback){
 				new StorageRequirement({
-					name 		: req.i18n.t('User'),
-					description : req.i18n.t('This storage requirement represents the users of your system'),
+					name 		: 'User',
+					description : 'This storage requirement represents the users of your system',
 					special 	: 'USER',
 					x 			: 100,
 					y 			: 300,
@@ -89,8 +89,8 @@ module.exports=(function(){
 			},
 			function(project, user, name, callback){
 				new StorageRequirement({
-					name 		: req.i18n.t('Role'),
-					description : req.i18n.t('This storage requirement represents the actors of your system'),
+					name 		: 'Role',
+					description : 'This storage requirement represents the actors of your system',
 					special 	: 'ROLE',
 					x 			: 110,
 					y 			: 100,

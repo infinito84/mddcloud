@@ -92,7 +92,7 @@ module.exports=(function(){
 							project 	: project.name,
 							description	: project.description,
 							role 		: role,
-							link 		: app.config.host + 'participant/all/'
+							link 		: app.config.host + 'projects'
 						}
 					},function(error,info){
 						if(error){

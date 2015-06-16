@@ -238,7 +238,7 @@ module.exports=(function(){
 	var privateUtils={
 		registerjQueryPlugins:function(){
 			window.jQuery = window.$ = $;
-			require('../libs/jquery.nicescroll/jquery.nicescroll');
+			//require('../libs/jquery.nicescroll/jquery.nicescroll');
 			require('../libs/jquery-file-upload/js/jquery.fileupload');
 			require('../libs/select2/select2');
 			require('../libs/notifyjs/dist/notify');

@@ -377,7 +377,7 @@ module.exports = function(){
 				});
 			}
 		],function(){
-			socket.emit('finish2',config.host+'preview/'+projectId);
+			socket.emit('finish2',config.preview+'preview/'+projectId);
 		});		
 	});	
 }

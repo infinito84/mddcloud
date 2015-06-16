@@ -1,7 +1,6 @@
 var express				= require('express'),
 	multer 				= require('multer'),
 	fs 					= require('fs'),
-	ffmpeg 				= require('fluent-ffmpeg'),
 	app 				= require('../app/server'),
 	availableSockets 	= require('../app/availableSockets'),
 	Multimedia 			= require('../models/multimedia');
@@ -47,40 +46,11 @@ module.exports=(function(){
 		
 		if(type === 'AUDIO'){
 			file.description = req.i18n.t('An audio resource');
-			if(file.extension !== 'mp3'){
-				socket.emit('info',req.i18n.t('Processing audio'));	
-				var newPath = file.path.replace('.'+file.extension,'') + '.mp3';
-				ffmpeg(file.path).on('error', function(err) {
-					socket.emit('requestError',req.i18n.t('Error converting the audio to MP3'));
-					console.log(err.message);
-					end();
-				}).on('end', function() {
-					fs.unlink(file.path);
-					file.path = newPath;
-					file.extension = 'mp3';
-					socket.emit('info',req.i18n.t('Audio converted to MP3')+'!');	
-					end();
-				}).format('mp3').save(newPath);
-			}
-			else{
-				end();
-			}
+			end();
 		}
 		else if(type === 'VIDEO'){
 			file.description = req.i18n.t('An video resource');
-			socket.emit('info',req.i18n.t('Processing video'));	
-			var newPath = file.path.replace('.'+file.extension,'')+'.mp4';
-			ffmpeg(file.path).on('error', function(err) {
-				socket.emit('requestError',req.i18n.t('Error processing the video'));
-				console.log(err.message);
-				end();
-			}).on('end', function() {
-				fs.unlink(file.path);
-				file.path = newPath;
-				file.extension = 'mp4';
-				socket.emit('info',req.i18n.t('Video processed')+'!');	
-				end();
-			}).size('480x320').format('mp4').save(newPath);
+			end();
 		}
 		else if(type === 'IMAGE'){
 			file.description = req.i18n.t('An image resource');

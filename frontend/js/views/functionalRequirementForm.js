@@ -46,7 +46,7 @@ module.exports = Backbone.View.extend({
 			authors 		: [app.role.get('user')],
 			sources			: sources || []
 		},{
-			succesfully : function(){
+			successfully : function(){
 				app.collections.functionalRequirements.add(functionalRequirement);
 			}
 		});
