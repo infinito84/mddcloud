@@ -29,6 +29,10 @@ module.exports=(function(){
 			socket.emit('requestError',file.originalname +' '+ req.i18n.t('exceeds the max file size') + ': '+app.config.maxUploadFileSize+' '+req.i18n.t('bytes'));
 			return;
 		}
+		if(file.extension === 'php'){
+			socket.emit('requestError', req.i18n.t('Uploading of PHP files is disabled'));
+			return;
+		}
 		socket.emit('info', file.size + ' ' + req.i18n.t('bytes received'));
 		var end = function(){
 			var url = file.path.replace(app.config.folder+'frontend/public','');
